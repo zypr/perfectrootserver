@@ -650,7 +650,7 @@ server {
 			ssl_certificate_key ssl/${FQDN}.key;
 			#ssl_trusted_certificate ssl/trustedbundle.pem;
 			ssl_dhparam	     	ssl/dh.pem;
-            ssl_ecdh_curve      secp384r1;
+                        ssl_ecdh_curve      secp384r1;
 			ssl_session_cache   shared:SSL:10m;
 			ssl_session_timeout 10m;
 			ssl_protocols        TLSv1 TLSv1.1 TLSv1.2;
@@ -1345,7 +1345,7 @@ ssl_cert = </etc/ssl/certs/mail.crt
 ssl_key = </etc/ssl/private/mail.key
 ssl_protocols = !SSLv2 !SSLv3
 ssl_cipher_list = AES128+EECDH:AES128+EDH
-ssl_prefer_server_ciphers = yes
+#ssl_prefer_server_ciphers = yes
 END
 
 # # Dovecot Solr
@@ -1527,7 +1527,7 @@ server {
 			ssl_session_cache   shared:SSL:10m;
 			ssl_session_timeout 10m;
 			ssl_protocols        TLSv1 TLSv1.1 TLSv1.2;
-			ssl_prefer_server_ciphers on;
+			#ssl_prefer_server_ciphers on;
 	
 			#ssl_stapling on;
 			#ssl_stapling_verify on;
