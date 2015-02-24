@@ -562,7 +562,6 @@ sysctl -p
 
 # Edit/create Nginx config files
 rm -r -f /etc/nginx/nginx.conf
-
 cat > /etc/nginx/nginx.conf <<END
 user www-data;
 worker_processes ${WORKER};
@@ -623,7 +622,6 @@ END
 
 # Create server config
 rm -r -f /etc/nginx/sites-available/${FQDN}.conf
-
 cat > /etc/nginx/sites-available/${FQDN}.conf <<END
 server {
 			listen 80 default_server;
@@ -663,7 +661,7 @@ server {
 
 			ssl_ciphers "AES256+EECDH:AES256+EDH";				
 
-			add_header Strict-Transport-Security "max-age=63072000; includeSubdomains";
+			add_header Strict-Transport-Security "max-age=15768000; includeSubdomains";
 			add_header X-Frame-Options DENY;
 			add_header Alternate-Protocol  443:npn-spdy/2;
 			add_header X-Content-Type-Options nosniff;
@@ -757,6 +755,10 @@ server {
 			}		
 }
 END
+
+if [ $CLOUDFLARE == '1' ]; then
+	sed -i '37s/.*/ssl_ciphers "AES128+EECDH:AES128+EDH:AES256+EECDH:AES256+EDH";/' /etc/nginx/sites-available/${FQDN}.conf
+fi
 
 ln -s /etc/nginx/sites-available/${FQDN}.conf /etc/nginx/sites-enabled/${FQDN}.conf
 
@@ -1482,10 +1484,9 @@ service dovecot restart
 # ViMbAdmin v3 Installation
 cd /usr/local
 git clone git://github.com/opensolutions/ViMbAdmin.git vimbadmin
-cd /usr/local/vimbadmin
+cd vimbadmin/
 curl -sS https://getcomposer.org/installer | php
 php composer.phar install
-chown -R www-data:www-data /usr/local/vimbadmin
 cp application/configs/application.ini.dist application/configs/application.ini
 
 sed -i "46s/.*/resources.doctrine2.connection.options.dbname   = '${DATABASE}'/" /usr/local/vimbadmin/application/configs/application.ini
@@ -1501,7 +1502,7 @@ sed -i '149s/.*/defaults.mailbox.password_scheme = "crypt:sha512"/' /usr/local/v
 cp /usr/local/vimbadmin/public/.htaccess.dist /usr/local/vimbadmin/public/.htaccess
 /usr/local/vimbadmin/bin/doctrine2-cli.php orm:schema-tool:create
 
-chown -R www-data:www-data /usr/local/vimbadmin
+chown -R www-data:www-data ../vimbadmin
 
 # Create Nginx VHost
 cat > /etc/nginx/sites-available/vma.${FQDN}.conf <<END
@@ -1625,6 +1626,10 @@ server {
 }
 END
 
+if [ $CLOUDFLARE == '1' ]; then
+	sed -i '30s/.*/ssl_ciphers "AES128+EECDH:AES128+EDH:AES256+EECDH:AES256+EDH";/' /etc/nginx/sites-available/vma.${FQDN}.conf
+fi
+
 ln -s /etc/nginx/sites-available/vma.${FQDN}.conf /etc/nginx/sites-enabled/vma.${FQDN}.conf
 sed -i '1s/.*/3/' ~/status
 
@@ -1686,8 +1691,6 @@ sed -i '44s/.*/EXT_IF_DHCP_IP="0"/' /etc/arno-iptables-firewall/firewall.conf
 sed -i '307s/.*/DRDOS_PROTECT="1"/' /etc/arno-iptables-firewall/firewall.conf
 sed -i '312s/.*/IPV6_SUPPORT="0"/' /etc/arno-iptables-firewall/firewall.conf
 
-stty echo
-
 echo
 yellow "#########################"
 yellow "## USER INPUT REQUIRED ##"
@@ -1696,10 +1699,11 @@ echo
 echo "Change the default SSH port for some security reasons."
 echo "Please use only a priviliged Port! (1 - 1024)"
 echo
+stty echo
 read -p "Enter a new port, followed by [ENTER]: " SSH
-SSHW="1"
-SSHS="1"
-SSHC="1"
+SSHW=1
+SSHS=1
+SSHC=1
 while [ $SSHW == '1' ]; do
 	while [ $SSHC == '1' ]; do
 		if [ $SSH == '22' ] && [ $SSHS == '1' ]; then
@@ -1709,7 +1713,7 @@ while [ $SSHW == '1' ]; do
 				cyan "Do you really want to use the standard SSH port? [y/n]"
 				read -p "" i
 				case $i in
-				[Yy]* ) SSHS="0";break;;
+				[Yy]* ) SSHS=0;break;;
 				[Nn]* ) echo;read -p "Enter a new port, followed by [ENTER]: " SSH;break;;
 				* ) red "Please use [y/n]";;
 				esac
@@ -1767,7 +1771,7 @@ while [ $SSHW == '1' ]; do
 			if [ $SSH == '22' ]; then
 				echo
 			else
-				SSHS="0"
+				SSHS=0
 			fi
 		fi
 		if [ $SSH == '21' ] || [ $SSH == '25' ] || [ $SSH == '80' ] || [ $SSH == '443' ] || [ $SSH == '587' ] || [ $SSH == '990' ] || [ $SSH == '993' ] || [ $SSH -gt 1024 ] || [ $SSH -le 0 ]; then
@@ -1777,7 +1781,7 @@ while [ $SSHW == '1' ]; do
                         read -p "Enter a new port, followed by [ENTER]: " SSH
                 else
                 	if [[ $SSH =~ ^-?[0-9]+$ ]]; then
-                		SSHC="0"
+                		SSHC=0
                         else
                         	echo
                         	red "*************************************************"
