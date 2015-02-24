@@ -1587,14 +1587,11 @@ server {
 			location / {
 			   	ModSecurityEnabled on;
 			   	ModSecurityConfig modsecurity/modsecurity.conf;
-			}
-
-			location / {
-				if (!-f \$request_filename) {
-				rewrite ^(.*)\$ /index.php?q=\$1 last;
+			   	if (!-f $request_filename) {
+				rewrite ^(.*)$ /index.php?q=$1 last;
 				break;
 				}
-				try_files \$uri \$uri/ /index.php?\$args;
+				try_files $uri $uri/ /index.php?$args;
 			}
 			
 			location ~ /\. {
