@@ -1870,6 +1870,7 @@ else
 	echo "Enter the password for your private key, followed by [ENTER]:"
 	unset SSHKEYPWD
 	unset CHARCOUNT
+	stty echo
 	echo -n "Enter password: "
 	stty echo
 	CHARCOUNT=0
@@ -1929,6 +1930,7 @@ else
 			unset SSHKEYPWD
 			unset CHARCOUNT
 			unset PROMPT
+			stty echo
 			echo -n "Enter password: "
 			stty echo
 			CHARCOUNT=0
@@ -1952,15 +1954,15 @@ else
 				fi
 			done
 			stty echo
-					echo
-					unset SSHKEYPWD2
-					unset CHARCOUNT
-					unset PROMT
-					echo -n "Repeat password: "
-					stty echo
-					CHARCOUNT=0
-					while IFS= read -p "$PROMPT" -r -s -n 1 CHAR
-					do
+			echo
+			unset SSHKEYPWD2
+			unset CHARCOUNT
+			unset PROMT
+			echo -n "Repeat password: "
+			stty echo
+			CHARCOUNT=0
+			while IFS= read -p "$PROMPT" -r -s -n 1 CHAR
+			do
 				if [[ $CHAR == $'\0' ]] ; then
 					break
 				fi
@@ -2047,15 +2049,15 @@ cp /etc/dkimproxy/public.key ~/dkim.key
 sed -i '1d' ~/dkim.key
 sed -i '5d' ~/dkim.key
 while true; do
-  out=()
-  for (( i=0; i<4; i++ )); do
+ 	out=()
+ 	for (( i=0; i<4; i++ )); do
     read && out+=( "$REPLY" )
-  done
-  if (( ${#out[@]} > 0 )); then
-    printf '%s' "${out[@]}"
-    echo
-  fi
-  if (( ${#out[@]} < 4 )); then break; fi
+  	done
+ 	 if (( ${#out[@]} > 0 )); then
+    	printf '%s' "${out[@]}"
+    	echo
+  	fi
+  	if (( ${#out[@]} < 4 )); then break; fi
 done <~/dkim.key >~/dkim2.key
 cat ~/dkim2.key
 echo
