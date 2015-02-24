@@ -2078,6 +2078,7 @@ echo
 echo "Create a domain and a mailbox. Now you can login with your"
 echo "e-mail client with the following data:"
 echo
+echo "Host: mail.${FQDN}"
 echo "Username: yourmailbox@${FQDN}"
 echo "IMAP: 993 with SSL/TLS"
 echo "SMTP: 587 with STARTTLS"
