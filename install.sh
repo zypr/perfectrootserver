@@ -42,12 +42,10 @@ echo
 yellow "#########################"
 yellow "## USER INPUT REQUIRED ##"
 yellow "#########################"
-echo "Please enter your domain name or alternatively"
-echo "your reverse DNS hostname. Please enter the domain"
-echo "without a subdomain (www) unless you know what you"
-echo "are doing!"
+echo "Please enter your domain without a subdomain (www)"
+echo "unless you know what you are doing!"
 echo
-read -p "Domain or Hostname: " FQDNTMP
+read -p "Enter Domain: " FQDNTMP
 FQDNIP=$(host ${FQDNTMP} | awk '/has address/ { print $4 ; exit }')
 echo
 echo
@@ -55,7 +53,7 @@ yellow "#########################"
 yellow "## USER INPUT REQUIRED ##"
 yellow "#########################"
 echo
-red "Do you use a service like CloudFlare to protect your Website?"
+red "Do you want to use a service like CloudFlare to protect your Website?"
 stty echo
 while true; do
 	read -p "Yes [Y] / No [N]: " i
@@ -757,7 +755,15 @@ server {
 END
 
 if [ $CLOUDFLARE == '1' ]; then
-	sed -i '37s/.*/ssl_ciphers "AES128+EECDH:AES128+EDH:AES256+EECDH:AES256+EDH";/' /etc/nginx/sites-available/${FQDN}.conf
+	sed -i "3s/.*/			server_name ${FQDN}/" /etc/nginx/sites-available/${FQDN}.conf
+	sed -i '6s/.*/\n&/' /etc/nginx/sites-available/${FQDN}.conf
+	sed -i '7s/.*/server {\n&/' /etc/nginx/sites-available/${FQDN}.conf
+	sed -i '8s/.*/			listen 80;\n&/' /etc/nginx/sites-available/${FQDN}.conf
+	sed -i "9s/.*/			server_name ${IPADR};\n&/" /etc/nginx/sites-available/${FQDN}.conf
+	sed -i '10s/.*/			return 503;\n&/' /etc/nginx/sites-available/${FQDN}.conf
+	sed -i '11s/.*/}\n&/' /etc/nginx/sites-available/${FQDN}.conf
+	sed -i '16s/.*/			return 503;/' /etc/nginx/sites-available/${FQDN}.conf
+	sed -i '43s/.*/			ssl_ciphers "AES128+EECDH:AES128+EDH:AES256+EECDH:AES256+EDH";/' /etc/nginx/sites-available/${FQDN}.conf
 fi
 
 ln -s /etc/nginx/sites-available/${FQDN}.conf /etc/nginx/sites-enabled/${FQDN}.conf
@@ -1627,7 +1633,7 @@ server {
 END
 
 if [ $CLOUDFLARE == '1' ]; then
-	sed -i '30s/.*/ssl_ciphers "AES128+EECDH:AES128+EDH:AES256+EECDH:AES256+EDH";/' /etc/nginx/sites-available/vma.${FQDN}.conf
+	sed -i '30s/.*/			ssl_ciphers "AES128+EECDH:AES128+EDH:AES256+EECDH:AES256+EDH";/' /etc/nginx/sites-available/vma.${FQDN}.conf
 fi
 
 ln -s /etc/nginx/sites-available/vma.${FQDN}.conf /etc/nginx/sites-enabled/vma.${FQDN}.conf
@@ -2018,11 +2024,31 @@ yellow "#########################"
 echo "Before the mail server can be used, the following requirements must be met:"
 echo
 echo
-red "## 1 ##"
+yellow "## 1 ##"
 echo "The Subomain vma.${FQDN} and mail.${FQDN}"
 echo "must be resolve to your IP: ${IPADR}"
+if [ $CLOUDFLARE == '1' ]; then
+	echo "If you use CloudFlare, you have to set A records for each subdomain!"
+fi
 echo
-red "## 2 ##"
+echo
+if [ $CLOUDFLARE == '1' ]; then
+	echo
+else
+	yellow "## 2 ##"
+	echo "Verify that the following MX record is set:"
+	echo
+	echo "NAME       TYPE          VALUE"
+	echo "-----------------------------------------"
+	echo "${FQDN}	  MX	  10:mail.${FQDN}"
+	echo
+	echo
+fi
+if [ $CLOUDFLARE == '1' ]; then
+	yellow "## 2 ##"
+else
+	yellow "## 3 ##"
+fi
 echo "In the next step you have to set two DNS TXT records for your domain."
 red "DONT FORGET THE QUOTES \" \""
 echo
@@ -2032,7 +2058,11 @@ magenta "The first rule should look like this:"
 echo
 echo "NAME       TYPE          VALUE"
 echo "-----------------------------------------"
-echo " @         TXT       \"v=spf1 mx -all\""
+if [ $CLOUDFLARE == '1' ]; then
+	echo " @         TXT       \"v=spf1 ipv4:${IPADR} -all\""
+else
+	echo " @         TXT       \"v=spf1 mx -all\""
+fi
 echo
 echo
 echo
