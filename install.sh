@@ -1876,7 +1876,7 @@ else
 	echo "Enter the password for your private key, followed by [ENTER]:"
 	unset SSHKEYPWD
 	unset CHARCOUNT
-	stty echo
+	unset PROMPT
 	echo -n "Enter password: "
 	stty echo
 	CHARCOUNT=0
