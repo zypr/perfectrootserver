@@ -731,9 +731,10 @@ server {
 			#
 			#location / {
 			#	if (!-f \$request_filename) {
-			#	rewrite ^(.*)\$ /index.php?q=\$1 last;
-			#	break;
+			#		rewrite ^(.*)\$ /index.php?q=\$1 last;
+			#		break;
 			#	}
+			#   try_files \$uri \$uri/ /index.php?\$args;
 			#}
 			
 			location ~* ^.+\.(css|js)\$ {
@@ -1597,8 +1598,8 @@ server {
 			   	ModSecurityEnabled on;
 			   	ModSecurityConfig modsecurity/modsecurity.conf;
 			   	if (!-f \$request_filename) {
-				rewrite ^(.*)$ /index.php?q=\$1 last;
-				break;
+					rewrite ^(.*)\$ /index.php?q=\$1 last;
+					break;
 				}
 				try_files \$uri \$uri/ /index.php?\$args;
 			}
