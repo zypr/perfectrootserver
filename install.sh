@@ -85,6 +85,7 @@ FQDN=$FQDNTMP
 
 echo -e "1" >> ~/status
 echo -e "$FQDN" >> ~/status
+echo -e "$CLOUDFLARE" >> ~/status
 
 host=$(hostname)
 sed -i "s/$host/$FQDN/g" /etc/hosts
@@ -834,6 +835,7 @@ sleep 10
 
 part2(){
 FQDN=$(sed '2q;d' ~/status)
+CLOUDFLARE=$(sed '3q;d' ~/status)
 # Mount folder
 #encfs /var/mail/encrypted /var/mail/decrypted -o big_writes -o max_write=131072 -o max_readahead=131072 -o nonempty --public
 echo
