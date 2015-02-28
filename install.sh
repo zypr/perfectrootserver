@@ -2028,7 +2028,7 @@ yellow "## 1 ##"
 echo "The Subomain vma.${FQDN} and mail.${FQDN}"
 echo "must be resolve to your IP: ${IPADR}"
 if [ $CLOUDFLARE == '1' ]; then
-	echo "If you use CloudFlare, you have to set A records for each subdomain!"
+	echo "If you use CloudFlare, you have to set a A-record for each subdomain!"
 fi
 echo
 echo
