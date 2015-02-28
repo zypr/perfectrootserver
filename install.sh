@@ -756,7 +756,7 @@ server {
 END
 
 if [ $CLOUDFLARE == '1' ]; then
-	sed -i "3s/.*/			server_name ${FQDN}/" /etc/nginx/sites-available/${FQDN}.conf
+	sed -i "3s/.*/			server_name ${FQDN};/" /etc/nginx/sites-available/${FQDN}.conf
 	sed -i '6s/.*/\n&/' /etc/nginx/sites-available/${FQDN}.conf
 	sed -i '7s/.*/server {\n&/' /etc/nginx/sites-available/${FQDN}.conf
 	sed -i '8s/.*/			listen 80;\n&/' /etc/nginx/sites-available/${FQDN}.conf
@@ -1596,11 +1596,11 @@ server {
 			location / {
 			   	ModSecurityEnabled on;
 			   	ModSecurityConfig modsecurity/modsecurity.conf;
-			   	if (!-f $request_filename) {
-				rewrite ^(.*)$ /index.php?q=$1 last;
+			   	if (!-f \$request_filename) {
+				rewrite ^(.*)$ /index.php?q=\$1 last;
 				break;
 				}
-				try_files $uri $uri/ /index.php?$args;
+				try_files \$uri \$uri/ /index.php?\$args;
 			}
 			
 			location ~ /\. {
