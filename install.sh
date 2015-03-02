@@ -615,7 +615,7 @@ http {
 		access_log		logs/access.log main buffer=16k;
 		error_log       	logs/error.log;
 		
-		include			/etc/nginx/sites-available/*.conf;
+		include			/etc/nginx/sites-enabled/*.conf;
 }
 END
 
@@ -863,7 +863,7 @@ chown -R vmail:vmail /var/mail/decrypted
 # Install MySQL
 aptitude -y install mysql-server
 
-sed -i '32s/.*/innodb_file_per_table/' /etc/mysql/my.cnf
+sed -i '32s/.*/innodb_file_per_table = 1/' /etc/mysql/my.cnf
 
 # echo
 # echo "#########################"
