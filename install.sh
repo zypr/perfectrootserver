@@ -449,7 +449,7 @@ apc.user_ttl = "7200"
 apc.enable_cli=0
 apc.gc_ttl = "3600"
 apc.cache_by_default = "1"
-apc.filters = "
+apc.filters = ""
 apc.write_lock = "1"
 apc.num_files_hint= "512"
 apc.user_entries_hint="4096"
@@ -1440,6 +1440,7 @@ sed -i '18s/.*/ENABLED=1/' /etc/default/spamassassin
 sed -i '31s/.*/CRON=1/' /etc/default/spamassassin
 
 sa-update
+chown -R debian-spamd:debian-spamd /var/lib/spamassassin/
 service spamassassin start
 
 # DKIMProxy
