@@ -2063,7 +2063,7 @@ echo
 echo "NAME       TYPE          VALUE"
 echo "-----------------------------------------"
 if [ $CLOUDFLARE == '1' ]; then
-	echo " @         TXT       \"v=spf1 ipv4:${IPADR} -all\""
+	echo " @         TXT       \"v=spf1 ip4:${IPADR} -all\""
 else
 	echo " @         TXT       \"v=spf1 mx -all\""
 fi
