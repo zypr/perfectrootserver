@@ -1701,6 +1701,23 @@ sed -i '44s/.*/EXT_IF_DHCP_IP="0"/' /etc/arno-iptables-firewall/firewall.conf
 sed -i '307s/.*/DRDOS_PROTECT="1"/' /etc/arno-iptables-firewall/firewall.conf
 sed -i '312s/.*/IPV6_SUPPORT="0"/' /etc/arno-iptables-firewall/firewall.conf
 
+# Blacklist some bad guys
+mkdir ~/sources/blacklist && cd $_
+cat > update.sh <<END
+#!/bin/bash
+cd ~/sources/blacklist
+wget -N http://infiltrated.net/blacklisted
+wget -N http://lists.blocklist.de/lists/all.txt
+cat blacklisted all.txt > /etc/arno-iptables-firewall/blocked-hosts
+END
+bash update.sh
+sed -i '1211s/.*/BLOCK_HOSTS_FILE="\/etc\/arno-iptables-firewall\/blocked-hosts"/' /etc/arno-iptables-firewall/firewall.conf
+
+touch /etc/cron.daily/blocked-hosts
+echo -e "#!/bin/sh" >> /etc/cron.daily/blocked-hosts
+echo -e "bash ~/sources/blacklist/update.sh" >> /etc/cron.daily/blocked-hosts
+chmod +x /etc/cron.daily/blocked-hosts
+
 echo
 yellow "#########################"
 yellow "## USER INPUT REQUIRED ##"
