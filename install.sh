@@ -1711,6 +1711,7 @@ wget -N http://lists.blocklist.de/lists/all.txt
 cat blacklisted all.txt > /etc/arno-iptables-firewall/blocked-hosts
 END
 bash update.sh
+echo -e "/etc/init.d/arno-iptables-firewall force-reload" >> update.sh
 sed -i '1211s/.*/BLOCK_HOSTS_FILE="\/etc\/arno-iptables-firewall\/blocked-hosts"/' /etc/arno-iptables-firewall/firewall.conf
 
 touch /etc/cron.daily/blocked-hosts
@@ -1840,12 +1841,9 @@ service ssh restart
 #sed -i '/netmask 80/s/^/#/' /etc/network/interfaces
 #sed -i '/inet6/s/^/#/' /etc/network/interfaces
 echo -e "net.ipv6.conf.all.disable_ipv6=1" >> /etc/sysctl.conf
-sed -i '10s/.*/GRUB_CMDLINE_LINUX="ipv6.disable=1"/' /etc/default/grub
 
 # Enable changes and restart network
 sysctl -p
-update-grub
-#service networking restart
 
 # Restart all Systems
 service nginx reload
