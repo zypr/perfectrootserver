@@ -823,7 +823,7 @@ yellow "## USER INPUT REQUIRED ##"
 yellow "#########################"
 echo
 echo "The server must be restarted before the changes can take effect."
-echo "Run the script again after the reboot, the script will start at the last point."
+red "Run the script again after the reboot, the script will start at the last point."
 while true; do
 	read -p "Continue? [y/n]" i
 	case $i in
@@ -2047,7 +2047,8 @@ yellow "## 1 ##"
 echo "The Subomain vma.${FQDN} and mail.${FQDN}"
 echo "must be resolve to your IP: ${IPADR}"
 if [ $CLOUDFLARE == '1' ]; then
-	echo "If you use CloudFlare, you have to set a A-record for each subdomain!"
+	echo "If you use CloudFlare, only mail.${FQDN} have to resolve directly to your IP"
+	echo "Don't forget: You have to set an A record for each subdomain!"
 fi
 echo
 echo
