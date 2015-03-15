@@ -1507,6 +1507,11 @@ sed -i '117s/.*/defaults.mailbox.uid = 5000/' /usr/local/vimbadmin/application/c
 sed -i '118s/.*/defaults.mailbox.gid = 5000/' /usr/local/vimbadmin/application/configs/application.ini
 sed -i '132s/.*/defaults.mailbox.homedir = "\/var\/mail\/decrypted\/"/' /usr/local/vimbadmin/application/configs/application.ini
 sed -i '149s/.*/defaults.mailbox.password_scheme = "crypt:sha512"/' /usr/local/vimbadmin/application/configs/application.ini
+sed -i '229s/.*/server.smtp.port    = "587"/' /usr/local/vimbadmin/application/configs/application.ini
+sed -i '230s/.*/server.smtp.crypt   = "STARTTLS"/' /usr/local/vimbadmin/application/configs/application.ini
+sed -i '232s/.*/server.pop3.enabled = 0/' /usr/local/vimbadmin/application/configs/application.ini
+sed -i '239s/.*/server.imap.host  = "mail.%d"/' /usr/local/vimbadmin/application/configs/application.ini
+sed -i '244s/.*/server.webmail.enabled = 0/' /usr/local/vimbadmin/application/configs/application.ini
 
 # Create MySQL tables
 cp /usr/local/vimbadmin/public/.htaccess.dist /usr/local/vimbadmin/public/.htaccess
@@ -2132,6 +2137,11 @@ echo "Host: mail.${FQDN}"
 echo "Username: yourmailbox@${FQDN}"
 echo "IMAP: 993 with SSL/TLS"
 echo "SMTP: 587 with STARTTLS"
+echo
+echo
+echo "When you are done, you have to configure your identity and your mail relay settings."
+echo "Check lines 254 - 260 and 292 - 297 in your application.ini:"
+magenta "/usr/local/vimbadmin/application/configs/application.ini"
 
 
 sed -i '1s/.*/4/' ~/status
@@ -2139,6 +2149,8 @@ sed -i '1s/.*/4/' ~/status
 
 
 part4(){
+	echo
+	echo
 	echo
 	green "Finished!"
 	green "Nothing to do.. :)"
