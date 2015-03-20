@@ -144,7 +144,7 @@ tar -xzvf openssl-${OPENSSL_VERSION}.tar.gz
 
 # Update OpenSSL system-wide
 cd openssl-${OPENSSL_VERSION}
-./config --prefix=/usr/local/ssl --openssldir=/usr/local/ssl shared
+./config --prefix=/usr/local --openssldir=/usr/local/ssl shared
 make && make install
 rm -r -f /usr/bin/openssl.old
 rm -r -f /usr/include/openssl
@@ -154,6 +154,10 @@ mv /usr/bin/openssl /usr/bin/openssl.old
 ln -s /usr/local/ssl/bin/openssl /usr/bin/openssl
 ln -s /usr/local/ssl/include/openssl /usr/include/openssl
 ln -s /usr/local/ssl/lib/libssl.so.1.0.0 /usr/lib/libssl.so
+cp include/openssl/* /usr/include
+mkdir -p /usr/local/ssl/include/openssl
+cp include/openssl/* /usr/local/ssl/include
+cp include/openssl/* /usr/local/ssl/include/openssl
 touch /etc/ld.so.conf
 echo -e "include /etc/ld.so.conf.d/*.conf" >> /etc/ld.so.conf
 echo -e "/usr/local/ssl/lib" >> /etc/ld.so.conf
