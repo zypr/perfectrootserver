@@ -165,7 +165,7 @@ cd ~/sources
 wget http://ftp.hostserver.de/pub/OpenBSD/OpenSSH/portable/openssh-${OPENSSH_VERSION}p1.tar.gz
 tar -xzvf openssh-${OPENSSH_VERSION}p1.tar.gz
 cd openssh-${OPENSSH_VERSION}p1
--./configure --prefix=/usr --sysconfdir=/etc/ssh --with-pam --with-ssl-dir=~/sources/openssl-${OPENSSL_VERSION}
+./configure --prefix=/usr --sysconfdir=/etc/ssh --with-pam --with-ssl-dir=~/sources/openssl-${OPENSSL_VERSION}
 make
 mv /etc/ssh /etc/ssh.bak
 make install
