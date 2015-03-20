@@ -6,7 +6,7 @@ set -e
 # Define the following variables.
 # Check for the latest version
 # http://nginx.org/en/download.html
-# http://openssl.org/source/
+# https://github.com/openssl/openssl
 # http://www.openssh.com/
 # https://developers.google.com/speed/pagespeed/module/build_ngx_pagespeed_from_source
 #
