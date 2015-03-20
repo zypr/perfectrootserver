@@ -6,7 +6,7 @@ set -e
 # Define the following variables.
 # Check for the latest version
 # http://nginx.org/en/download.html
-# https://github.com/openssl/openssl
+# http://openssl.org/source/
 # http://www.openssh.com/
 # https://developers.google.com/speed/pagespeed/module/build_ngx_pagespeed_from_source
 #
@@ -164,7 +164,7 @@ cd ~/sources
 wget http://ftp.hostserver.de/pub/OpenBSD/OpenSSH/portable/openssh-${OPENSSH_VERSION}p1.tar.gz
 tar -xzvf openssh-${OPENSSH_VERSION}p1.tar.gz
 cd openssh-${OPENSSH_VERSION}p1
-./configure --prefix=/usr --sysconfdir=/etc/ssh --with-pam --with-ssl-dir=~/sources/openssl
+./configure --prefix=/usr --sysconfdir=/etc/ssh --with-pam --with-ssl-dir=~/sources/openssl --without-openssl-header-check
 make
 mv /etc/ssh /etc/ssh.bak
 make install
