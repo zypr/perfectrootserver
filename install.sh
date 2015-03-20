@@ -32,7 +32,7 @@ magenta() { echo "$(tput setaf 5)$*$(tput setaf 9)"; }
 cyan() { echo "$(tput setaf 6)$*$(tput setaf 9)"; }
 
 WORKER=$(grep -c ^processor /proc/cpuinfo)
-IPADR=$(echo $SSH_CLIENT | awk '{print $1}')
+IPADR=$(ifconfig eth0 | awk -F ' *|:' '/inet /{print $4}')
 
 touch ~/status
 
