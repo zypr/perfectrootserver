@@ -2381,7 +2381,7 @@ END
 \$cfg['blowfish_secret'] = '$randompwd';
 \$i = 0;
 \$i++;
-\['UploadDir'] = 'upload';
+\$cfg['UploadDir'] = 'upload';
 \$cfg['SaveDir'] = 'save';
 \$cfg['ForceSSL'] = true;
 \$cfg['AllowArbitraryServer'] = true;
