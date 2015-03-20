@@ -146,7 +146,6 @@ cd openssl
 ./config --prefix=/usr/local/ssl --openssldir=/usr/local/ssl shared
 make && make install
 rm -r -f /usr/bin/openssl.old
-rm -r -f /usr/bin/openssl
 rm -r -f /usr/include/openssl
 rm -r -f /usr/lib/libssl.so
 rm -r -f /etc/ld.so.conf
