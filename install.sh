@@ -6,14 +6,14 @@ set -e
 # Define the following variables.
 # Check for the latest version
 # http://nginx.org/en/download.html
-# http://openssl.org/source/
+# https://github.com/openssl/openssl
 # http://www.openssh.com/
 # https://developers.google.com/speed/pagespeed/module/build_ngx_pagespeed_from_source
 #
 # Please note that older Nginx versions are not compatible with this script
 #
 NGINX_VERSION=1.7.10
-OPENSSL_VERSION=1.0.2
+OPENSSL_VERSION=OpenSSL_1_0_2-stable
 OPENSSH_VERSION=6.7
 NPS_VERSION=1.9.32.3
 
@@ -32,7 +32,7 @@ magenta() { echo "$(tput setaf 5)$*$(tput setaf 9)"; }
 cyan() { echo "$(tput setaf 6)$*$(tput setaf 9)"; }
 
 WORKER=$(grep -c ^processor /proc/cpuinfo)
-IPADR=$(ifconfig eth0 | awk -F ' *|:' '/inet /{print $4}')
+IPADR=$(echo $SSH_CLIENT | awk '{print $1}')
 
 touch ~/status
 
@@ -139,31 +139,33 @@ mkdir -p ~/sources/
 
 # Download OpenSSL
 cd ~/sources
-wget http://www.openssl.org/source/openssl-${OPENSSL_VERSION}.tar.gz
-tar -xzvf openssl-${OPENSSL_VERSION}.tar.gz
+git clone -b ${OPENSSL_VERSION} https://github.com/openssl/openssl.git
 
 # Update OpenSSL system-wide
-if [[ `openssl version` == 'OpenSSL 1.0.2 22 Jan 2015' ]]; then
-	echo
-else
-	cd openssl-${OPENSSL_VERSION}/
-	./config --prefix=/usr/local/ssl --openssldir=/usr/local/ssl shared
-	make && make install
-	mv /usr/bin/openssl /usr/bin/openssl.old
-	ln -s /usr/local/ssl/bin/openssl /usr/bin/openssl
-	ln -s /usr/local/ssl/include/openssl /usr/include/openssl
-	ln -s /usr/local/ssl/lib/libssl.so.1.0.0 /usr/lib/libssl.so
-	echo "/usr/local/ssl/lib" >> /etc/ld.so.conf
-	/sbin/ldconfig -v
-	make clean
-fi
+cd openssl
+./config --prefix=/usr/local/ssl --openssldir=/usr/local/ssl shared
+make && make install
+rm -r -f /usr/bin/openssl.old
+rm -r -f /usr/bin/openssl
+rm -r -f /usr/include/openssl
+rm -r -f /usr/lib/libssl.so
+rm -r -f /etc/ld.so.conf
+mv /usr/bin/openssl /usr/bin/openssl.old
+ln -s /usr/local/ssl/bin/openssl /usr/bin/openssl
+ln -s /usr/local/ssl/include/openssl /usr/include/openssl
+ln -s /usr/local/ssl/lib/libssl.so.1.0.0 /usr/lib/libssl.so
+touch /etc/ld.so.conf
+echo -e "include /etc/ld.so.conf.d/*.conf" >> /etc/ld.so.conf
+echo -e "/usr/local/ssl/lib" >> /etc/ld.so.conf
+/sbin/ldconfig -v
+make clean
 
 # Update OpenSSH and compile with latest OpenSSL source
 cd ~/sources
 wget http://ftp.hostserver.de/pub/OpenBSD/OpenSSH/portable/openssh-${OPENSSH_VERSION}p1.tar.gz
 tar -xzvf openssh-${OPENSSH_VERSION}p1.tar.gz
 cd openssh-${OPENSSH_VERSION}p1
-./configure --prefix=/usr --sysconfdir=/etc/ssh --with-pam --with-ssl-dir=~/sources/openssl-${OPENSSL_VERSION}
+./configure --prefix=/usr --sysconfdir=/etc/ssh --with-pam --with-ssl-dir=~/sources/openssl
 make
 mv /etc/ssh /etc/ssh.bak
 make install
@@ -361,7 +363,7 @@ sed -i '720s/.*/                (void) BIO_set_write_buffer_size(wbio, 16384);/'
 --with-ipv6 \
 --with-debug \
 --with-cc-opt='-O2 -g -pipe -Wall -Wformat -Werror=format-security -Wp,-D_FORTIFY_SOURCE=2 -fexceptions -fstack-protector --param=ssp-buffer-size=4 -m64 -mtune=generic' \
---with-openssl=$HOME/sources/openssl-${OPENSSL_VERSION} \
+--with-openssl=$HOME/sources/openssl \
 --add-module=$HOME/sources/ngx_pagespeed-release-${NPS_VERSION}-beta \
 --add-module=$HOME/sources/nginx-http-auth-digest \
 --add-module=$HOME/sources/ModSecurity/nginx/modsecurity
@@ -386,6 +388,9 @@ mkdir ../nps_cache
 mkdir /var/log/nginx
 mkdir /etc/nginx/sites-available && cd $_
 mkdir ../sites-enabled
+mkdir ../sites-custom
+mkdir ../htpasswd
+touch ../htpasswd/.htpasswd
 mkdir -p ../modsecurity/audit
 mkdir ../logs
 mkdir ../ssl
@@ -647,10 +652,10 @@ server {
 			ssl_certificate_key ssl/${FQDN}.key;
 			#ssl_trusted_certificate ssl/trustedbundle.pem;
 			ssl_dhparam	     	ssl/dh.pem;
-                        ssl_ecdh_curve      secp384r1;
+			ssl_ecdh_curve		secp384r1;
 			ssl_session_cache   shared:SSL:10m;
 			ssl_session_timeout 10m;
-			ssl_protocols        TLSv1 TLSv1.1 TLSv1.2;
+			ssl_protocols       TLSv1 TLSv1.1 TLSv1.2;
 			#ssl_prefer_server_ciphers on;
 			
 			#ssl_stapling on;
@@ -689,8 +694,12 @@ server {
 			# Note, that you should only enable this option if you are behind a load-balancer that will set this header, 
 			# otherwise your users will be able to set the protocol PageSpeed uses to interpret the request.
 			#
-			# pagespeed RespectXForwardedProto on;
+			pagespeed RespectXForwardedProto on;
+
+			auth_basic_user_file htpasswd/.htpasswd;
 			
+			include /etc/nginx/sites-custom/*.conf;
+
 			location ~ \.php\$ {
 				try_files \$uri =404;
 				fastcgi_split_path_info ^(.+\.php)(/.+)\$;
@@ -752,7 +761,8 @@ server {
 				log_not_found off;
 				add_header Pragma public;
 				add_header Cache-Control "max-age=2592000, public";
-			}		
+			}
+
 }
 END
 
@@ -1159,6 +1169,7 @@ milter_connect_macros = j {daemon_name} v {if_name} _
 milter_default_action = tempfail
 inet_interfaces = all
 inet_protocols = ipv4
+alias_maps = hash:/etc/aliases
 END
 
 mkdir /etc/postfix/mysql
@@ -1296,8 +1307,8 @@ passdb {
     driver = sql
     args = /etc/dovecot/dovecot-sql.conf.ext
 }
-userdb {
-    driver = static
+userdb static {
+    driver = sql
     args = uid=vmail gid=vmail home=/var/mail/decrypted/vhosts/%d/%n/maildir
 }
 END
@@ -2149,6 +2160,326 @@ sed -i '1s/.*/4/' ~/status
 
 
 part4(){
+
+#
+# phpMyAdmin
+#
+
+echo
+yellow "#########################"
+yellow "## USER INPUT REQUIRED ##"
+yellow "#########################"
+echo
+echo
+stty echo
+while true; do
+	read -p "Do you want to use phpMyAdmin? [y/n]: " i
+	case $i in
+	[Yy]* ) PMA=1;break;;
+	[Nn]* ) PMA=0;break;;
+	* ) red "Please use [Y] or [N]";echo;;
+	esac
+done
+if [ $PMA == '0' ]; then
+	echo
+else
+	while true; do
+		echo "Do you want to secure the login with the http auth method?"
+		red "I HIGHLY RECOMMEND IT!!!!!111"
+		echo
+		read -p "[y/n]: " i
+		case $i in
+		[Yy]* ) PMAS=1;break;;
+		[Nn]* ) PMAS=0;break;;
+		* ) red "Please use [Y] or [N]";echo;;
+		esac
+	done
+	if [ $PMAS == '0' ]; then
+		cat > /etc/nginx/sites-custom/phpmyadmin.conf <<END
+location /pma {
+    alias /usr/local/phpmyadmin;
+    index index.php;
+
+    location ~ ^/pma/(.+\.php)$ {
+        alias /usr/local/phpmyadmin/\$1;
+        fastcgi_split_path_info ^(.+\.php)(/.+)$;
+        include fastcgi_params;
+        fastcgi_index index.php;
+        fastcgi_param SCRIPT_FILENAME /usr/local/phpmyadmin/\$1;
+        fastcgi_pass unix:/var/run/php5-fpm.sock;
+    }
+
+    location ~* ^/pma/(.+\.(jpg|jpeg|gif|css|png|js|ico|html|xml|txt))$ {
+        alias /usr/local/phpmyadmin/\$1;
+    }
+
+    location ~ ^/pma/save/ {
+        deny all;
+    }
+
+    location ~ ^/pma/upload/ {
+        deny all;
+    }
+}
+END
+	else
+		PMAUA=1
+		while [ $PMAUA == '1' ]; do
+			echo
+			yellow "#########################"
+			yellow "## USER INPUT REQUIRED ##"
+			yellow "#########################"
+			echo
+			read -p "Enter user: " PMAU
+			echo
+			yellow "#########################"
+			yellow "## USER INPUT REQUIRED ##"
+			yellow "#########################"
+			echo
+			unset PMAP
+			unset CHARCOUNT
+			unset PROMPT
+			echo -n "Enter password: "
+			stty echo
+			CHARCOUNT=0
+			while IFS= read -p "$PROMPT" -r -s -n 1 CHAR
+			do
+			    if [[ $CHAR == $'\0' ]] ; then
+			        break
+			    fi
+			    if [[ $CHAR == $'\177' ]] ; then
+			        if [ $CHARCOUNT -gt 0 ] ; then
+			            CHARCOUNT=$((CHARCOUNT-1))
+			            PROMPT=$'\b \b'
+			            PMAP="${PMAP%?}"
+			        else
+			            PROMPT=''
+			        fi
+			    else
+			        CHARCOUNT=$((CHARCOUNT+1))
+			        PROMPT='*'
+			        PMAP+="$CHAR"
+			    fi
+			done
+			echo
+			stty echo
+			unset PMAP2
+			unset CHARCOUNT
+			unset PROMPT
+			echo -n "Repeat password: "
+			stty echo
+			CHARCOUNT=0
+			while IFS= read -p "$PROMPT" -r -s -n 1 CHAR
+			do
+			    if [[ $CHAR == $'\0' ]] ; then
+			        break
+			    fi
+			    if [[ $CHAR == $'\177' ]] ; then
+			        if [ $CHARCOUNT -gt 0 ] ; then
+			            CHARCOUNT=$((CHARCOUNT-1))
+			            PROMPT=$'\b \b'
+			            PMAP2="${PMAP2%?}"
+			        else
+			            PROMPT=''
+			        fi
+			    else
+			        CHARCOUNT=$((CHARCOUNT+1))
+			        PROMPT='*'
+			        PMAP2+="$CHAR"
+			    fi
+			done
+			stty echo
+			echo
+			while [[ "$PMAP" != "$PMAP2" ]]; do
+			        red "*********************************************"
+			        red "* Passwords do not match! Please try again! *"
+			        red "*********************************************"
+					unset PMAP
+					unset CHARCOUNT
+					unset PROMPT
+					echo -n "Enter password: "
+					stty echo
+					CHARCOUNT=0
+					while IFS= read -p "$PROMPT" -r -s -n 1 CHAR
+					do
+						if [[ $CHAR == $'\0' ]] ; then
+							break
+						fi
+						if [[ $CHAR == $'\177' ]] ; then
+							if [ $CHARCOUNT -gt 0 ] ; then
+								CHARCOUNT=$((CHARCOUNT-1))
+								PROMPT=$'\b \b'
+								PMAP="${PMAP%?}"
+							else
+								PROMPT=''
+							fi
+						else
+							CHARCOUNT=$((CHARCOUNT+1))
+							PROMPT='*'
+							PMAP+="$CHAR"
+						fi
+					done
+						echo
+						stty echo
+						unset PMAP2
+						unset CHARCOUNT
+						unset PROMT
+						echo -n "Repeat password: "
+						stty echo
+						CHARCOUNT=0
+						while IFS= read -p "$PROMPT" -r -s -n 1 CHAR
+						do
+							if [[ $CHAR == $'\0' ]] ; then
+								break
+							fi
+							if [[ $CHAR == $'\177' ]] ; then
+								if [ $CHARCOUNT -gt 0 ] ; then
+									CHARCOUNT=$((CHARCOUNT-1))
+									PROMPT=$'\b \b'
+									PMAP2="${PMAP2%?}"
+								else
+									PROMPT=''
+								fi
+							else
+								CHARCOUNT=$((CHARCOUNT+1))
+								PROMPT='*'
+								PMAP2+="$CHAR"
+							fi
+						done
+					stty echo
+			done
+			htpasswd -b /etc/nginx/htpasswd/.htpasswd $PMAU $PMAP
+			echo
+			while true; do
+				read -p "Add more users? [y/n]: " i
+				case $i in
+				[Yy]* ) break;;
+				[Nn]* ) echo;yellow "You can add more users by using the following command:";echo "htpasswd -b /etc/nginx/htpasswd/.htpasswd USER PASSWORD";PMAUA=0;break;;
+				* ) red "Please use [Y] or [N]";echo;echo;;
+				esac
+			done
+		done
+	fi
+	cd /usr/local
+	git clone https://github.com/phpmyadmin/phpmyadmin.git
+	mkdir phpmyadmin/save
+	mkdir phpmyadmin/upload
+	chmod 0700 phpmyadmin/save
+	chmod g-s phpmyadmin/save
+	chmod 0700 phpmyadmin/upload
+	chmod g-s phpmyadmin/upload
+	randompwd=$(openssl rand -base64 32)
+	randompwd2=$(openssl rand -base64 32)
+	mysql -u root -p${DATABASEROOTPWD} -e "GRANT USAGE ON mysql.* TO 'pma'@'localhost' IDENTIFIED BY '$randompwd2'; GRANT SELECT ( Host, User, Select_priv, Insert_priv, Update_priv, Delete_priv, Create_priv, Drop_priv, Reload_priv, Shutdown_priv, Process_priv, File_priv, Grant_priv, References_priv, Index_priv, Alter_priv, Show_db_priv, Super_priv, Create_tmp_table_priv, Lock_tables_priv, Execute_priv, Repl_slave_priv, Repl_client_priv ) ON mysql.user TO 'pma'@'localhost'; GRANT SELECT ON mysql.db TO 'pma'@'localhost'; GRANT SELECT ON mysql.host TO 'pma'@'localhost'; GRANT SELECT (Host, Db, User, Table_name, Table_priv, Column_priv) ON mysql.tables_priv TO 'pma'@'localhost'; GRANT SELECT, INSERT, UPDATE, DELETE ON phpmyadmin.* TO 'pma'@'localhost';"
+	mysql -u root -p${DATABASEROOTPWD} -e "create database phpmyadmin; GRANT ALL PRIVILEGES ON phpmyadmin.* TO pma@127.0.0.1 IDENTIFIED BY '$randompwd2'; FLUSH PRIVILEGES;"
+	mysql -u root -p${DATABASEROOTPWD} phpmyadmin < phpmyadmin/sql/create_tables.sql
+	cat > phpmyadmin/config.inc.php <<END
+<?php
+\$cfg['blowfish_secret'] = '$randompwd';
+\$i = 0;
+\$i++;
+\['UploadDir'] = 'upload';
+\$cfg['SaveDir'] = 'save';
+\$cfg['ForceSSL'] = true;
+\$cfg['AllowArbitraryServer'] = true;
+\$cfg['AllowThirdPartyFraming'] = true;
+\$cfg['ShowServerInfo'] = false;
+\$cfg['ShowDbStructureCreation'] = true;
+\$cfg['ShowDbStructureLastUpdate'] = true;
+\$cfg['ShowDbStructureLastCheck'] = true;
+\$cfg['UserprefsDisallow'] = array(
+    'ShowServerInfo',
+    'ShowDbStructureCreation',
+    'ShowDbStructureLastUpdate',
+    'ShowDbStructureLastCheck',
+    'Export/quick_export_onserver',
+    'Export/quick_export_onserver_overwrite',
+    'Export/onserver');
+\$cfg['Import']['charset'] = 'utf-8';
+\$cfg['Export']['quick_export_onserver'] = true;
+\$cfg['Export']['quick_export_onserver_overwrite'] = true;
+\$cfg['Export']['compression'] = 'gzip';
+\$cfg['Export']['charset'] = 'utf-8';
+\$cfg['Export']['onserver'] = true;
+\$cfg['Export']['sql_drop_database'] = true;
+\$cfg['DefaultLang'] = 'en';
+\$cfg['ServerDefault'] = 1;
+\$cfg['Servers'][\$i]['auth_type'] = 'cookie';
+\$cfg['Servers'][\$i]['host'] = '127.0.0.1';
+\$cfg['Servers'][\$i]['connect_type'] = 'tcp';
+\$cfg['Servers'][\$i]['compress'] = false;
+\$cfg['Servers'][\$i]['extension'] = 'mysqli';
+\$cfg['Servers'][\$i]['AllowNoPassword'] = false;
+\$cfg['Servers'][\$i]['controluser'] = 'pma';
+\$cfg['Servers'][\$i]['controlpass'] = '$randompwd2';
+\$cfg['Servers'][\$i]['pmadb'] = 'phpmyadmin';
+\$cfg['Servers'][\$i]['bookmarktable'] = 'pma__bookmark';
+\$cfg['Servers'][\$i]['relation'] = 'pma__relation';
+\$cfg['Servers'][\$i]['table_info'] = 'pma__table_info';
+\$cfg['Servers'][\$i]['table_coords'] = 'pma__table_coords';
+\$cfg['Servers'][\$i]['pdf_pages'] = 'pma__pdf_pages';
+\$cfg['Servers'][\$i]['column_info'] = 'pma__column_info';
+\$cfg['Servers'][\$i]['history'] = 'pma__history';
+\$cfg['Servers'][\$i]['table_uiprefs'] = 'pma__table_uiprefs';
+\$cfg['Servers'][\$i]['tracking'] = 'pma__tracking';
+\$cfg['Servers'][\$i]['userconfig'] = 'pma__userconfig';
+\$cfg['Servers'][\$i]['recent'] = 'pma__recent';
+\$cfg['Servers'][\$i]['favorite'] = 'pma__favorite';
+\$cfg['Servers'][\$i]['users'] = 'pma__users';
+\$cfg['Servers'][\$i]['usergroups'] = 'pma__usergroups';
+\$cfg['Servers'][\$i]['navigationhiding'] = 'pma__navigationhiding';
+\$cfg['Servers'][\$i]['savedsearches'] = 'pma__savedsearches';
+\$cfg['Servers'][\$i]['central_columns'] = 'pma__central_columns';
+?>
+END
+chown -R www-data:www-data phpmyadmin/
+	cat > /etc/nginx/sites-custom/phpmyadmin.conf <<END
+location /pma {
+    auth_basic "Restricted";
+    alias /usr/local/phpmyadmin;
+    index index.php;
+
+    location ~ ^/pma/(.+\.php)$ {
+        alias /usr/local/phpmyadmin/\$1;
+        fastcgi_split_path_info ^(.+\.php)(/.+)$;
+        include fastcgi_params;
+        fastcgi_index index.php;
+        fastcgi_param SCRIPT_FILENAME /usr/local/phpmyadmin/\$1;
+        fastcgi_pass unix:/var/run/php5-fpm.sock;
+    }
+
+    location ~* ^/pma/(.+\.(jpg|jpeg|gif|css|png|js|ico|html|xml|txt))$ {
+        alias /usr/local/phpmyadmin/\$1;
+    }
+
+    location ~ ^/pma/save/ {
+        deny all;
+    }
+
+    location ~ ^/pma/upload/ {
+        deny all;
+    }
+}
+END
+fi
+
+service nginx reload
+
+echo
+echo
+green "--------------------------------------------"
+green " phpMyAdmin has been successfully installed "
+green "--------------------------------------------"
+yellow " URL: ${FQDN}/pma/"
+green "--------------------------------------------"
+
+echo
+echo
+
+sed -i '1s/.*/5/' ~/status	
+}
+
+part5(){
 	echo
 	echo
 	echo
@@ -2178,4 +2509,8 @@ fi
 
 if [[ $(sed '1q;d' ~/status) == '4' ]]; then
         part4
+fi
+
+if [[ $(sed '1q;d' ~/status) == '5' ]]; then
+        part5
 fi
