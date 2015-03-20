@@ -6,14 +6,14 @@ set -e
 # Define the following variables.
 # Check for the latest version
 # http://nginx.org/en/download.html
-# https://github.com/openssl/openssl
+# http://openssl.org/source/
 # http://www.openssh.com/
 # https://developers.google.com/speed/pagespeed/module/build_ngx_pagespeed_from_source
 #
 # Please note that older Nginx versions are not compatible with this script
 #
 NGINX_VERSION=1.7.10
-OPENSSL_VERSION=OpenSSL_1_0_2-stable
+OPENSSL_VERSION=1.0.2a
 OPENSSH_VERSION=6.7
 NPS_VERSION=1.9.32.3
 
@@ -139,10 +139,11 @@ mkdir -p ~/sources/
 
 # Download OpenSSL
 cd ~/sources
-git clone -b ${OPENSSL_VERSION} https://github.com/openssl/openssl.git
+wget http://www.openssl.org/source/openssl-${OPENSSL_VERSION}.tar.gz
+tar -xzvf openssl-${OPENSSL_VERSION}.tar.gz
 
 # Update OpenSSL system-wide
-cd openssl
+cd openssl-${OPENSSL_VERSION}
 ./config --prefix=/usr/local/ssl --openssldir=/usr/local/ssl shared
 make && make install
 rm -r -f /usr/bin/openssl.old
@@ -164,7 +165,7 @@ cd ~/sources
 wget http://ftp.hostserver.de/pub/OpenBSD/OpenSSH/portable/openssh-${OPENSSH_VERSION}p1.tar.gz
 tar -xzvf openssh-${OPENSSH_VERSION}p1.tar.gz
 cd openssh-${OPENSSH_VERSION}p1
-./configure --prefix=/usr --sysconfdir=/etc/ssh --with-pam --with-ssl-dir=~/sources/openssl --without-openssl-header-check
+-./configure --prefix=/usr --sysconfdir=/etc/ssh --with-pam --with-ssl-dir=~/sources/openssl-${OPENSSL_VERSION}
 make
 mv /etc/ssh /etc/ssh.bak
 make install
@@ -362,7 +363,7 @@ sed -i '720s/.*/                (void) BIO_set_write_buffer_size(wbio, 16384);/'
 --with-ipv6 \
 --with-debug \
 --with-cc-opt='-O2 -g -pipe -Wall -Wformat -Werror=format-security -Wp,-D_FORTIFY_SOURCE=2 -fexceptions -fstack-protector --param=ssp-buffer-size=4 -m64 -mtune=generic' \
---with-openssl=$HOME/sources/openssl \
+--with-openssl=$HOME/sources/openssl-${OPENSSL_VERSION} \
 --add-module=$HOME/sources/ngx_pagespeed-release-${NPS_VERSION}-beta \
 --add-module=$HOME/sources/nginx-http-auth-digest \
 --add-module=$HOME/sources/ModSecurity/nginx/modsecurity
