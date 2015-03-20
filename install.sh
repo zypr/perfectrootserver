@@ -2370,9 +2370,8 @@ END
 	chmod g-s phpmyadmin/upload
 	randompwd=$(openssl rand -base64 32)
 	randompwd2=$(openssl rand -base64 32)
-	mysql -u root -p${DATABASEROOTPWD} -e "GRANT USAGE ON mysql.* TO 'pma'@'localhost' IDENTIFIED BY '$randompwd2'; GRANT SELECT ( Host, User, Select_priv, Insert_priv, Update_priv, Delete_priv, Create_priv, Drop_priv, Reload_priv, Shutdown_priv, Process_priv, File_priv, Grant_priv, References_priv, Index_priv, Alter_priv, Show_db_priv, Super_priv, Create_tmp_table_priv, Lock_tables_priv, Execute_priv, Repl_slave_priv, Repl_client_priv ) ON mysql.user TO 'pma'@'localhost'; GRANT SELECT ON mysql.db TO 'pma'@'localhost'; GRANT SELECT ON mysql.host TO 'pma'@'localhost'; GRANT SELECT (Host, Db, User, Table_name, Table_priv, Column_priv) ON mysql.tables_priv TO 'pma'@'localhost'; GRANT SELECT, INSERT, UPDATE, DELETE ON phpmyadmin.* TO 'pma'@'localhost';"
-	mysql -u root -p${DATABASEROOTPWD} -e "create database phpmyadmin; GRANT ALL PRIVILEGES ON phpmyadmin.* TO pma@127.0.0.1 IDENTIFIED BY '$randompwd2'; FLUSH PRIVILEGES;"
 	mysql -u root -p${DATABASEROOTPWD} phpmyadmin < phpmyadmin/sql/create_tables.sql
+	mysql -u root -p${DATABASEROOTPWD} -e "GRANT USAGE ON mysql.* TO 'pma'@'localhost' IDENTIFIED BY '$randompwd2'; GRANT SELECT ( Host, User, Select_priv, Insert_priv, Update_priv, Delete_priv, Create_priv, Drop_priv, Reload_priv, Shutdown_priv, Process_priv, File_priv, Grant_priv, References_priv, Index_priv, Alter_priv, Show_db_priv, Super_priv, Create_tmp_table_priv, Lock_tables_priv, Execute_priv, Repl_slave_priv, Repl_client_priv ) ON mysql.user TO 'pma'@'localhost'; GRANT SELECT ON mysql.db TO 'pma'@'localhost'; GRANT SELECT ON mysql.host TO 'pma'@'localhost'; GRANT SELECT (Host, Db, User, Table_name, Table_priv, Column_priv) ON mysql.tables_priv TO 'pma'@'localhost'; GRANT SELECT, INSERT, DELETE, UPDATE, ALTER ON phpmyadmin.* TO 'pma'@'localhost'; FLUSH PRIVILEGES;"
 	cat > phpmyadmin/config.inc.php <<END
 <?php
 \$cfg['blowfish_secret'] = '$randompwd';
