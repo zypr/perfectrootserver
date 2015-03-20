@@ -189,7 +189,7 @@ sed -i 's/^#KeyRegenerationInterval 1h/HostKey \/etc\/ssh\/ssh_host_ed25519_key/
 sed -i 's/^#ServerKeyBits 1024/ServerKeyBits 768/g' /etc/ssh/sshd_config
 sed -i 's/^#SyslogFacility AUTH/SyslogFacility AUTH/g' /etc/ssh/sshd_config
 sed -i 's/^#LoginGraceTime 2m/LoginGraceTime 30/g' /etc/ssh/sshd_config
-sed -i 's/^#MaxAuthTries 6/MaxAuthTries 3/g' /etc/ssh/sshd_config
+sed -i 's/^#MaxAuthTries 6/MaxAuthTries 20/g' /etc/ssh/sshd_config
 sed -i 's/^#PermitRootLogin yes/PermitRootLogin yes/g' /etc/ssh/sshd_config
 sed -i 's/^#StrictModes yes/StrictModes yes/g' /etc/ssh/sshd_config
 sed -i 's/^#RSAAuthentication yes/RSAAuthentication yes/g' /etc/ssh/sshd_config
@@ -1311,8 +1311,8 @@ passdb {
     driver = sql
     args = /etc/dovecot/dovecot-sql.conf.ext
 }
-userdb static {
-    driver = sql
+userdb {
+    driver = static
     args = uid=vmail gid=vmail home=/var/mail/decrypted/vhosts/%d/%n/maildir
 }
 END
@@ -2374,8 +2374,8 @@ END
 	chmod g-s phpmyadmin/upload
 	randompwd=$(openssl rand -base64 32)
 	randompwd2=$(openssl rand -base64 32)
-	mysql -u root -p${DATABASEROOTPWD} phpmyadmin < phpmyadmin/sql/create_tables.sql
-	mysql -u root -p${DATABASEROOTPWD} -e "GRANT USAGE ON mysql.* TO 'pma'@'localhost' IDENTIFIED BY '$randompwd2'; GRANT SELECT ( Host, User, Select_priv, Insert_priv, Update_priv, Delete_priv, Create_priv, Drop_priv, Reload_priv, Shutdown_priv, Process_priv, File_priv, Grant_priv, References_priv, Index_priv, Alter_priv, Show_db_priv, Super_priv, Create_tmp_table_priv, Lock_tables_priv, Execute_priv, Repl_slave_priv, Repl_client_priv ) ON mysql.user TO 'pma'@'localhost'; GRANT SELECT ON mysql.db TO 'pma'@'localhost'; GRANT SELECT ON mysql.host TO 'pma'@'localhost'; GRANT SELECT (Host, Db, User, Table_name, Table_priv, Column_priv) ON mysql.tables_priv TO 'pma'@'localhost'; GRANT SELECT, INSERT, DELETE, UPDATE, ALTER ON phpmyadmin.* TO 'pma'@'localhost'; FLUSH PRIVILEGES;"
+	mysql -u root -p${DATABASEROOTPWD} mysql < phpmyadmin/sql/create_tables.sql
+	mysql -u root -p${DATABASEROOTPWD} -e "GRANT USAGE ON mysql.* TO 'pma'@'localhost' IDENTIFIED BY '$randompwd2'; GRANT SELECT ( Host, User, Select_priv, Insert_priv, Update_priv, Delete_priv, Create_priv, Drop_priv, Reload_priv, Shutdown_priv, Process_priv, File_priv, Grant_priv, References_priv, Index_priv, Alter_priv, Show_db_priv, Super_priv, Create_tmp_table_priv, Lock_tables_priv, Execute_priv, Repl_slave_priv, Repl_client_priv ) ON mysql.user TO 'pma'@'localhost'; GRANT SELECT ON mysql.db TO 'pma'@'localhost'; GRANT SELECT (Host, Db, User, Table_name, Table_priv, Column_priv) ON mysql.tables_priv TO 'pma'@'localhost'; GRANT SELECT, INSERT, DELETE, UPDATE, ALTER ON phpmyadmin.* TO 'pma'@'localhost'; FLUSH PRIVILEGES;"
 	cat > phpmyadmin/config.inc.php <<END
 <?php
 \$cfg['blowfish_secret'] = '$randompwd';
