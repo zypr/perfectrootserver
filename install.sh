@@ -14,7 +14,7 @@ set -e
 #
 NGINX_VERSION=1.7.10
 OPENSSL_VERSION=1.0.2a
-OPENSSH_VERSION=6.7
+OPENSSH_VERSION=6.8
 NPS_VERSION=1.9.32.3
 
 
@@ -143,15 +143,16 @@ wget http://www.openssl.org/source/openssl-${OPENSSL_VERSION}.tar.gz
 tar -xzvf openssl-${OPENSSL_VERSION}.tar.gz
 
 # Update OpenSSL system-wide
-cd openssl-${OPENSSL_VERSION}
-cat > openssl.ld <<END
-OPENSSL_1.0.0 {
-    global:
-    *;
-};
+# cd openssl-${OPENSSL_VERSION}
+# cat > openssl.ld <<END
+# OPENSSL_1.0.0 {
+#     global:
+#     *;
+# };
 END
-./config --prefix=/usr/local --openssldir=/usr/local/ssl shared -Wl,--version-script=/root/sources/openssl-${OPENSSL_VERSION}/openssl.ld -Wl,-Bsymbolic-functions
-make && make install
+# ./config --prefix=/usr/local --openssldir=/usr/local/ssl shared -Wl,--version-script=/root/sources/openssl-${OPENSSL_VERSION}/openssl.ld -Wl,-Bsymbolic-functions
+./config --prefix=/usr/local --openssldir=/usr/local/ssl shared
+make && make test && make install
 rm -r -f /usr/bin/openssl.old
 rm -r -f /usr/include/openssl
 rm -r -f /usr/lib/libssl.so
@@ -168,6 +169,7 @@ touch /etc/ld.so.conf
 echo -e "include /etc/ld.so.conf.d/*.conf" >> /etc/ld.so.conf
 echo -e "/usr/local/ssl/lib" >> /etc/ld.so.conf
 /sbin/ldconfig -v
+/usr/bin/updatedb
 make clean
 
 # Update OpenSSH and compile with latest OpenSSL source
