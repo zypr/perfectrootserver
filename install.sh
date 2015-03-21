@@ -144,7 +144,13 @@ tar -xzvf openssl-${OPENSSL_VERSION}.tar.gz
 
 # Update OpenSSL system-wide
 cd openssl-${OPENSSL_VERSION}
-./config --prefix=/usr/local --openssldir=/usr/local/ssl shared
+cat openssl.ld <<END
+OPENSSL_1.0.0 {
+    global:
+    *;
+};
+END
+./config --prefix=/usr/local --openssldir=/usr/local/ssl shared -Wl,--version-script=/root/sources/openssl-1.0.2a/openssl.ld -Wl,-Bsymbolic-functions
 make && make install
 rm -r -f /usr/bin/openssl.old
 rm -r -f /usr/include/openssl
@@ -2138,27 +2144,6 @@ while true; do
 	* ) rm ~/dkim.key;rm ~/dkim2.key;break;;
 	esac
 done
-echo
-echo
-echo
-echo "Now visit vma.${FQDN} and follow the instructions!"
-echo "Copy the security salts into the ViMbAdmin config file:"
-magenta "/usr/local/vimbadmin/application/configs/application.ini"
-echo
-echo "Create a domain and a mailbox. Now you can login with your"
-echo "e-mail client with the following data:"
-echo
-echo "Host: mail.${FQDN}"
-echo "Username: yourmailbox@${FQDN}"
-echo "IMAP: 993 with SSL/TLS"
-echo "SMTP: 587 with STARTTLS"
-echo
-echo
-echo "When you are done, you have to configure your identity and your mail relay settings."
-echo "Check lines 254 - 260 and 292 - 297 in your application.ini:"
-magenta "/usr/local/vimbadmin/application/configs/application.ini"
-
-
 sed -i '1s/.*/4/' ~/status
 }
 
@@ -2174,7 +2159,6 @@ yellow "#########################"
 yellow "## USER INPUT REQUIRED ##"
 yellow "#########################"
 echo
-echo
 stty echo
 while true; do
 	read -p "Do you want to use phpMyAdmin? [y/n]: " i
@@ -2188,8 +2172,9 @@ if [ $PMA == '0' ]; then
 	echo
 else
 	while true; do
-		echo "Do you want to secure the login with the http auth method?"
-		red "I HIGHLY RECOMMEND IT!!!!!111"
+		echo
+		yellow "Do you want to secure the login with the http auth method?"
+		red "I HIGHLY RECOMMEND IT!"
 		echo
 		read -p "[y/n]: " i
 		case $i in
@@ -2475,9 +2460,24 @@ green " phpMyAdmin has been successfully installed "
 green "--------------------------------------------"
 yellow " URL: ${FQDN}/pma/"
 green "--------------------------------------------"
-
 echo
 echo
+echo "Now visit vma.${FQDN} and follow the instructions!"
+echo "Copy the security salts into the ViMbAdmin config file:"
+magenta "/usr/local/vimbadmin/application/configs/application.ini"
+echo
+echo "Create a domain and a mailbox. Now you can login with your"
+echo "e-mail client with the following data:"
+echo
+echo "Host: mail.${FQDN}"
+echo "Username: yourmailbox@${FQDN}"
+echo "IMAP: 993 with SSL/TLS"
+echo "SMTP: 587 with STARTTLS"
+echo
+echo
+echo "When you are done, you have to configure your identity and your mail relay settings."
+echo "Check lines 254 - 260 and 292 - 297 in your application.ini:"
+magenta "/usr/local/vimbadmin/application/configs/application.ini"
 
 sed -i '1s/.*/5/' ~/status	
 }
