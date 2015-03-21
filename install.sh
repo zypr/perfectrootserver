@@ -144,7 +144,7 @@ tar -xzvf openssl-${OPENSSL_VERSION}.tar.gz
 
 # Update OpenSSL system-wide
 cd openssl-${OPENSSL_VERSION}
-cat openssl.ld <<END
+cat > openssl.ld <<END
 OPENSSL_1.0.0 {
     global:
     *;
