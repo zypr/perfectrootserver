@@ -150,7 +150,7 @@ OPENSSL_1.0.0 {
     *;
 };
 END
-./config --prefix=/usr/local --openssldir=/usr/local/ssl shared -Wl,--version-script=/root/sources/openssl-1.0.2a/openssl.ld -Wl,-Bsymbolic-functions
+./config --prefix=/usr/local --openssldir=/usr/local/ssl shared -Wl,--version-script=/root/sources/openssl-${OPENSSL_VERSION}/openssl.ld -Wl,-Bsymbolic-functions
 make && make install
 rm -r -f /usr/bin/openssl.old
 rm -r -f /usr/include/openssl
