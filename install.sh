@@ -12,7 +12,7 @@ set -e
 #
 # Please note that older Nginx versions are not compatible with this script
 #
-NGINX_VERSION=1.7.10
+NGINX_VERSION=1.7.11
 OPENSSL_VERSION=1.0.2a
 OPENSSH_VERSION=6.8
 NPS_VERSION=1.9.32.3
@@ -149,9 +149,9 @@ cp -rf ~/openssl-${OPENSSL_VERSION}_release/* /
 mv /usr/lib/x86_64-linux-gnu/libcrypto.so{,.orig}
 mv /usr/lib/x86_64-linux-gnu/libcrypto.so.1.0.0{,.orig}
 mv /usr/lib/x86_64-linux-gnu/libcrypto.a{,.orig}
-cp /usr/lib/libcrypto.so /usr/lib/x86_64-linux-gnu/
-cp /usr/lib/libcrypto.so.1.0.0 /usr/lib/x86_64-linux-gnu/
-cp /usr/lib/libcrypto.a /usr/lib/x86_64-linux-gnu/
+ln -s /usr/lib/libcrypto.so /usr/lib/x86_64-linux-gnu/libcrypto.so
+ln -s /usr/lib/libcrypto.so.1.0.0 /usr/lib/x86_64-linux-gnu/libcrypto.so.1.0.0
+ln -s /usr/lib/libcrypto.a /usr/lib/x86_64-linux-gnu/libcrypto.a
 /sbin/ldconfig
 /usr/bin/updatedb
 make clean
@@ -395,7 +395,7 @@ chown www-data:www-data /etc/nginx/logs
 chown www-data:www-data /etc/nginx/modsecurity/audit
 
 # Install the Nginx service script
-wget -O /etc/init.d/nginx --no-check-certificate https://raw.githubusercontent.com/Fleshgrinder/nginx-sysvinit-script/master/nginx
+wget -O /etc/init.d/nginx --no-check-certificate https://raw.githubusercontent.com/Fleshgrinder/nginx-sysvinit-script/master/init
 chmod 0755 /etc/init.d/nginx
 chown root:root /etc/init.d/nginx
 update-rc.d nginx defaults
