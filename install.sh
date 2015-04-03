@@ -149,9 +149,9 @@ cp -rf ~/openssl-${OPENSSL_VERSION}_release/* /
 mv /usr/lib/x86_64-linux-gnu/libcrypto.so{,.orig}
 mv /usr/lib/x86_64-linux-gnu/libcrypto.so.1.0.0{,.orig}
 mv /usr/lib/x86_64-linux-gnu/libcrypto.a{,.orig}
-ln -s /usr/lib/libcrypto.so /usr/lib/x86_64-linux-gnu/libcrypto.so
-ln -s /usr/lib/libcrypto.so.1.0.0 /usr/lib/x86_64-linux-gnu/libcrypto.so.1.0.0
-ln -s /usr/lib/libcrypto.a /usr/lib/x86_64-linux-gnu/libcrypto.a
+cp /usr/lib/libcrypto.so /usr/lib/x86_64-linux-gnu/
+cp /usr/lib/libcrypto.so.1.0.0 /usr/lib/x86_64-linux-gnu/
+cp /usr/lib/libcrypto.a /usr/lib/x86_64-linux-gnu/
 /sbin/ldconfig
 /usr/bin/updatedb
 make clean
