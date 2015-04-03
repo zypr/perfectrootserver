@@ -465,101 +465,6 @@ END
 
 ln -s /etc/php5/mods-available/apcu.ini /etc/php5/mods-available/20-apcu.ini
 
-# System Tuning
-echo -e "# Recycle Zombie connections" >> /etc/sysctl.conf
-echo -e "net.inet.tcp.fast_finwait2_recycle=1" >> /etc/sysctl.conf
-echo -e "net.inet.tcp.maxtcptw=200000" >> /etc/sysctl.conf
-echo -e "" >> /etc/sysctl.conf
-echo -e "# Increase number of files" >> /etc/sysctl.conf
-echo -e "kern.maxfiles=65535" >> /etc/sysctl.conf
-echo -e "kern.maxfilesperproc=16384" >> /etc/sysctl.conf
-echo -e "" >> /etc/sysctl.conf
-echo -e "# Increase page share factor per process" >> /etc/sysctl.conf
-echo -e "vm.pmap.pv_entry_max=54272521" >> /etc/sysctl.conf
-echo -e "vm.pmap.shpgperproc=20000" >> /etc/sysctl.conf
-echo -e "" >> /etc/sysctl.conf
-echo -e "# Increase number of connections" >> /etc/sysctl.conf
-echo -e "vfs.vmiodirenable=1" >> /etc/sysctl.conf
-echo -e "kern.ipc.somaxconn=3240000" >> /etc/sysctl.conf
-echo -e "net.inet.tcp.rfc1323=1" >> /etc/sysctl.conf
-echo -e "net.inet.tcp.delayed_ack=0" >> /etc/sysctl.conf
-echo -e "net.inet.tcp.restrict_rst=1" >> /etc/sysctl.conf
-echo -e "kern.ipc.maxsockbuf=2097152" >> /etc/sysctl.conf
-echo -e "kern.ipc.shmmax=268435456" >> /etc/sysctl.conf
-echo -e "" >> /etc/sysctl.conf
-echo -e "# Host cache" >> /etc/sysctl.conf
-echo -e "net.inet.tcp.hostcache.hashsize=4096" >> /etc/sysctl.conf
-echo -e "net.inet.tcp.hostcache.cachelimit=131072" >> /etc/sysctl.conf
-echo -e "net.inet.tcp.hostcache.bucketlimit=120" >> /etc/sysctl.conf
-echo -e "" >> /etc/sysctl.conf
-echo -e "# Increase number of ports" >> /etc/sysctl.conf
-echo -e "net.inet.ip.portrange.first=2000" >> /etc/sysctl.conf
-echo -e "net.inet.ip.portrange.last=100000" >> /etc/sysctl.conf
-echo -e "net.inet.ip.portrange.hifirst=2000" >> /etc/sysctl.conf
-echo -e "net.inet.ip.portrange.hilast=100000" >> /etc/sysctl.conf
-echo -e "kern.ipc.semvmx=131068" >> /etc/sysctl.conf
-echo -e "" >> /etc/sysctl.conf
-echo -e "# Disable Ping-flood attacks" >> /etc/sysctl.conf
-echo -e "net.inet.tcp.msl=2000" >> /etc/sysctl.conf
-echo -e "net.inet.icmp.bmcastecho=1" >> /etc/sysctl.conf
-echo -e "net.inet.icmp.icmplim=1" >> /etc/sysctl.conf
-echo -e "net.inet.tcp.blackhole=2" >> /etc/sysctl.conf
-echo -e "net.inet.udp.blackhole=1" >> /etc/sysctl.conf
-echo -e "" >> /etc/sysctl.conf
-echo -e "# Kernel & IP hardening" >> /etc/sysctl.conf
-echo -e "kernel.sysrq = 0" >> /etc/sysctl.conf
-echo -e "kernel.pid_max = 65536" >> /etc/sysctl.conf
-echo -e "kernel.exec-shield = 1" >> /etc/sysctl.conf
-echo -e "kernel.core_uses_pid = 1" >> /etc/sysctl.conf
-echo -e "kernel.randomize_va_space = 1" >> /etc/sysctl.conf
-echo -e "net.ipv4.ip_forward = 0" >> /etc/sysctl.conf
-echo -e "net.ipv4.ip_local_port_range = 2000 65000" >> /etc/sysctl.conf
-echo -e "net.ipv4.conf.default.rp_filter = 1" >> /etc/sysctl.conf
-echo -e "net.ipv4.conf.default.accept_source_route = 0" >> /etc/sysctl.conf
-echo -e "net.ipv4.tcp_synack_retries = 2" >> /etc/sysctl.conf
-echo -e "net.ipv4.tcp_syncookies=1" >> /etc/sysctl.conf
-echo -e "net.ipv4.conf.all.send_redirects = 0" >> /etc/sysctl.conf
-echo -e "net.ipv4.conf.all.accept_source_route = 0" >> /etc/sysctl.conf
-echo -e "net.ipv4.conf.all.accept_redirects = 0" >> /etc/sysctl.conf
-echo -e "net.ipv4.conf.all.secure_redirects = 0" >> /etc/sysctl.conf
-echo -e "net.ipv4.conf.all.log_martians = 1" >> /etc/sysctl.conf
-echo -e "net.ipv4.conf.all.rp_filter = 1" >> /etc/sysctl.conf
-echo -e "net.ipv4.conf.all.rp_filter=1" >> /etc/sysctl.conf
-echo -e "net.ipv4.conf.default.send_redirects = 0" >> /etc/sysctl.conf
-echo -e "net.ipv4.conf.default.accept_source_route = 0" >> /etc/sysctl.conf
-echo -e "net.ipv4.conf.default.accept_redirects = 0" >> /etc/sysctl.conf
-echo -e "net.ipv4.conf.default.secure_redirects = 0" >> /etc/sysctl.conf
-echo -e "net.ipv4.conf.default.rp_filter = 1" >> /etc/sysctl.conf
-echo -e "net.ipv4.icmp_echo_ignore_broadcasts = 1" >> /etc/sysctl.conf
-echo -e "net.ipv4.icmp_echo_ignore_broadcasts = 1" >> /etc/sysctl.conf
-echo -e "net.ipv4.icmp_echo_ignore_broadcasts=1" >> /etc/sysctl.conf
-echo -e "net.ipv6.conf.default.router_solicitations = 0" >> /etc/sysctl.conf
-echo -e "net.ipv6.conf.default.accept_ra_rtr_pref = 0" >> /etc/sysctl.conf
-echo -e "net.ipv6.conf.default.accept_ra_pinfo = 0" >> /etc/sysctl.conf
-echo -e "net.ipv6.conf.default.accept_ra_defrtr = 0" >> /etc/sysctl.conf
-echo -e "net.ipv6.conf.default.autoconf = 0" >> /etc/sysctl.conf
-echo -e "net.ipv6.conf.default.dad_transmits = 0" >> /etc/sysctl.conf
-echo -e "net.ipv6.conf.default.max_addresses = 1" >> /etc/sysctl.conf
-echo -e "net.ipv6.conf.default.autoconf=0" >> /etc/sysctl.conf
-echo -e "net.ipv6.conf.default.accept_dad=0" >> /etc/sysctl.conf
-echo -e "net.ipv6.conf.default.accept_ra=0" >> /etc/sysctl.conf
-echo -e "net.ipv6.conf.default.accept_ra_defrtr=0" >> /etc/sysctl.conf
-echo -e "net.ipv6.conf.default.accept_ra_rtr_pref=0" >> /etc/sysctl.conf
-echo -e "net.ipv6.conf.default.accept_ra_pinfo=0" >> /etc/sysctl.conf
-echo -e "net.ipv6.conf.default.accept_source_route=0" >> /etc/sysctl.conf
-echo -e "net.ipv6.conf.default.accept_redirects=0" >> /etc/sysctl.conf
-echo -e "net.ipv6.conf.default.forwarding=0" >> /etc/sysctl.conf
-echo -e "net.ipv6.conf.all.autoconf=0" >> /etc/sysctl.conf
-echo -e "net.ipv6.conf.all.accept_dad=0" >> /etc/sysctl.conf
-echo -e "net.ipv6.conf.all.accept_ra=0" >> /etc/sysctl.conf
-echo -e "net.ipv6.conf.all.accept_ra_defrtr=0" >> /etc/sysctl.conf
-echo -e "net.ipv6.conf.all.accept_ra_rtr_pref=0" >> /etc/sysctl.conf
-echo -e "net.ipv6.conf.all.accept_ra_pinfo=0" >> /etc/sysctl.conf
-echo -e "net.ipv6.conf.all.accept_source_route=0" >> /etc/sysctl.conf
-echo -e "net.ipv6.conf.all.accept_redirects=0" >> /etc/sysctl.conf
-echo -e "net.ipv6.conf.all.forwarding=0" >> /etc/sysctl.conf
-sysctl -p
-
 # Edit/create Nginx config files
 rm -r -f /etc/nginx/nginx.conf
 cat > /etc/nginx/nginx.conf <<END
@@ -621,7 +526,7 @@ http {
 END
 
 # Create server config
-rm -r -f /etc/nginx/sites-available/${FQDN}.conf
+rm -rf /etc/nginx/sites-available/${FQDN}.conf
 cat > /etc/nginx/sites-available/${FQDN}.conf <<END
 server {
 			listen 80 default_server;
@@ -735,10 +640,6 @@ server {
 			# or just need to remove the index.php
 			#
 			#location / {
-			#	if (!-f \$request_filename) {
-			#		rewrite ^(.*)\$ /index.php?q=\$1 last;
-			#		break;
-			#	}
 			#   try_files \$uri \$uri/ /index.php?\$args;
 			#}
 
@@ -1048,7 +949,7 @@ while ! mysql -u root -p$DATABASEROOTPWD  -e ";" ; do
         red "*****************************"
         red "* Can't connect, try again! *"
         red "*****************************"
-        echo "Type the MYSQL ROOT PASSWORD to create the mail database, followed by [ENTER]:"
+        echo
 		unset DATABASEROOTPWD
 		unset CHARCOUNT
 		unset PROMPT
@@ -1610,10 +1511,6 @@ server {
 			location / {
 			   	ModSecurityEnabled on;
 			   	ModSecurityConfig modsecurity/modsecurity.conf;
-			   	if (!-f \$request_filename) {
-					rewrite ^(.*)\$ /index.php?q=\$1 last;
-					break;
-				}
 				try_files \$uri \$uri/ /index.php?\$args;
 			}
 
@@ -1664,6 +1561,7 @@ FQDN=$(sed '2q;d' ~/status)
 #
 # Arno-Iptables-Firewall
 # Fail2Ban
+# System Tuning
 # Snort & Snorty
 #
 
@@ -1846,15 +1744,104 @@ sed -i '27s/.*/VERBOSE="1"/' /etc/init.d/arno-iptables-firewall
 sed -i "s/^Port 22/Port ${SSH}/g" /etc/ssh/sshd_config
 service ssh restart
 
+# System Tuning
+echo -e "# Recycle Zombie connections" >> /etc/sysctl.conf
+echo -e "net.inet.tcp.fast_finwait2_recycle=1" >> /etc/sysctl.conf
+echo -e "net.inet.tcp.maxtcptw=200000" >> /etc/sysctl.conf
+echo -e "" >> /etc/sysctl.conf
+echo -e "# Increase number of files" >> /etc/sysctl.conf
+echo -e "kern.maxfiles=65535" >> /etc/sysctl.conf
+echo -e "kern.maxfilesperproc=16384" >> /etc/sysctl.conf
+echo -e "" >> /etc/sysctl.conf
+echo -e "# Increase page share factor per process" >> /etc/sysctl.conf
+echo -e "vm.pmap.pv_entry_max=54272521" >> /etc/sysctl.conf
+echo -e "vm.pmap.shpgperproc=20000" >> /etc/sysctl.conf
+echo -e "" >> /etc/sysctl.conf
+echo -e "# Increase number of connections" >> /etc/sysctl.conf
+echo -e "vfs.vmiodirenable=1" >> /etc/sysctl.conf
+echo -e "kern.ipc.somaxconn=3240000" >> /etc/sysctl.conf
+echo -e "net.inet.tcp.rfc1323=1" >> /etc/sysctl.conf
+echo -e "net.inet.tcp.delayed_ack=0" >> /etc/sysctl.conf
+echo -e "net.inet.tcp.restrict_rst=1" >> /etc/sysctl.conf
+echo -e "kern.ipc.maxsockbuf=2097152" >> /etc/sysctl.conf
+echo -e "kern.ipc.shmmax=268435456" >> /etc/sysctl.conf
+echo -e "" >> /etc/sysctl.conf
+echo -e "# Host cache" >> /etc/sysctl.conf
+echo -e "net.inet.tcp.hostcache.hashsize=4096" >> /etc/sysctl.conf
+echo -e "net.inet.tcp.hostcache.cachelimit=131072" >> /etc/sysctl.conf
+echo -e "net.inet.tcp.hostcache.bucketlimit=120" >> /etc/sysctl.conf
+echo -e "" >> /etc/sysctl.conf
+echo -e "# Increase number of ports" >> /etc/sysctl.conf
+echo -e "net.inet.ip.portrange.first=2000" >> /etc/sysctl.conf
+echo -e "net.inet.ip.portrange.last=100000" >> /etc/sysctl.conf
+echo -e "net.inet.ip.portrange.hifirst=2000" >> /etc/sysctl.conf
+echo -e "net.inet.ip.portrange.hilast=100000" >> /etc/sysctl.conf
+echo -e "kern.ipc.semvmx=131068" >> /etc/sysctl.conf
+echo -e "" >> /etc/sysctl.conf
+echo -e "# Disable Ping-flood attacks" >> /etc/sysctl.conf
+echo -e "net.inet.tcp.msl=2000" >> /etc/sysctl.conf
+echo -e "net.inet.icmp.bmcastecho=1" >> /etc/sysctl.conf
+echo -e "net.inet.icmp.icmplim=1" >> /etc/sysctl.conf
+echo -e "net.inet.tcp.blackhole=2" >> /etc/sysctl.conf
+echo -e "net.inet.udp.blackhole=1" >> /etc/sysctl.conf
+echo -e "" >> /etc/sysctl.conf
+echo -e "# Kernel & IP hardening" >> /etc/sysctl.conf
+echo -e "kernel.sysrq = 0" >> /etc/sysctl.conf
+echo -e "kernel.pid_max = 65536" >> /etc/sysctl.conf
+echo -e "kernel.exec-shield = 1" >> /etc/sysctl.conf
+echo -e "kernel.core_uses_pid = 1" >> /etc/sysctl.conf
+echo -e "kernel.randomize_va_space = 1" >> /etc/sysctl.conf
+echo -e "net.ipv4.ip_forward = 0" >> /etc/sysctl.conf
+echo -e "net.ipv4.ip_local_port_range = 2000 65000" >> /etc/sysctl.conf
+echo -e "net.ipv4.conf.default.rp_filter = 1" >> /etc/sysctl.conf
+echo -e "net.ipv4.conf.default.accept_source_route = 0" >> /etc/sysctl.conf
+echo -e "net.ipv4.tcp_synack_retries = 2" >> /etc/sysctl.conf
+echo -e "net.ipv4.tcp_syncookies=1" >> /etc/sysctl.conf
+echo -e "net.ipv4.conf.all.send_redirects = 0" >> /etc/sysctl.conf
+echo -e "net.ipv4.conf.all.accept_source_route = 0" >> /etc/sysctl.conf
+echo -e "net.ipv4.conf.all.accept_redirects = 0" >> /etc/sysctl.conf
+echo -e "net.ipv4.conf.all.secure_redirects = 0" >> /etc/sysctl.conf
+echo -e "net.ipv4.conf.all.log_martians = 1" >> /etc/sysctl.conf
+echo -e "net.ipv4.conf.all.rp_filter = 1" >> /etc/sysctl.conf
+echo -e "net.ipv4.conf.all.rp_filter=1" >> /etc/sysctl.conf
+echo -e "net.ipv4.conf.default.send_redirects = 0" >> /etc/sysctl.conf
+echo -e "net.ipv4.conf.default.accept_source_route = 0" >> /etc/sysctl.conf
+echo -e "net.ipv4.conf.default.accept_redirects = 0" >> /etc/sysctl.conf
+echo -e "net.ipv4.conf.default.secure_redirects = 0" >> /etc/sysctl.conf
+echo -e "net.ipv4.conf.default.rp_filter = 1" >> /etc/sysctl.conf
+echo -e "net.ipv4.icmp_echo_ignore_broadcasts = 1" >> /etc/sysctl.conf
+echo -e "net.ipv4.icmp_echo_ignore_broadcasts = 1" >> /etc/sysctl.conf
+echo -e "net.ipv4.icmp_echo_ignore_broadcasts=1" >> /etc/sysctl.conf
+echo -e "net.ipv6.conf.default.router_solicitations = 0" >> /etc/sysctl.conf
+echo -e "net.ipv6.conf.default.accept_ra_rtr_pref = 0" >> /etc/sysctl.conf
+echo -e "net.ipv6.conf.default.accept_ra_pinfo = 0" >> /etc/sysctl.conf
+echo -e "net.ipv6.conf.default.accept_ra_defrtr = 0" >> /etc/sysctl.conf
+echo -e "net.ipv6.conf.default.autoconf = 0" >> /etc/sysctl.conf
+echo -e "net.ipv6.conf.default.dad_transmits = 0" >> /etc/sysctl.conf
+echo -e "net.ipv6.conf.default.max_addresses = 1" >> /etc/sysctl.conf
+echo -e "net.ipv6.conf.default.autoconf=0" >> /etc/sysctl.conf
+echo -e "net.ipv6.conf.default.accept_dad=0" >> /etc/sysctl.conf
+echo -e "net.ipv6.conf.default.accept_ra=0" >> /etc/sysctl.conf
+echo -e "net.ipv6.conf.default.accept_ra_defrtr=0" >> /etc/sysctl.conf
+echo -e "net.ipv6.conf.default.accept_ra_rtr_pref=0" >> /etc/sysctl.conf
+echo -e "net.ipv6.conf.default.accept_ra_pinfo=0" >> /etc/sysctl.conf
+echo -e "net.ipv6.conf.default.accept_source_route=0" >> /etc/sysctl.conf
+echo -e "net.ipv6.conf.default.accept_redirects=0" >> /etc/sysctl.conf
+echo -e "net.ipv6.conf.default.forwarding=0" >> /etc/sysctl.conf
+echo -e "net.ipv6.conf.all.autoconf=0" >> /etc/sysctl.conf
+echo -e "net.ipv6.conf.all.accept_dad=0" >> /etc/sysctl.conf
+echo -e "net.ipv6.conf.all.accept_ra=0" >> /etc/sysctl.conf
+echo -e "net.ipv6.conf.all.accept_ra_defrtr=0" >> /etc/sysctl.conf
+echo -e "net.ipv6.conf.all.accept_ra_rtr_pref=0" >> /etc/sysctl.conf
+echo -e "net.ipv6.conf.all.accept_ra_pinfo=0" >> /etc/sysctl.conf
+echo -e "net.ipv6.conf.all.accept_source_route=0" >> /etc/sysctl.conf
+echo -e "net.ipv6.conf.all.accept_redirects=0" >> /etc/sysctl.conf
+echo -e "net.ipv6.conf.all.forwarding=0" >> /etc/sysctl.conf
+
 # Disable IPv6
-#sed -i '/::/s/^/#/' /etc/hosts
-#sed -i '/::/s/^/#/' /etc/network/interfaces
-#sed -i '/netmask 64/s/^/#/' /etc/network/interfaces
-#sed -i '/netmask 80/s/^/#/' /etc/network/interfaces
-#sed -i '/inet6/s/^/#/' /etc/network/interfaces
 echo -e "net.ipv6.conf.all.disable_ipv6=1" >> /etc/sysctl.conf
 
-# Enable changes and restart network
+# Enable changes
 sysctl -p
 
 # Restart all Systems
@@ -1904,7 +1891,7 @@ if [ $SSHKEY == '0' ]; then
 	echo
 else
 	stty echo
-	echo "Enter the password for your private key, followed by [ENTER]:"
+	echo
 	unset SSHKEYPWD
 	unset CHARCOUNT
 	unset PROMPT
@@ -2404,7 +2391,7 @@ END
 \$cfg['Servers'][\$i]['central_columns'] = 'pma__central_columns';
 ?>
 END
-chown -R www-data:www-data phpmyadmin/
+	chown -R www-data:www-data phpmyadmin/
 	cat > /etc/nginx/sites-custom/phpmyadmin.conf <<END
 location /pma {
     auth_basic "Restricted";
