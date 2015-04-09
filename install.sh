@@ -144,8 +144,8 @@ wget http://www.openssl.org/source/openssl-${OPENSSL_VERSION}.tar.gz
 tar -xzvf openssl-${OPENSSL_VERSION}.tar.gz
 cd openssl-${OPENSSL_VERSION}/
 ./config -fPIC shared --prefix=/usr --openssldir=/etc/ssl
-make && make install INSTALL_PREFIX=~/sources/openssl-${OPENSSL_VERSION}_release
-cp -rf ~/sources/openssl-${OPENSSL_VERSION}_release/* /
+make && make install INSTALL_PREFIX=~/openssl-${OPENSSL_VERSION}_release
+cp -rf ~/openssl-${OPENSSL_VERSION}_release/* /
 mv /usr/lib/x86_64-linux-gnu/libcrypto.so{,.orig}
 mv /usr/lib/x86_64-linux-gnu/libcrypto.so.1.0.0{,.orig}
 mv /usr/lib/x86_64-linux-gnu/libcrypto.a{,.orig}
@@ -434,8 +434,8 @@ sed -i '406s/.*/php_admin_value[memory_limit] = 128M/' /etc/php5/fpm/pool.d/www.
 echo -e "php_flag[display_errors] = off" >> /etc/php5/fpm/pool.d/www.conf
 
 # Configure APCu
-rm -rf /etc/php5/mods-available/apcu.ini
-rm -rf /etc/php5/mods-available/20-apcu.ini
+rm -r -f /etc/php5/mods-available/apcu.ini
+rm -r -f /etc/php5/mods-available/20-apcu.ini
 
 cat > /etc/php5/mods-available/apcu.ini <<END
 extension=apcu.so
@@ -466,7 +466,7 @@ END
 ln -s /etc/php5/mods-available/apcu.ini /etc/php5/mods-available/20-apcu.ini
 
 # Edit/create Nginx config files
-rm -rf /etc/nginx/nginx.conf
+rm -r -f /etc/nginx/nginx.conf
 cat > /etc/nginx/nginx.conf <<END
 user www-data;
 worker_processes ${WORKER};
@@ -1638,7 +1638,7 @@ echo "Change the default SSH port for some security reasons."
 echo "Please use only a priviliged Port! (1 - 1024)"
 echo
 stty echo
-read -p "Enter a new port: " SSH
+read -p "Enter a new port, followed by [ENTER]: " SSH
 SSHW=1
 SSHS=1
 SSHC=1
@@ -1652,7 +1652,7 @@ while [ $SSHW == '1' ]; do
 				read -p "" i
 				case $i in
 				[Yy]* ) SSHS=0;break;;
-				[Nn]* ) echo;read -p "Enter a new port: " SSH;break;;
+				[Nn]* ) echo;read -p "Enter a new port, followed by [ENTER]: " SSH;break;;
 				* ) red "Please use [y/n]";;
 				esac
 			done
@@ -1661,55 +1661,49 @@ while [ $SSHW == '1' ]; do
 			echo
 			red "*************************************************"
 			red "This is the standard FTP port, chose another one!"
-			read -p "Enter a new port: " SSH
+			read -p "Enter a new port, followed by [ENTER]: " SSH
 		done
 		while [ $SSH == '25' ]; do
 			echo
 			red "*************************************************"
 			red "This is the standard SMTP port, chose another one!"
-			read -p "Enter a new port: " SSH
-		done
-		while [ $SSH == '53' ]; do
-			echo
-			red "*************************************************"
-			red "This is the standard DNS port, chose another one!"
-			read -p "Enter a new port: " SSH
+			read -p "Enter a new port, followed by [ENTER]: " SSH
 		done
 		while [ $SSH == '80' ]; do
 			echo
 			red "*************************************************"
 			red "This is the standard HTTP port, chose another one!"
-			read -p "Enter a new port: " SSH
+			read -p "Enter a new port, followed by [ENTER]: " SSH
 		done
 		while [ $SSH == '443' ]; do
 			echo
 			red "*************************************************"
 			red "This is the standard HTTPS port, chose another one!"
-			read -p "Enter a new port: " SSH
+			read -p "Enter a new port, followed by [ENTER]: " SSH
 		done
 		while [ $SSH == '587' ]; do
 			echo
 			red "*************************************************"
 			red "This is the standard Submission port, chose another one!"
-			read -p "Enter a new port: " SSH
+			read -p "Enter a new port, followed by [ENTER]: " SSH
 		done
 		while [ $SSH == '990' ]; do
 			echo
 			red "*************************************************"
 			red "This is the standard FTPS port, chose another one!"
-			read -p "Enter a new port: " SSH
+			read -p "Enter a new port, followed by [ENTER]: " SSH
 		done
 		while [ $SSH == '993' ]; do
 			echo
 			red "*************************************************"
 			red "This is the standard IMAPS port, chose another one!"
-			read -p "Enter a new port: " SSH
+			read -p "Enter a new port, followed by [ENTER]: " SSH
 		done
 		while [ $SSH -gt 1024 ] || [ $SSH -le 0  ]; do
 			echo
 			red "*************************************************"
-			red "Don't use a unprivileged port, chose another one!"
-			read -p "Enter a new port: " SSH
+			red "Don't use any unprivileged port, chose another one!"
+			read -p "Enter a new port, followed by [ENTER]: " SSH
 		done
 		if [ $SSHS == '1' ]; then
 			if [ $SSH == '22' ]; then
@@ -1718,12 +1712,11 @@ while [ $SSHW == '1' ]; do
 				SSHS=0
 			fi
 		fi
-		if [ $SSH == '21' ] || [ $SSH == '25' ] || [ $SSH == '53' ] || [ $SSH == '80' ] || [ $SSH == '443' ] || [ $SSH == '587' ] || [ $SSH == '990' ] || [ $SSH == '993' ] || [ $SSH -gt 1024 ] || [ $SSH -le 0 ]; then
+		if [ $SSH == '21' ] || [ $SSH == '25' ] || [ $SSH == '80' ] || [ $SSH == '443' ] || [ $SSH == '587' ] || [ $SSH == '990' ] || [ $SSH == '993' ] || [ $SSH -gt 1024 ] || [ $SSH -le 0 ]; then
                         echo
                         red "*************************************************"
                         red "You are still using an unsupportet port, please chose another one!"
-                        echo
-                        read -p "Enter a new port: " SSH
+                        read -p "Enter a new port, followed by [ENTER]: " SSH
                 else
                 	if [[ $SSH =~ ^-?[0-9]+$ ]]; then
                 		SSHC=0
@@ -1731,7 +1724,7 @@ while [ $SSHW == '1' ]; do
                         	echo
                         	red "*************************************************"
                         	red "SSH Port is not a integer, chose another one!"
-                        	read -p "Enter a new port: " SSH
+                        	read -p "Enter a new port, followed by [ENTER]: " SSH
                 	fi
                 fi
 	done
@@ -1739,8 +1732,8 @@ SSHW="0"
 done
 
 sed -i '1153s/.*/OPEN_ICMP="1"/' /etc/arno-iptables-firewall/firewall.conf
-sed -i "1163s/.*/OPEN_TCP=\"${SSH}, 25, 53, 80, 443, 587, 993\"/" /etc/arno-iptables-firewall/firewall.conf
-sed -i '1164s/.*/OPEN_UDP=""/' /etc/arno-iptables-firewall/firewall.conf
+sed -i "1163s/.*/OPEN_TCP=\"${SSH}, 25, 80, 443, 587, 993\"/" /etc/arno-iptables-firewall/firewall.conf
+sed -i '1164s/.*/OPEN_UDP="53"/' /etc/arno-iptables-firewall/firewall.conf
 
 sed -i '27s/.*/VERBOSE="1"/' /etc/init.d/arno-iptables-firewall
 
@@ -1887,7 +1880,7 @@ red "I definitely recommend to do that!"
 echo
 stty echo
 while true; do
-	read -p "Continue? [y/n]: " i
+	read -p "Continue? [y/n]" i
 	case $i in
 	[Yy]* ) SSHKEY=1;break;;
 	[Nn]* ) SSHKEY=0;break;;
@@ -1957,11 +1950,11 @@ else
 	        red "*********************************************"
 	        red "* Passwords do not match! Please try again! *"
 	        red "*********************************************"
+	        echo "Enter the password for your private key, followed by [ENTER]:"
 			unset SSHKEYPWD
 			unset CHARCOUNT
 			unset PROMPT
 			stty echo
-			echo
 			echo -n "Enter password: "
 			stty echo
 			CHARCOUNT=0
@@ -2023,8 +2016,8 @@ else
 	green "#including the -----BEGIN and -----END line and         #"
 	green "#save it on your Desktop. The file name does not matter!#"
 	green "#########################################################"
-	yellow "Import the file by using Putty key generator and save your"
-	yellow "private key as *.ppk file. Now you can use the key to"
+	yellow "Import the file by using PuTTy Key Generator and save your"
+	yellow "private key as *.ppk. Now you can use the key to"
 	yellow "authenticate with your server using Putty."
 	echo
 	echo
@@ -2107,9 +2100,9 @@ sed -i '5d' ~/dkim.key
 while true; do
  	out=()
  	for (( i=0; i<4; i++ )); do
-    	read && out+=( "$REPLY" )
+    read && out+=( "$REPLY" )
   	done
- 	if (( ${#out[@]} > 0 )); then
+ 	 if (( ${#out[@]} > 0 )); then
     	printf '%s' "${out[@]}"
     	echo
   	fi
@@ -2262,7 +2255,6 @@ END
 					unset PMAP
 					unset CHARCOUNT
 					unset PROMPT
-					echo
 					echo -n "Enter password: "
 					stty echo
 					CHARCOUNT=0
@@ -2329,7 +2321,7 @@ END
 	echo
 	echo
 	cd /usr/local
-	git clone -b STABLE https://github.com/phpmyadmin/phpmyadmin.git
+	git clone https://github.com/phpmyadmin/phpmyadmin.git
 	mkdir phpmyadmin/save
 	mkdir phpmyadmin/upload
 	chmod 0700 phpmyadmin/save
@@ -2437,7 +2429,7 @@ echo
 green "--------------------------------------------"
 green " phpMyAdmin has been successfully installed "
 green "--------------------------------------------"
-yellow "URL: https://${FQDN}/pma/"
+yellow " URL: https://${FQDN}/pma/"
 green "--------------------------------------------"
 echo
 echo
@@ -2454,7 +2446,7 @@ echo "IMAP: 993 with SSL/TLS"
 echo "SMTP: 587 with STARTTLS"
 echo
 echo
-echo "When you are done, you have to configure your identity and mail relay settings."
+echo "When you are done, you have to configure your identity and your mail relay settings."
 echo "Check lines 254 - 260 and 292 - 297 in your application.ini:"
 magenta "/usr/local/vimbadmin/application/configs/application.ini"
 
