@@ -12,7 +12,7 @@ set -e
 #
 # Please note that older Nginx versions are not compatible with this script
 #
-NGINX_VERSION=1.7.11
+NGINX_VERSION=1.7.12
 OPENSSL_VERSION=1.0.2a
 OPENSSH_VERSION=6.8
 NPS_VERSION=1.9.32.3
