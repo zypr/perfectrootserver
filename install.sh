@@ -697,7 +697,7 @@ sed -i '196s/.*/#SecAuditLogStorageDir \/etc\/nginx\/modsecurity\/audit\//' /etc
 # Create a self-signed SSL certificate
 #openssl req -new -newkey rsa:4096 -x509 -sha256 -days 365 -nodes -out /etc/nginx/ssl/${FQDN}.pem -keyout /etc/nginx/ssl/${FQDN}.key -subj "/C=/ST=/L=/O=/OU=/CN=*.${FQDN}"
 openssl ecparam -genkey -name secp384r1 -out /etc/nginx/ssl/${FQDN}.key
-openssl req -new -sha256 -key /etc/nginx/ssl/${FQDN}.key -out /etc/nginx/ssl/csr.pem -subj "/C=/ST=/L=/O=/OU=/CN=${FQDN}"
+openssl req -new -sha256 -key /etc/nginx/ssl/${FQDN}.key -out /etc/nginx/ssl/csr.pem -subj "/C=/ST=/L=/O=/OU=/CN=*.${FQDN}"
 openssl req -x509 -days 365 -key /etc/nginx/ssl/${FQDN}.key -in /etc/nginx/ssl/csr.pem -out /etc/nginx/ssl/${FQDN}.pem
 
 # Create strong Diffie-Hellman parameters
@@ -732,7 +732,7 @@ echo
 echo "The server must be restarted before the changes can take effect."
 red "Run the script again after the reboot, the script will start at the last point."
 while true; do
-	read -p "Continue? [y/n]" i
+	read -p "Continue? [y/n]: " i
 	case $i in
 	[Yy]* ) echo;echo;sed -i '1s/.*/2/' ~/status && shutdown -r now;break;;
 	* ) red "You have no choice!";;
@@ -1653,7 +1653,7 @@ while [ $SSHW == '1' ]; do
 				case $i in
 				[Yy]* ) SSHS=0;break;;
 				[Nn]* ) echo;read -p "Enter a new port: " SSH;break;;
-				* ) red "Please use [y/n]";;
+				* ) red "Please use [y/n]: ";;
 				esac
 			done
 		fi
