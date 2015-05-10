@@ -134,18 +134,14 @@ aptitude -y install build-essential git curl unzip vim-nox subversion php5-fpm p
 # Create directories
 mkdir ~/sources && cd $_
 
-# Upgrade & patch bash - check https://shellshocker.net/
-# https://github.com/wreiske/shellshocker/blob/master/fixbash
-i=0
+# Upgrade & patch bash
 mkdir -p bash-shellshocker && cd $_
-wget --no-check-certificate https://ftp.gnu.org/gnu/bash/bash-4.3.tar.gz
-while [ true ]; do i=`expr $i + 1`; wget --no-check-certificate https://ftp.gnu.org/gnu/bash/bash-4.3-patches/bash43-$(printf '%03g' $i); if [ $? -ne 0 ]; then break; fi; done
+wget -N https://ftp.gnu.org/gnu/bash/bash-4.3.tar.gz
+for i in $(seq -f "%03g" 1 33); do wget http://ftp.gnu.org/gnu/bash/bash-4.3-patches/bash43-$i; done
 tar zxvf bash-4.3.tar.gz 
 cd bash-4.3
-for p in ../bash43-[0-9][0-9][0-9]; do patch -p0 < $p; done
-./configure --prefix=/usr/local
-make
-make install
+for i in ../bash43-[0-9][0-9][0-9]; do patch -p0 < $i; done
+./configure --prefix=/usr/local && make && make install
 cp -f /usr/local/bin/bash /bin/bash
 
 # Download OpenSSL
@@ -718,61 +714,18 @@ openssl dhparam -out /etc/nginx/ssl/dh.pem 4096
 service nginx start
 service php5-fpm restart
 
-#
-#  Install Encfs
-#
-
-# Install required software
-aptitude -y install encfs
-
-# EncFS
-mkdir -p /var/mail/encrypted /var/mail/decrypted
-chgrp mail /var/mail/decrypted
-groupadd -g 5000 vmail
-useradd -g vmail -u 5000 vmail -d /var/mail/decrypted
-usermod -a -G fuse vmail
-chgrp fuse /dev/fuse
-chmod g+rw /dev/fuse
-chmod -R g+rw /var/mail/decrypted
-
-echo
-yellow "#########################"
-yellow "## USER INPUT REQUIRED ##"
-yellow "#########################"
-echo
-echo "The server must be restarted before the changes can take effect."
-red "Run the script again after the reboot, the script will start at the last point."
-while true; do
-	read -p "Continue? [y/n]: " i
-	case $i in
-	[Yy]* ) echo;echo;sed -i '1s/.*/2/' ~/status && shutdown -r now;break;;
-	* ) red "You have no choice!";;
-	esac
-done
-sleep 10
+sed -i '1s/.*/2/' ~/status
 }
 
 part2(){
 FQDN=$(sed '2q;d' ~/status)
 CLOUDFLARE=$(sed '3q;d' ~/status)
-# Mount folder
-#encfs /var/mail/encrypted /var/mail/decrypted -o big_writes -o max_write=131072 -o max_readahead=131072 -o nonempty --public
-echo
-echo
-echo
-green "######################################################################"
-green "##                       USER INPUT REQUIRED                        ##"
-green "######################################################################"
-green "## Answer the questions as follows:                                 ##"
-green "######################################################################"
-echo "Enter \"p\" for pre-configured paranoia mode"
-yellow "?> p"
-echo
-encfs /var/mail/encrypted /var/mail/decrypted -o nonempty --public
 
-# Create vhosts and set permissions
-mkdir -p /var/mail/decrypted/vhosts/${FQDN}
-chown -R vmail:vmail /var/mail/decrypted
+# Create user, group, vhosts and set permissions
+groupadd -g 5000 vmail
+useradd -g vmail -u 5000 vmail -d /var/mail
+mkdir -p /var/mail/vhosts/${FQDN}
+chown -R vmail:vmail /var/mail
 
 #
 # Install & configure our mailserver
@@ -781,7 +734,17 @@ chown -R vmail:vmail /var/mail/decrypted
 # Install MySQL
 aptitude -y install mysql-server
 
-sed -i '32s/.*/innodb_file_per_table = 1/' /etc/mysql/my.cnf
+sed -i 's/max_allowed_packet.*/max_allowed_packet      = 128M/g' /etc/mysql/my.cnf
+sed -i '32s/.*/innodb_file_per_table = 1\n&/' /etc/mysql/my.cnf
+sed -i '33s/.*/innodb_additional_mem_pool_size = 50M\n&/' /etc/mysql/my.cnf
+sed -i '34s/.*/innodb_thread_concurrency = 4\n&/' /etc/mysql/my.cnf
+sed -i '35s/.*/innodb_flush_method = O_DSYNC\n&/' /etc/mysql/my.cnf
+sed -i '36s/.*/innodb_flush_log_at_trx_commit = 0\n&/' /etc/mysql/my.cnf
+sed -i '37s/.*/#innodb_buffer_pool_size = 2G #reserved RAM, reduce i\/o\n&/' /etc/mysql/my.cnf
+sed -i '38s/.*/innodb_log_files_in_group = 2\n&/' /etc/mysql/my.cnf
+sed -i '39s/.*/innodb_log_file_size = 32M\n&/' /etc/mysql/my.cnf
+sed -i '40s/.*/innodb_log_buffer_size = 16M\n&/' /etc/mysql/my.cnf
+sed -i '42s/.*/#innodb_table_locks = 0 #disable table lock, uncomment if you do not want to crash all applications, if one does\n&/' /etc/mysql/my.cnf
 
 # echo
 # echo "#########################"
@@ -1010,6 +973,7 @@ openssl x509 -req -days 365 -in /tmp/mail.csr -signkey /etc/ssl/private/mail.key
 openssl gendh -out /etc/ssl/private/dh512.pem -2 512
 openssl gendh -out /etc/ssl/private/dh1024.pem -2 1024
 
+
 # Postfix
 aptitude -y install postfix postfix-mysql postfix-policyd-spf-perl postfix-pcre
 
@@ -1202,7 +1166,7 @@ cp /etc/dovecot/conf.d/10-ssl.conf {,.orig}
 
 sed -i '21s/.*/protocols = imap lmtp\n&/' /etc/dovecot/dovecot.conf
 
-sed -i '30s/.*/mail_location = maildir:\/var\/mail\/decrypted\/vhosts\/%d\/%n\/maildir/' /etc/dovecot/conf.d/10-mail.conf
+sed -i '30s/.*/mail_location = maildir:\/var\/mail\/vhosts\/%d\/%n\/maildir/' /etc/dovecot/conf.d/10-mail.conf
 sed -i '112s/.*/mail_privileged_group = mail/' /etc/dovecot/conf.d/10-mail.conf
 sed -i '9s/.*/disable_plaintext_auth = yes/' /etc/dovecot/conf.d/10-auth.conf
 sed -i '99s/.*/auth_mechanisms = plain login/' /etc/dovecot/conf.d/10-auth.conf
@@ -1217,7 +1181,7 @@ passdb {
 }
 userdb {
     driver = static
-    args = uid=vmail gid=vmail home=/var/mail/decrypted/vhosts/%d/%n/maildir
+    args = uid=vmail gid=vmail home=/var/mail/vhosts/%d/%n/maildir
 }
 END
 
@@ -1285,9 +1249,9 @@ END
 # wget http://ftp.de.debian.org/debian/pool/main/d/dovecot/dovecot_2.1.7.orig.tar.gz
 # tar xzvf dovecot_2.1.7.orig.tar.gz
 # cp dovecot-2.1.7/doc/solr-schema.xml /etc/solr/conf/schema.xml
-# mkdir /var/mail/decrypted/solr
+# mkdir /var/mail/solr
 
-# sed -i '117s/.*/  <dataDir>\/var\/mail\/decrypted\/solr<\/dataDir>/' /etc/solr/conf/solrconfig.xml
+# sed -i '117s/.*/  <dataDir>\/var\/mail\/solr<\/dataDir>/' /etc/solr/conf/solrconfig.xml
 
 # sed -i '71s/.*/<Connector address="127.0.0.1" port="8080" protocol="HTTP\/1.1"/' /etc/tomcat6/server.xml
 
@@ -1381,31 +1345,6 @@ sed -i "107s/.*/DKIMPROXY_OUT_ARGS=\"\${COMMON_ARGS} --pidfile=\${PIDDKIMPROXY_O
 
 service dkimproxy restart
 
-# Check if /var/mail/decrypted is mounted
-sed -i '33s/.*/. \/lib\/lsb\/init-functions\n&/' /etc/init.d/postfix
-sed -i '34s/.*/if ! mount | grep "on \/var\/mail\/decrypted" > \/dev\/null\n&/' /etc/init.d/postfix
-sed -i '35s/.*/then\n&/' /etc/init.d/postfix
-sed -i '36s/.*/    log_daemon_msg "\/var\/mail\/decrypted not mounted";\n&/' /etc/init.d/postfix
-sed -i '37s/.*/    log_end_msg 1;\n&/' /etc/init.d/postfix
-sed -i '38s/.*/    exit 1;\n&/' /etc/init.d/postfix
-sed -i '39s/.*/fi/' /etc/init.d/postfix
-
-sed -i '47s/.*/. \/lib\/lsb\/init-functions\n&/' /etc/init.d/dovecot
-sed -i '48s/.*/if ! mount | grep "on \/var\/mail\/decrypted" > \/dev\/null\n&/' /etc/init.d/dovecot
-sed -i '49s/.*/then\n&/' /etc/init.d/dovecot
-sed -i '50s/.*/    log_daemon_msg "\/var\/mail\/decrypted not mounted";\n&/' /etc/init.d/dovecot
-sed -i '51s/.*/    log_end_msg 1;\n&/' /etc/init.d/dovecot
-sed -i '52s/.*/    exit 1;\n&/' /etc/init.d/dovecot
-sed -i '53s/.*/fi/' /etc/init.d/dovecot
-
-# sed -i '42s/.*/. \/lib\/lsb\/init-functions\n&/' /etc/init.d/tomcat6
-# sed -i '43s/.*/if ! mount | grep "on \/var\/mail\/decrypted" > \/dev\/null\n&/' /etc/init.d/tomcat6
-# sed -i '44s/.*/then\n&/' /etc/init.d/tomcat6
-# sed -i '45s/.*/    log_daemon_msg "\/var\/mail\/decrypted not mounted";\n&/' /etc/init.d/tomcat6
-# sed -i '46s/.*/    log_end_msg 1;\n&/' /etc/init.d/tomcat6
-# sed -i '47s/.*/    exit 1;\n&/' /etc/init.d/tomcat6
-# sed -i '48s/.*/fi/' /etc/init.d/tomcat6
-
 service postfix restart
 service dovecot restart
 #service tomcat6 restart
@@ -1424,7 +1363,7 @@ sed -i "48s/.*/resources.doctrine2.connection.options.password = '${DATABASEPWD}
 sed -i "49s/.*/resources.doctrine2.connection.options.host     = '127.0.0.1'/" /usr/local/vimbadmin/application/configs/application.ini
 sed -i '117s/.*/defaults.mailbox.uid = 5000/' /usr/local/vimbadmin/application/configs/application.ini
 sed -i '118s/.*/defaults.mailbox.gid = 5000/' /usr/local/vimbadmin/application/configs/application.ini
-sed -i '132s/.*/defaults.mailbox.homedir = "\/var\/mail\/decrypted\/"/' /usr/local/vimbadmin/application/configs/application.ini
+sed -i '132s/.*/defaults.mailbox.homedir = "\/var\/mail\/"/' /usr/local/vimbadmin/application/configs/application.ini
 sed -i '149s/.*/defaults.mailbox.password_scheme = "crypt:sha512"/' /usr/local/vimbadmin/application/configs/application.ini
 sed -i '229s/.*/server.smtp.port    = "587"/' /usr/local/vimbadmin/application/configs/application.ini
 sed -i '230s/.*/server.smtp.crypt   = "STARTTLS"/' /usr/local/vimbadmin/application/configs/application.ini
@@ -1520,7 +1459,7 @@ server {
 			}
 
 			location / {
-			   	ModSecurityEnabled on;
+			   	ModSecurityEnabled off;
 			   	ModSecurityConfig modsecurity/modsecurity.conf;
 				try_files \$uri \$uri/ /index.php?\$args;
 			}
@@ -1863,6 +1802,7 @@ echo -e "net.ipv6.conf.all.disable_ipv6=1" >> /etc/sysctl.conf
 sysctl -p
 
 # Restart all Systems
+service mysql restart
 service nginx reload
 service postfix restart
 service dovecot restart
