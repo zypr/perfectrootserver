@@ -138,8 +138,8 @@ mkdir ~/sources && cd $_
 # https://github.com/wreiske/shellshocker/blob/master/fixbash
 i=0
 mkdir -p bash-shellshocker && cd $_
-wget -no-check-certificate https://ftp.gnu.org/gnu/bash/bash-4.3.tar.gz
-while [ true ]; do i=`expr $i + 1`; wget -no-check-certificate https://ftp.gnu.org/gnu/bash/bash-4.3-patches/bash43-$(printf '%03g' $i); if [ $? -ne 0 ]; then break; fi; done
+wget --no-check-certificate https://ftp.gnu.org/gnu/bash/bash-4.3.tar.gz
+while [ true ]; do i=`expr $i + 1`; wget --no-check-certificate https://ftp.gnu.org/gnu/bash/bash-4.3-patches/bash43-$(printf '%03g' $i); if [ $? -ne 0 ]; then break; fi; done
 tar zxvf bash-4.3.tar.gz 
 cd bash-4.3
 for p in ../bash43-[0-9][0-9][0-9]; do patch -p0 < $p; done
