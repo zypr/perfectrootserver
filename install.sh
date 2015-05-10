@@ -3,8 +3,8 @@
 # Stops the script on the first error
 set -e
 
-# Define the following variables.
 # Check for the latest version
+#
 # http://nginx.org/en/download.html
 # http://openssl.org/source/
 # http://www.openssh.com/
@@ -131,11 +131,22 @@ apt-get -y install aptitude
 # Install required software
 aptitude -y install build-essential git curl unzip vim-nox subversion php5-fpm php5-imap php5-gd php5-mysql php5-apcu php5-cli php5-common php5-curl php5-mcrypt php5-intl php5-dev checkinstall automake autoconf apache2-threaded-dev libtool libxml2 libxml2-dev libxml2-utils libaprutil1 libaprutil1-dev libpcre-ocaml-dev libssl-dev libpcre3 libpcre3-dev libpam-dev zlib1g zlib1g-dbg zlib1g-dev
 
-# Upgrade & patch bash - check https://shellshocker.net/
-curl https://shellshocker.net/fixbash | sh
-
 # Create directories
-mkdir ~/sources
+mkdir ~/sources && cd $_
+
+# Upgrade & patch bash - check https://shellshocker.net/
+# https://github.com/wreiske/shellshocker/blob/master/fixbash
+i=0
+mkdir -p bash-shellshocker && cd $_
+wget -no-check-certificate https://ftp.gnu.org/gnu/bash/bash-4.3.tar.gz
+while [ true ]; do i=`expr $i + 1`; wget -no-check-certificate https://ftp.gnu.org/gnu/bash/bash-4.3-patches/bash43-$(printf '%03g' $i); if [ $? -ne 0 ]; then break; fi; done
+tar zxvf bash-4.3.tar.gz 
+cd bash-4.3
+for p in ../bash43-[0-9][0-9][0-9]; do patch -p0 < $p; done
+./configure --prefix=/usr/local
+make
+make install
+cp -f /usr/local/bin/bash /bin/bash
 
 # Download OpenSSL
 cd ~/sources
