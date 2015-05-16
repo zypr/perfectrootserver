@@ -146,7 +146,7 @@ cp -f /usr/local/bin/bash /bin/bash
 
 # Download OpenSSL
 cd ~/sources
-mkdir openssl-${OPENSSL_VERSION}_release
+mkdir -p openssl-${OPENSSL_VERSION}_release
 wget http://www.openssl.org/source/openssl-${OPENSSL_VERSION}.tar.gz
 tar -xzvf openssl-${OPENSSL_VERSION}.tar.gz
 cd openssl-${OPENSSL_VERSION}/
@@ -2379,10 +2379,6 @@ location /pma {
     }
 }
 END
-fi
-
-service nginx reload
-
 echo
 echo
 green "--------------------------------------------"
@@ -2392,6 +2388,10 @@ yellow "URL: https://${FQDN}/pma/"
 green "--------------------------------------------"
 echo
 echo
+fi
+
+service nginx reload
+
 yellow "Now visit vma.${FQDN} and follow the instructions!"
 echo "Copy the security salts into the ViMbAdmin config file:"
 magenta "/usr/local/vimbadmin/application/configs/application.ini"
