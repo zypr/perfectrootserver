@@ -1,21 +1,32 @@
-#!/bin/bash
+#!/bin/bash 
 
 # Stops the script on the first error
 set -e
 
-# Check for the latest version
+# The perfect rootserver
+# by interp / Zypr
+# https://github.com/zypr/perfectrootserver
 #
-# http://nginx.org/en/download.html
+# Compatible with Debian 8.1 (jessie)
+#
+#
+# Check for latest/different version
+#
+# https://github.com/nginx/nginx/releases
 # http://openssl.org/source/
 # http://www.openssh.com/
 # https://developers.google.com/speed/pagespeed/module/build_ngx_pagespeed_from_source
+# https://github.com/nbs-system/naxsi/releases/latest
+# https://www.openbl.org/lists.html
 #
 # Please note that older Nginx versions are not compatible with this script
 #
-NGINX_VERSION=1.9.0
-OPENSSL_VERSION=1.0.2a
-OPENSSH_VERSION=6.8
-NPS_VERSION=1.9.32.3
+NGINX_VERSION=1.9.4
+OPENSSL_VERSION=1.0.2d
+OPENSSH_VERSION=7.1
+NPS_VERSION=1.9.32.6
+NAXSI_VERSION=0.54rc3
+OPENBL_BLACKLIST=base_all.txt
 
 
 
@@ -54,6 +65,7 @@ yellow "## USER INPUT REQUIRED ##"
 yellow "#########################"
 echo
 red "Do you want to use a service like CloudFlare to protect your Website?"
+green "Type No, if you use CloudFlare only as a DNS server without protecting your website!"
 stty echo
 while true; do
 	read -p "Yes [Y] / No [N]: " i
@@ -106,16 +118,42 @@ FQDN=$(sed '2q;d' ~/status)
 # Update package lists & fetch new versions
 rm /etc/apt/sources.list
 cat > /etc/apt/sources.list <<END
-deb http://ftp.debian.org/debian/ wheezy contrib main non-free
-deb-src http://ftp.debian.org/debian/ wheezy contrib non-free
-deb http://security.debian.org/ wheezy/updates main contrib non-free
-deb-src http://security.debian.org/ wheezy/updates main contrib non-free
-deb http://ftp.debian.org/debian/ wheezy-backports main contrib non-free
-deb-src http://ftp.debian.org/debian/ wheezy-backports main contrib non-free
-deb http://packages.dotdeb.org wheezy all
-deb-src http://packages.dotdeb.org wheezy all
-deb http://packages.dotdeb.org wheezy-php55 all
-deb-src http://packages.dotdeb.org wheezy-php55 all
+# Stable
+deb http://ftp.debian.org/debian stable main contrib non-free
+deb-src http://ftp.debian.org/debian stable main contrib non-free
+
+# Security updates
+deb http://security.debian.org/ stable/updates main contrib non-free
+deb http://security.debian.org/ testing/updates main contrib non-free
+deb-src http://security.debian.org/ stable/updates main contrib non-free
+deb-src http://security.debian.org/ testing/updates main contrib non-free
+
+# Testing
+deb http://ftp.debian.org/debian testing main contrib non-free
+deb-src http://ftp.debian.org/debian testing main contrib non-free
+
+# Unstable
+deb http://ftp.debian.org/debian unstable main contrib non-free
+deb-src http://ftp.debian.org/debian unstable main contrib non-free
+
+# Dotdeb
+deb http://packages.dotdeb.org jessie all
+deb-src http://packages.dotdeb.org jessie all
+END
+
+# Set some preferences
+cat > /etc/apt/preferences.d/preferences <<END
+Package: *
+Pin: release a=stable
+Pin-Priority: 700
+
+Package: *
+Pin: release a=testing
+Pin-Priority: 650
+
+Package: *
+Pin: release a=unstable
+Pin-Priority: 600
 END
 
 # Import gpg key
@@ -129,22 +167,24 @@ apt-get update && apt-get -y upgrade
 apt-get -y install aptitude
 
 # Install required software
-aptitude -y install build-essential git curl unzip vim-nox subversion php5-fpm php5-imap php5-gd php5-mysql php5-apcu php5-cli php5-common php5-curl php5-mcrypt php5-intl php5-dev checkinstall automake autoconf apache2-threaded-dev libtool libxml2 libxml2-dev libxml2-utils libaprutil1 libaprutil1-dev libpcre-ocaml-dev libssl-dev libpcre3 libpcre3-dev libpam-dev zlib1g zlib1g-dbg zlib1g-dev
+aptitude -y install build-essential software-properties-common python-software-properties htop flex bison gcc git curl vim-nox mlocate subversion rkhunter zoo unzip zip arj bzip2 nomarch lzop cabextract apt-listchanges libnet-LDAP-perl libauthen-sasl-perl-Daemon libio-string-perl libio-socket-ssl-perl libnet-ident-perl libnet-dns-perl libnet1 libnet1-dev php5-fpm php5-imap php5-gd php5-mysql php5-apcu php5-cli php5-common php5-curl php5-mcrypt php5-intl php5-dev checkinstall automake autoconf apache2-threaded-dev libapr1-dev apache2-utils imagemagick wkhtmltopdf ruby1.9.3 libtool libxml2 libxml2-dev libxslt1-dev libreadline6-dev libxml2-utils libcrypt-ssleay-perl libaprutil1 libaprutil1-dev libpcre-ocaml-dev libwww-perl libpcre3 libpcre3-dev libpam-dev libyaml-dev libcurl4-openssl-dev zlib1g zlib1g-dbg zlib1g-dev
 
 # Create directories
 mkdir ~/sources && cd $_
 
 # Upgrade & patch bash
-mkdir -p bash-shellshocker && cd $_
+mkdir -p bash && cd $_
 wget -N https://ftp.gnu.org/gnu/bash/bash-4.3.tar.gz
-for i in $(seq -f "%03g" 1 33); do wget http://ftp.gnu.org/gnu/bash/bash-4.3-patches/bash43-$i; done
-tar zxvf bash-4.3.tar.gz 
-cd bash-4.3
+for i in $(seq -f "%03g" 1 42); do wget http://ftp.gnu.org/gnu/bash/bash-4.3-patches/bash43-$i; done
+tar zxvf bash-4.3.tar.gz && cd bash-4.3
 for i in ../bash43-[0-9][0-9][0-9]; do patch -p0 < $i; done
 ./configure --prefix=/usr/local && make && make install
 cp -f /usr/local/bin/bash /bin/bash
 
-# Download OpenSSL
+# Install newest OpenSSL Library (without headers)
+apt-get -y install openssl/unstable
+
+# Download & compile OpenSSL (Needed for the missing headers)
 cd ~/sources
 mkdir -p openssl-${OPENSSL_VERSION}_release
 wget http://www.openssl.org/source/openssl-${OPENSSL_VERSION}.tar.gz
@@ -153,12 +193,6 @@ cd openssl-${OPENSSL_VERSION}/
 ./config -fPIC shared --prefix=/usr --openssldir=/etc/ssl
 make && make install INSTALL_PREFIX=~/sources/openssl-${OPENSSL_VERSION}_release
 cp -rf ~/sources/openssl-${OPENSSL_VERSION}_release/* /
-mv /usr/lib/x86_64-linux-gnu/libcrypto.so{,.orig}
-mv /usr/lib/x86_64-linux-gnu/libcrypto.so.1.0.0{,.orig}
-mv /usr/lib/x86_64-linux-gnu/libcrypto.a{,.orig}
-cp /usr/lib/libcrypto.so /usr/lib/x86_64-linux-gnu/
-cp /usr/lib/libcrypto.so.1.0.0 /usr/lib/x86_64-linux-gnu/
-cp /usr/lib/libcrypto.a /usr/lib/x86_64-linux-gnu/
 /sbin/ldconfig
 /usr/bin/updatedb
 make clean
@@ -168,7 +202,7 @@ cd ~/sources
 wget http://ftp.hostserver.de/pub/OpenBSD/OpenSSH/portable/openssh-${OPENSSH_VERSION}p1.tar.gz
 tar -xzvf openssh-${OPENSSH_VERSION}p1.tar.gz
 cd openssh-${OPENSSH_VERSION}p1
-./configure --prefix=/usr --sysconfdir=/etc/ssh --with-pam --with-ssl-engine
+./configure --prefix=/usr --with-pam --with-zlib --with-ssl-engine --with-ssl-dir=/etc/ssl --sysconfdir=/etc/ssh
 make
 mv /etc/ssh{,.bak}
 make install
@@ -178,14 +212,12 @@ sed -i 's/^#Port 22/Port 22/g' /etc/ssh/sshd_config
 sed -i 's/^#AddressFamily any/AddressFamily inet/g' /etc/ssh/sshd_config
 sed -i 's/^#Protocol 2/Protocol 2/g' /etc/ssh/sshd_config
 sed -i 's/^#HostKey \/etc\/ssh\/ssh_host_rsa_key/HostKey \/etc\/ssh\/ssh_host_rsa_key/g' /etc/ssh/sshd_config
-sed -i 's/^#HostKey \/etc\/ssh\/ssh_host_dsa_key/HostKey \/etc\/ssh\/ssh_host_dsa_key/g' /etc/ssh/sshd_config 
 sed -i 's/^#HostKey \/etc\/ssh\/ssh_host_ecdsa_key/HostKey \/etc\/ssh\/ssh_host_ecdsa_key/g' /etc/ssh/sshd_config
 sed -i 's/^#HostKey \/etc\/ssh\/ssh_host_ed25519_key/HostKey \/etc\/ssh\/ssh_host_ed25519_key/g' /etc/ssh/sshd_config
 sed -i 's/^#ServerKeyBits 1024/ServerKeyBits 2048/' /etc/ssh/sshd_config
 sed -i 's/^#RekeyLimit default none/RekeyLimit 256M/' /etc/ssh/sshd_config
-sed -i 's/^UsePrivilegeSeparation sandbox/UsePrivilegeSeparation yes/' /etc/ssh/sshd_config
-sed -i 's/^#KeyRegenerationInterval 1h/HostKey \/etc\/ssh\/ssh_host_ed25519_key/g' /etc/ssh/sshd_config
-sed -i 's/^#ServerKeyBits 1024/ServerKeyBits 768/g' /etc/ssh/sshd_config
+sed -i 's/^#LogLevel INFO/LogLevel VERBOSE/' /etc/ssh/sshd_config
+sed -i 's/^#KeyRegenerationInterval 1h/KeyRegenerationInterval 1800/g' /etc/ssh/sshd_config
 sed -i 's/^#SyslogFacility AUTH/SyslogFacility AUTH/g' /etc/ssh/sshd_config
 sed -i 's/^#LoginGraceTime 2m/LoginGraceTime 30/g' /etc/ssh/sshd_config
 sed -i 's/^#MaxAuthTries 6/MaxAuthTries 20/g' /etc/ssh/sshd_config
@@ -210,7 +242,7 @@ sed -i 's/^#MaxSessions 10/MaxSessions 3/g' /etc/ssh/sshd_config
 sed -i 's/^Subsystem	sftp	\/usr\/libexec\/sftp-server/Subsystem sftp \/usr\/lib\/openssh\/sftp-server/g' /etc/ssh/sshd_config
 echo -e "" >> /etc/ssh/sshd_config
 echo -e "# Allow client to pass locale environment variables" >> /etc/ssh/sshd_config
-echo -e "AcceptEnv LANG LC_*" >> /etc/ssh/sshd_config
+echo -e "AcceptEnv LANG LC_* TZ" >> /etc/ssh/sshd_config
 echo -e "" >> /etc/ssh/sshd_config
 echo -e "# KEX algorithms">> /etc/ssh/sshd_config
 echo -e "KexAlgorithms curve25519-sha256@libssh.org,diffie-hellman-group-exchange-sha256">> /etc/ssh/sshd_config
@@ -252,12 +284,10 @@ tar -xzvf ${NPS_VERSION}.tar.gz
 cd ~/sources
 git clone https://github.com/maneulyori/nginx-http-auth-digest.git
 
-# Download & configure ModSecurity
-git clone git://github.com/SpiderLabs/ModSecurity.git
-cd ~/sources/ModSecurity
-./autogen.sh
-./configure --enable-standalone-module
-make
+# Download & configure Naxsi
+cd ~/sources
+wget --no-check-certificate https://github.com/nbs-system/naxsi/archive/${NAXSI_VERSION}.tar.gz
+tar -xzvf ${NAXSI_VERSION}.tar.gz
 
 # Download Nginx
 cd ~/sources
@@ -369,7 +399,7 @@ sed -i '720s/.*/                (void) BIO_set_write_buffer_size(wbio, 16384);/'
 --with-openssl=$HOME/sources/openssl-${OPENSSL_VERSION} \
 --add-module=$HOME/sources/ngx_pagespeed-release-${NPS_VERSION}-beta \
 --add-module=$HOME/sources/nginx-http-auth-digest \
---add-module=$HOME/sources/ModSecurity/nginx/modsecurity
+--add-module=$HOME/sources/naxsi-${NAXSI_VERSION}/naxsi_src
 
 # make the package
 make
@@ -394,12 +424,10 @@ mkdir ../sites-enabled
 mkdir ../sites-custom
 mkdir ../htpasswd
 touch ../htpasswd/.htpasswd
-mkdir -p ../modsecurity/audit
 mkdir ../logs
 mkdir ../ssl
 chown -R www-data:www-data /var/lib/nginx
 chown www-data:www-data /etc/nginx/logs
-chown www-data:www-data /etc/nginx/modsecurity/audit
 
 # Install the Nginx service script
 wget -O /etc/init.d/nginx --no-check-certificate https://raw.githubusercontent.com/Fleshgrinder/nginx-sysvinit-script/master/init
@@ -486,7 +514,7 @@ events {
 }
 
 http {
-
+		include 			/etc/nginx/naxsi_core.rules;
 		include       		/etc/nginx/mime.types;
 		default_type  		application/octet-stream;
 		server_tokens       off;
@@ -626,8 +654,7 @@ server {
 			}
 
 			location / {
-			   	ModSecurityEnabled on;
-			   	ModSecurityConfig modsecurity/modsecurity.conf;
+			   	include /etc/nginx/naxsi.rules;
 			}
 
 			location ~ /\. {
@@ -684,25 +711,23 @@ fi
 
 ln -s /etc/nginx/sites-available/${FQDN}.conf /etc/nginx/sites-enabled/${FQDN}.conf
 
-# Configure ModSecurity and install OWASP rules
-cd ~/sources/ModSecurity/ 
-git clone https://github.com/SpiderLabs/owasp-modsecurity-crs.git owasp && cd $_
-cat ../modsecurity.conf-recommended modsecurity_crs_10_setup.conf.example base_rules/*.conf > /etc/nginx/modsecurity/modsecurity.conf
-cp base_rules/*.data /etc/nginx/modsecurity/
-cp ../unicode.mapping /etc/nginx/modsecurity/
+# Configure Naxsi
+cp -f ~/sources/naxsi-${NAXSI_VERSION}/naxsi_config/naxsi_core.rules /etc/nginx/
+cat > /etc/nginx/naxsi.rules <<END
+LearningMode;
+SecRulesEnabled;
+DeniedUrl "/RequestDenied";
 
-sed -i '7s/.*/SecRuleEngine On/' /etc/nginx/modsecurity/modsecurity.conf
-sed -i '173s/.*/SecDebugLog \/etc\/nginx\/logs\/modsecurity.log/' /etc/nginx/modsecurity/modsecurity.conf
-sed -i '174s/.*/SecDebugLogLevel 3/' /etc/nginx/modsecurity/modsecurity.conf
-sed -i '183s/.*/#SecAuditEngine RelevantOnly/' /etc/nginx/modsecurity/modsecurity.conf
-sed -i '184s/.*/#SecAuditLogRelevantStatus "^(?:5|4(?!04))"/' /etc/nginx/modsecurity/modsecurity.conf
-sed -i '187s/.*/#SecAuditLogParts ABIJDEFHZ/' /etc/nginx/modsecurity/modsecurity.conf
-sed -i '192s/.*/#SecAuditLogType Serial/' /etc/nginx/modsecurity/modsecurity.conf
-sed -i '193s/.*/#SecAuditLog \/var\/log\/modsec_audit.log/' /etc/nginx/modsecurity/modsecurity.conf
-sed -i '196s/.*/#SecAuditLogStorageDir \/etc\/nginx\/modsecurity\/audit\//' /etc/nginx/modsecurity/modsecurity.conf
+# Rules
+CheckRule "\$SQL >= 8" BLOCK;
+CheckRule "\$RFI >= 8" BLOCK;
+CheckRule "\$TRAVERSAL >= 4" BLOCK;
+CheckRule "\$EVADE >= 4" BLOCK;
+CheckRule "\$XSS >= 8" BLOCK;
+END
+
 
 # Create a self-signed SSL certificate
-#openssl req -new -newkey rsa:4096 -x509 -sha256 -days 365 -nodes -out /etc/nginx/ssl/${FQDN}.pem -keyout /etc/nginx/ssl/${FQDN}.key -subj "/C=/ST=/L=/O=/OU=/CN=*.${FQDN}"
 openssl ecparam -genkey -name secp384r1 -out /etc/nginx/ssl/${FQDN}.key
 openssl req -new -sha256 -key /etc/nginx/ssl/${FQDN}.key -out /etc/nginx/ssl/csr.pem -subj "/C=/ST=/L=/O=/OU=/CN=*.${FQDN}"
 openssl req -x509 -days 365 -key /etc/nginx/ssl/${FQDN}.key -in /etc/nginx/ssl/csr.pem -out /etc/nginx/ssl/${FQDN}.pem
@@ -731,8 +756,8 @@ chown -R vmail:vmail /var/mail
 # Install & configure our mailserver
 #
 
-# Install MySQL
-aptitude -y install mysql-server
+# Install & configure MariaDB
+aptitude -y install mariadb-server
 
 sed -i 's/max_allowed_packet.*/max_allowed_packet      = 128M/g' /etc/mysql/my.cnf
 sed -i '32s/.*/innodb_file_per_table = 1\n&/' /etc/mysql/my.cnf
@@ -858,7 +883,7 @@ while [[ "$DATABASEPWD" != "$DATABASEPWD2" ]]; do
 				stty echo
 				unset DATABASEPWD2
 				unset CHARCOUNT
-				unset PROMT
+				unset PROMPT
 				echo -n "Repeat password: "
 				stty echo
 				CHARCOUNT=0
@@ -990,12 +1015,11 @@ smtpd_tls_dh512_param_file = /etc/ssl/private/dh512.pem
 smtpd_tls_dh1024_param_file = /etc/ssl/private/dh1024.pem
 smtpd_tls_eecdh_grade = ultra
 smtpd_tls_auth_only = yes
-smtpd_tls_security_level = encrypt
+smtpd_tls_security_level = may
 smtpd_tls_session_cache_database = btree:\${data_directory}/smtpd_scache
 smtpd_tls_session_cache_timeout = 3600s
 smtpd_helo_required = yes
 smtpd_tls_received_header = yes
-smtpd_tls_security_level = may
 smtpd_tls_mandatory_ciphers = medium
 smtpd_tls_mandatory_exclude_ciphers = aNULL, MD5, RC4
 smtpd_tls_mandatory_protocols = !SSLv2, !SSLv3 , !TLSv1, !TLSv1.1
@@ -1073,9 +1097,9 @@ mv /etc/postfix/master.cf{,.org}
 cat > /etc/postfix/master.cf <<END
 smtp      inet  n       -       -       -       -       smtpd
     -o strict_rfc821_envelopes=yes
-submission inet n       -       -       -       -       smtpd
+submission inet n       -       n       -       -       smtpd
     -o syslog_name=postfix/submission
-    -o smtpd_tls_security_level=encrypt
+    -o smtpd_tls_security_level=may
     -o tls_preempt_cipherlist=yes
     -o smtpd_sasl_auth_enable=yes
     -o content_filter=dksign:[127.0.0.1]:10027
@@ -1195,6 +1219,7 @@ password_query = \\
     homedir AS userdb_home, uid AS userdb_uid, gid AS userdb_gid \\
   FROM mailbox WHERE username = '%u'
 iterate_query = SELECT username AS user FROM mailbox
+userdb_warning_disable = yes
 END
 
 mv /etc/dovecot/conf.d/10-master.conf{,.orig}
@@ -1239,7 +1264,8 @@ ssl_cert = </etc/ssl/certs/mail.crt
 ssl_key = </etc/ssl/private/mail.key
 ssl_protocols = !SSLv2 !SSLv3
 ssl_cipher_list = AES128+EECDH:AES128+EDH
-#ssl_prefer_server_ciphers = yes
+ssl_prefer_server_ciphers = yes
+ssl_dh_parameters_length = 4096
 END
 
 # # Dovecot Solr
@@ -1274,8 +1300,9 @@ END
 # service tomcat6 restart
 
 # ClamAV & SpamAssassin
-aptitude -y install clamav-milter clamav-unofficial-sigs spamass-milter
+aptitude -y install clamav-milter clamav-unofficial-sigs clamav-docs spamass-milter
 
+rm /var/log/clamav/freshclam.log
 freshclam
 service clamav-daemon start
 
@@ -1283,7 +1310,7 @@ touch /etc/default/clamav-milter
 echo -e "SOCKET_RWGROUP=postfix" >> /etc/default/clamav-milter
 
 mkdir /var/spool/postfix/clamav
-chown clamav /var/spool/postfix/clamav
+chown -R clamav /var/spool/postfix/clamav
 
 mv /etc/clamav/clamav-milter.conf{,.orig}
 cat > /etc/clamav/clamav-milter.conf <<END
@@ -1323,6 +1350,7 @@ sed -i '18s/.*/ENABLED=1/' /etc/default/spamassassin
 sed -i '31s/.*/CRON=1/' /etc/default/spamassassin
 
 sa-update
+
 chown -R debian-spamd:debian-spamd /var/lib/spamassassin/
 service spamassassin start
 
@@ -1333,7 +1361,7 @@ openssl genrsa -out /etc/dkimproxy/private.key 1024
 openssl rsa -in /etc/dkimproxy/private.key -out /etc/dkimproxy/public.key -pubout -outform PEM
 
 sed -i '2s/.*/listen 127.0.0.1:10025/' /etc/dkimproxy/dkimproxy_in.conf
-sed -i '2s/.*/relay 27.0.0.1:10026/' /etc/dkimproxy/dkimproxy_in.conf
+sed -i '2s/.*/relay 127.0.0.1:10026/' /etc/dkimproxy/dkimproxy_in.conf
 
 sed -i '2s/.*/listen 127.0.0.1:10027/' /etc/dkimproxy/dkimproxy_out.conf
 sed -i '5s/.*/relay 127.0.0.1:10028/' /etc/dkimproxy/dkimproxy_out.conf
@@ -1459,8 +1487,7 @@ server {
 			}
 
 			location / {
-			   	ModSecurityEnabled off;
-			   	ModSecurityConfig modsecurity/modsecurity.conf;
+			   	include /etc/nginx/naxsi.rules;
 				try_files \$uri \$uri/ /index.php?\$args;
 			}
 
@@ -1560,24 +1587,6 @@ sed -i '39s/.*/EXT_IF="eth0"/' /etc/arno-iptables-firewall/firewall.conf
 sed -i '44s/.*/EXT_IF_DHCP_IP="0"/' /etc/arno-iptables-firewall/firewall.conf
 sed -i '307s/.*/DRDOS_PROTECT="1"/' /etc/arno-iptables-firewall/firewall.conf
 sed -i '312s/.*/IPV6_SUPPORT="0"/' /etc/arno-iptables-firewall/firewall.conf
-
-# Blacklist some bad guys
-mkdir ~/sources/blacklist && cd $_
-cat > update.sh <<END
-#!/bin/bash
-cd ~/sources/blacklist
-wget -N http://infiltrated.net/blacklisted
-wget -N http://lists.blocklist.de/lists/all.txt
-cat blacklisted all.txt > /etc/arno-iptables-firewall/blocked-hosts
-END
-bash update.sh
-echo -e "/etc/init.d/arno-iptables-firewall force-reload" >> update.sh
-sed -i '1211s/.*/BLOCK_HOSTS_FILE="\/etc\/arno-iptables-firewall\/blocked-hosts"/' /etc/arno-iptables-firewall/firewall.conf
-
-touch /etc/cron.daily/blocked-hosts
-echo -e "#!/bin/sh" >> /etc/cron.daily/blocked-hosts
-echo -e "bash ~/sources/blacklist/update.sh" >> /etc/cron.daily/blocked-hosts
-chmod +x /etc/cron.daily/blocked-hosts
 
 echo
 yellow "#########################"
@@ -1680,7 +1689,7 @@ while [ $SSHW == '1' ]; do
                         else
                         	echo
                         	red "*************************************************"
-                        	red "SSH Port is not a integer, chose another one!"
+                        	red "SSH Port is not an integer, chose another one!"
                         	read -p "Enter a new port: " SSH
                 	fi
                 fi
@@ -1694,109 +1703,68 @@ sed -i '1164s/.*/OPEN_UDP=""/' /etc/arno-iptables-firewall/firewall.conf
 
 sed -i '27s/.*/VERBOSE="1"/' /etc/init.d/arno-iptables-firewall
 
-# Start the firewall!
-/etc/init.d/arno-iptables-firewall start
+# Start the firewall
+systemctl daemon-reload
+service arno-iptables-firewall start
+
+# Blacklist some bad guys
+# Check https://www.openbl.org/lists.html for alternative lists!
+mkdir ~/sources/blacklist && cd $_
+wget -N http://www.openbl.org/lists/${OPENBL_BLACKLIST}.gz
+gzip -d < ${OPENBL_BLACKLIST}.gz > ${OPENBL_BLACKLIST}
+cat ${OPENBL_BLACKLIST} > /etc/arno-iptables-firewall/blocked-hosts
+rm ${OPENBL_BLACKLIST}
+
+sed -i '1211s/.*/BLOCK_HOSTS_FILE="\/etc\/arno-iptables-firewall\/blocked-hosts"/' /etc/arno-iptables-firewall/firewall.conf
+
+cat > /etc/cron.daily/blocked-hosts <<END
+#!/bin/bash
+cd ~/sources/blacklist
+old=\$(md5sum ${OPENBL_BLACKLIST}.gz 2>/dev/null)
+wget -N http://www.openbl.org/lists/${OPENBL_BLACKLIST}.gz
+new=\$(md5sum ${OPENBL_BLACKLIST}.gz 2>/dev/null)
+if [ "\$old" != "\$new" ]; then
+	gzip -d < ${OPENBL_BLACKLIST}.gz > ${OPENBL_BLACKLIST}
+	cat ${OPENBL_BLACKLIST} > /etc/arno-iptables-firewall/blocked-hosts
+	rm ${OPENBL_BLACKLIST}
+	service arno-iptables-firewall force-reload
+fi
+END
+chmod +x /etc/cron.daily/blocked-hosts
 
 # Change SSH Port
 sed -i "s/^Port 22/Port ${SSH}/g" /etc/ssh/sshd_config
-service ssh restart
 
 # System Tuning
-echo -e "# Recycle Zombie connections" >> /etc/sysctl.conf
-echo -e "net.inet.tcp.fast_finwait2_recycle=1" >> /etc/sysctl.conf
-echo -e "net.inet.tcp.maxtcptw=200000" >> /etc/sysctl.conf
-echo -e "" >> /etc/sysctl.conf
-echo -e "# Increase number of files" >> /etc/sysctl.conf
-echo -e "kern.maxfiles=65535" >> /etc/sysctl.conf
-echo -e "kern.maxfilesperproc=16384" >> /etc/sysctl.conf
-echo -e "" >> /etc/sysctl.conf
-echo -e "# Increase page share factor per process" >> /etc/sysctl.conf
-echo -e "vm.pmap.pv_entry_max=54272521" >> /etc/sysctl.conf
-echo -e "vm.pmap.shpgperproc=20000" >> /etc/sysctl.conf
-echo -e "" >> /etc/sysctl.conf
-echo -e "# Increase number of connections" >> /etc/sysctl.conf
-echo -e "vfs.vmiodirenable=1" >> /etc/sysctl.conf
-echo -e "kern.ipc.somaxconn=3240000" >> /etc/sysctl.conf
-echo -e "net.inet.tcp.rfc1323=1" >> /etc/sysctl.conf
-echo -e "net.inet.tcp.delayed_ack=0" >> /etc/sysctl.conf
-echo -e "net.inet.tcp.restrict_rst=1" >> /etc/sysctl.conf
-echo -e "kern.ipc.maxsockbuf=2097152" >> /etc/sysctl.conf
-echo -e "kern.ipc.shmmax=268435456" >> /etc/sysctl.conf
-echo -e "" >> /etc/sysctl.conf
-echo -e "# Host cache" >> /etc/sysctl.conf
-echo -e "net.inet.tcp.hostcache.hashsize=4096" >> /etc/sysctl.conf
-echo -e "net.inet.tcp.hostcache.cachelimit=131072" >> /etc/sysctl.conf
-echo -e "net.inet.tcp.hostcache.bucketlimit=120" >> /etc/sysctl.conf
-echo -e "" >> /etc/sysctl.conf
-echo -e "# Increase number of ports" >> /etc/sysctl.conf
-echo -e "net.inet.ip.portrange.first=2000" >> /etc/sysctl.conf
-echo -e "net.inet.ip.portrange.last=100000" >> /etc/sysctl.conf
-echo -e "net.inet.ip.portrange.hifirst=2000" >> /etc/sysctl.conf
-echo -e "net.inet.ip.portrange.hilast=100000" >> /etc/sysctl.conf
-echo -e "kern.ipc.semvmx=131068" >> /etc/sysctl.conf
-echo -e "" >> /etc/sysctl.conf
-echo -e "# Disable Ping-flood attacks" >> /etc/sysctl.conf
-echo -e "net.inet.tcp.msl=2000" >> /etc/sysctl.conf
-echo -e "net.inet.icmp.bmcastecho=1" >> /etc/sysctl.conf
-echo -e "net.inet.icmp.icmplim=1" >> /etc/sysctl.conf
-echo -e "net.inet.tcp.blackhole=2" >> /etc/sysctl.conf
-echo -e "net.inet.udp.blackhole=1" >> /etc/sysctl.conf
-echo -e "" >> /etc/sysctl.conf
-echo -e "# Kernel & IP hardening" >> /etc/sysctl.conf
-echo -e "kernel.sysrq = 0" >> /etc/sysctl.conf
-echo -e "kernel.pid_max = 65536" >> /etc/sysctl.conf
-echo -e "kernel.exec-shield = 1" >> /etc/sysctl.conf
-echo -e "kernel.core_uses_pid = 1" >> /etc/sysctl.conf
-echo -e "kernel.randomize_va_space = 1" >> /etc/sysctl.conf
-echo -e "net.ipv4.ip_forward = 0" >> /etc/sysctl.conf
-echo -e "net.ipv4.ip_local_port_range = 2000 65000" >> /etc/sysctl.conf
-echo -e "net.ipv4.conf.default.rp_filter = 1" >> /etc/sysctl.conf
-echo -e "net.ipv4.conf.default.accept_source_route = 0" >> /etc/sysctl.conf
-echo -e "net.ipv4.tcp_synack_retries = 2" >> /etc/sysctl.conf
-echo -e "net.ipv4.tcp_syncookies=1" >> /etc/sysctl.conf
-echo -e "net.ipv4.conf.all.send_redirects = 0" >> /etc/sysctl.conf
-echo -e "net.ipv4.conf.all.accept_source_route = 0" >> /etc/sysctl.conf
-echo -e "net.ipv4.conf.all.accept_redirects = 0" >> /etc/sysctl.conf
-echo -e "net.ipv4.conf.all.secure_redirects = 0" >> /etc/sysctl.conf
-echo -e "net.ipv4.conf.all.log_martians = 1" >> /etc/sysctl.conf
-echo -e "net.ipv4.conf.all.rp_filter = 1" >> /etc/sysctl.conf
-echo -e "net.ipv4.conf.all.rp_filter=1" >> /etc/sysctl.conf
-echo -e "net.ipv4.conf.default.send_redirects = 0" >> /etc/sysctl.conf
-echo -e "net.ipv4.conf.default.accept_source_route = 0" >> /etc/sysctl.conf
-echo -e "net.ipv4.conf.default.accept_redirects = 0" >> /etc/sysctl.conf
-echo -e "net.ipv4.conf.default.secure_redirects = 0" >> /etc/sysctl.conf
-echo -e "net.ipv4.conf.default.rp_filter = 1" >> /etc/sysctl.conf
-echo -e "net.ipv4.icmp_echo_ignore_broadcasts = 1" >> /etc/sysctl.conf
-echo -e "net.ipv4.icmp_echo_ignore_broadcasts = 1" >> /etc/sysctl.conf
-echo -e "net.ipv4.icmp_echo_ignore_broadcasts=1" >> /etc/sysctl.conf
-echo -e "net.ipv6.conf.default.router_solicitations = 0" >> /etc/sysctl.conf
-echo -e "net.ipv6.conf.default.accept_ra_rtr_pref = 0" >> /etc/sysctl.conf
-echo -e "net.ipv6.conf.default.accept_ra_pinfo = 0" >> /etc/sysctl.conf
-echo -e "net.ipv6.conf.default.accept_ra_defrtr = 0" >> /etc/sysctl.conf
-echo -e "net.ipv6.conf.default.autoconf = 0" >> /etc/sysctl.conf
-echo -e "net.ipv6.conf.default.dad_transmits = 0" >> /etc/sysctl.conf
-echo -e "net.ipv6.conf.default.max_addresses = 1" >> /etc/sysctl.conf
-echo -e "net.ipv6.conf.default.autoconf=0" >> /etc/sysctl.conf
-echo -e "net.ipv6.conf.default.accept_dad=0" >> /etc/sysctl.conf
-echo -e "net.ipv6.conf.default.accept_ra=0" >> /etc/sysctl.conf
-echo -e "net.ipv6.conf.default.accept_ra_defrtr=0" >> /etc/sysctl.conf
-echo -e "net.ipv6.conf.default.accept_ra_rtr_pref=0" >> /etc/sysctl.conf
-echo -e "net.ipv6.conf.default.accept_ra_pinfo=0" >> /etc/sysctl.conf
-echo -e "net.ipv6.conf.default.accept_source_route=0" >> /etc/sysctl.conf
-echo -e "net.ipv6.conf.default.accept_redirects=0" >> /etc/sysctl.conf
-echo -e "net.ipv6.conf.default.forwarding=0" >> /etc/sysctl.conf
-echo -e "net.ipv6.conf.all.autoconf=0" >> /etc/sysctl.conf
-echo -e "net.ipv6.conf.all.accept_dad=0" >> /etc/sysctl.conf
-echo -e "net.ipv6.conf.all.accept_ra=0" >> /etc/sysctl.conf
-echo -e "net.ipv6.conf.all.accept_ra_defrtr=0" >> /etc/sysctl.conf
-echo -e "net.ipv6.conf.all.accept_ra_rtr_pref=0" >> /etc/sysctl.conf
-echo -e "net.ipv6.conf.all.accept_ra_pinfo=0" >> /etc/sysctl.conf
-echo -e "net.ipv6.conf.all.accept_source_route=0" >> /etc/sysctl.conf
-echo -e "net.ipv6.conf.all.accept_redirects=0" >> /etc/sysctl.conf
-echo -e "net.ipv6.conf.all.forwarding=0" >> /etc/sysctl.conf
+cat > /etc/sysctl.conf <<END
+kernel.randomize_va_space=1
+net.ipv4.conf.all.rp_filter=1
+net.ipv4.conf.all.accept_source_route=0
+net.ipv4.icmp_echo_ignore_broadcasts=1
+net.ipv4.conf.all.log_martians = 1
+net.ipv4.tcp_fin_timeout = 1
+net.ipv4.tcp_tw_recycle = 1
+kernel.shmmax = 1073741824
+net.ipv4.tcp_rmem = 4096 25165824 25165824
+net.core.rmem_max = 25165824
+net.core.rmem_default = 25165824
+net.ipv4.tcp_wmem = 4096 65536 25165824
+net.core.wmem_max = 25165824
+net.core.wmem_default = 65536
+net.core.optmem_max = 25165824
+net.ipv4.tcp_syncookies = 1
+net.ipv4.tcp_max_orphans = 262144
+net.ipv4.tcp_max_syn_backlog = 262144
+net.ipv4.tcp_synack_retries = 2
+net.ipv4.tcp_syn_retries = 2
+net.core.default_qdisc=fq_codel
 
-# Disable IPv6
-echo -e "net.ipv6.conf.all.disable_ipv6=1" >> /etc/sysctl.conf
+# Disable IPV6
+net.ipv6.conf.all.disable_ipv6 = 1
+net.ipv6.conf.default.disable_ipv6 = 1
+net.ipv6.conf.lo.disable_ipv6 = 1
+net.ipv6.conf.eth0.disable_ipv6 = 1
+END
 
 # Enable changes
 sysctl -p
@@ -1808,6 +1776,8 @@ service postfix restart
 service dovecot restart
 service clamav-milter restart
 #service tomcat6 restart
+truncate -s 0 /var/log/daemon.log
+truncate -s 0 /var/log/syslog
 
 # Fail2Ban
 aptitude -y install fail2ban
@@ -1939,7 +1909,7 @@ else
 			echo
 			unset SSHKEYPWD2
 			unset CHARCOUNT
-			unset PROMT
+			unset PROMPT
 			echo -n "Repeat password: "
 			stty echo
 			CHARCOUNT=0
@@ -1964,7 +1934,8 @@ else
 			done
 			stty echo
 	done
-	ssh-keygen -f ~/ssh.key -b 2048 -t rsa -N $SSHKEYPWD > /dev/null
+	#ssh-keygen -f ~/ssh.key -b 521 -t ecdsa -N $SSHKEYPWD > /dev/null
+	ssh-keygen -f ~/ssh.key -b 3072 -t rsa -N $SSHKEYPWD > /dev/null
 	mkdir -p ~/.ssh && chmod 700 ~/.ssh
 	cat ~/ssh.key.pub > ~/.ssh/authorized_keys2 && rm ~/ssh.key.pub
 	chmod 600 ~/.ssh/authorized_keys2
@@ -1990,6 +1961,9 @@ else
 	done
 	sed -i 's/^#PasswordAuthentication yes/PasswordAuthentication no/g' /etc/ssh/sshd_config
 	sed -i 's/^UsePAM yes/UsePAM no/g' /etc/ssh/sshd_config
+	echo -e "" >> /etc/ssh/sshd_config
+	echo -e "# Disable password based logins" >> /etc/ssh/sshd_config
+	echo -e "AuthenticationMethods publickey" >> /etc/ssh/sshd_config
 	service ssh restart
 	rm ~/ssh.key
 fi
@@ -2240,7 +2214,7 @@ END
 						stty echo
 						unset PMAP2
 						unset CHARCOUNT
-						unset PROMT
+						unset PROMPT
 						echo -n "Repeat password: "
 						stty echo
 						CHARCOUNT=0
