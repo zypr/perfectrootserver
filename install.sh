@@ -12,7 +12,7 @@ set -e
 #
 # Check for latest/different version
 #
-# https://github.com/nginx/nginx/releases
+# http://nginx.org/en/download.html
 # http://openssl.org/source/
 # http://www.openssh.com/
 # https://developers.google.com/speed/pagespeed/module/build_ngx_pagespeed_from_source
@@ -181,21 +181,14 @@ for i in ../bash43-[0-9][0-9][0-9]; do patch -p0 < $i; done
 ./configure --prefix=/usr/local && make && make install
 cp -f /usr/local/bin/bash /bin/bash
 
-# Install newest OpenSSL Library (without headers)
-apt-get -y install openssl/unstable
+# Install OpenSSL
+apt-get -y install openssl/unstable libssl-dev/unstable
 
-# Download & compile OpenSSL (Needed for the missing headers)
+# Download OpenSSL source
 cd ~/sources
 mkdir -p openssl-${OPENSSL_VERSION}_release
 wget http://www.openssl.org/source/openssl-${OPENSSL_VERSION}.tar.gz
 tar -xzvf openssl-${OPENSSL_VERSION}.tar.gz
-cd openssl-${OPENSSL_VERSION}/
-./config -fPIC shared --prefix=/usr --openssldir=/etc/ssl
-make && make install INSTALL_PREFIX=~/sources/openssl-${OPENSSL_VERSION}_release
-cp -rf ~/sources/openssl-${OPENSSL_VERSION}_release/* /
-/sbin/ldconfig
-/usr/bin/updatedb
-make clean
 
 # Update OpenSSH and compile with latest OpenSSL source
 cd ~/sources
@@ -371,11 +364,8 @@ sed -i '720s/.*/                (void) BIO_set_write_buffer_size(wbio, 16384);/'
 --without-http_browser_module \
 --without-http_empty_gif_module \
 --without-http_map_module \
---without-http_proxy_module \
---without-http_memcached_module \
 --without-http_userid_module \
 --without-http_split_clients_module \
---without-http_uwsgi_module \
 --with-http_ssl_module \
 --with-http_spdy_module \
 --with-http_realip_module \
@@ -591,17 +581,18 @@ server {
 			ssl_ecdh_curve		secp384r1;
 			ssl_session_cache   shared:SSL:10m;
 			ssl_session_timeout 10m;
+			ssl_session_tickets off;
 			ssl_protocols       TLSv1 TLSv1.1 TLSv1.2;
-			#ssl_prefer_server_ciphers on;
+			ssl_prefer_server_ciphers on;
 
 			#ssl_stapling on;
 			#ssl_stapling_verify on;
 			#resolver 8.8.8.8 8.8.4.4 valid=300s;
 			#resolver_timeout 5s;
 
-			ssl_ciphers "AES256+EECDH:AES256+EDH";
+			ssl_ciphers "EECDH+AESGCM:EDH+AESGCM:AES256+EECDH:AES256+EDH";
 
-			add_header Strict-Transport-Security "max-age=15768000; includeSubdomains";
+			add_header Strict-Transport-Security "max-age=63072000; includeSubdomains; preload";
 			add_header X-Frame-Options DENY;
 			add_header Alternate-Protocol  443:npn-spdy/2;
 			add_header X-Content-Type-Options nosniff;
@@ -706,7 +697,6 @@ if [ $CLOUDFLARE == '1' ]; then
 	sed -i '10s/.*/			return 503;\n&/' /etc/nginx/sites-available/${FQDN}.conf
 	sed -i '11s/.*/}\n&/' /etc/nginx/sites-available/${FQDN}.conf
 	sed -i '16s/.*/			return 503;/' /etc/nginx/sites-available/${FQDN}.conf
-	sed -i '43s/.*/			ssl_ciphers "AES128+EECDH:AES128+EDH:AES256+EECDH:AES256+EDH";/' /etc/nginx/sites-available/${FQDN}.conf
 fi
 
 ln -s /etc/nginx/sites-available/${FQDN}.conf /etc/nginx/sites-enabled/${FQDN}.conf
@@ -1309,7 +1299,8 @@ service clamav-daemon start
 touch /etc/default/clamav-milter
 echo -e "SOCKET_RWGROUP=postfix" >> /etc/default/clamav-milter
 
-mkdir /var/spool/postfix/clamav
+mkdir -p /var/spool/postfix/clamav
+mkdir -p /var/lib/spamass-milter
 chown -R clamav /var/spool/postfix/clamav
 
 mv /etc/clamav/clamav-milter.conf{,.orig}
@@ -1428,17 +1419,18 @@ server {
 			#ssl_trusted_certificate ssl/trustedbundle.pem;
 			ssl_session_cache   shared:SSL:10m;
 			ssl_session_timeout 10m;
+			ssl_session_tickets off;
 			ssl_protocols        TLSv1 TLSv1.1 TLSv1.2;
-			#ssl_prefer_server_ciphers on;
+			ssl_prefer_server_ciphers on;
 
 			#ssl_stapling on;
 			#ssl_stapling_verify on;
 			#resolver 8.8.8.8 8.8.4.4 valid=300s;
 			#resolver_timeout 5s;
 
-			ssl_ciphers "AES256+EECDH:AES256+EDH";
+			ssl_ciphers "EECDH+AESGCM:EDH+AESGCM:AES256+EECDH:AES256+EDH";
 
-			add_header Strict-Transport-Security "max-age=63072000; includeSubdomains";
+			add_header Strict-Transport-Security "max-age=63072000; includeSubdomains; preload";
 			add_header X-Frame-Options DENY;
 			add_header Alternate-Protocol  443:npn-spdy/2;
 			add_header X-Content-Type-Options nosniff;
@@ -1521,10 +1513,6 @@ server {
 			}
 }
 END
-
-if [ $CLOUDFLARE == '1' ]; then
-	sed -i '30s/.*/			ssl_ciphers "AES128+EECDH:AES128+EDH:AES256+EECDH:AES256+EDH";/' /etc/nginx/sites-available/vma.${FQDN}.conf
-fi
 
 ln -s /etc/nginx/sites-available/vma.${FQDN}.conf /etc/nginx/sites-enabled/vma.${FQDN}.conf
 sed -i '1s/.*/3/' ~/status
