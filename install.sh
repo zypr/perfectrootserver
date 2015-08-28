@@ -590,8 +590,9 @@ server {
 			#resolver_timeout 5s;
 
 			ssl_ciphers "EECDH+AESGCM:EDH+AESGCM:AES256+EECDH:AES256+EDH";
-
-			add_header Strict-Transport-Security "max-age=63072000; includeSubdomains; preload";
+			
+			# HSTS - uncomment if you have a valid SSL certificate
+			#add_header Strict-Transport-Security "max-age=63072000; includeSubdomains; preload";
 			add_header X-Frame-Options DENY;
 			add_header Alternate-Protocol  443:npn-spdy/2;
 			add_header X-Content-Type-Options nosniff;
@@ -1428,8 +1429,9 @@ server {
 			#resolver_timeout 5s;
 
 			ssl_ciphers "EECDH+AESGCM:EDH+AESGCM:AES256+EECDH:AES256+EDH";
-
-			add_header Strict-Transport-Security "max-age=63072000; includeSubdomains; preload";
+			
+			# HSTS - uncomment if you have a valid SSL certificate
+			#add_header Strict-Transport-Security "max-age=63072000; includeSubdomains; preload";
 			add_header X-Frame-Options DENY;
 			add_header Alternate-Protocol  443:npn-spdy/2;
 			add_header X-Content-Type-Options nosniff;
