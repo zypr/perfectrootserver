@@ -186,7 +186,6 @@ apt-get -y install openssl/unstable libssl-dev/unstable
 
 # Download OpenSSL source
 cd ~/sources
-mkdir -p openssl-${OPENSSL_VERSION}_release
 wget http://www.openssl.org/source/openssl-${OPENSSL_VERSION}.tar.gz
 tar -xzvf openssl-${OPENSSL_VERSION}.tar.gz
 
