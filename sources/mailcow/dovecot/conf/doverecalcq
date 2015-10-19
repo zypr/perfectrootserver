@@ -1,0 +1,2 @@
+#!/bin/bash
+/bin/su vmail -c "/usr/bin/doveadm quota recalc -A"

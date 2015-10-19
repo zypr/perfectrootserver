@@ -1,0 +1,31 @@
+#!/bin/bash
+
+[[ ${#@} -ne 3 ]] && exit 1
+
+SELECTOR=$2
+DOMAIN=$3
+ID="${RANDOM}${RANDOM}"
+
+case $1 in
+add)
+        [[ -f "/etc/opendkim/dnstxt/${SELECTOR}_${DOMAIN}" ]] && exit 1
+        /usr/bin/opendkim-genkey -S -a -r -s "${SELECTOR}" -d "${DOMAIN}" -D /tmp/
+        mv "/tmp/${SELECTOR}.txt" "/etc/opendkim/dnstxt/${SELECTOR}_${DOMAIN}"
+        mv "/tmp/${SELECTOR}.private" "/etc/opendkim/keyfiles/${SELECTOR}_${DOMAIN}.dkim"
+        sed -i "s/ ; ----- DKIM key $SELECTOR for $DOMAIN//g" "/etc/opendkim/dnstxt/${SELECTOR}_${DOMAIN}"
+        chown www-data: /etc/opendkim/dnstxt/*
+        chown opendkim: "/etc/opendkim/keyfiles/${SELECTOR}_${DOMAIN}.dkim"
+        echo "${ID}     ${DOMAIN}:${SELECTOR}:/etc/opendkim/keyfiles/${SELECTOR}_${DOMAIN}.dkim" >> /etc/opendkim/KeyTable
+        echo "*@${DOMAIN}       ${ID}" >> /etc/opendkim/SigningTable
+        ;;
+del)
+        [[ ! -f "/etc/opendkim/dnstxt/${SELECTOR}_${DOMAIN}" ]] && exit 1
+        rm "/etc/opendkim/dnstxt/${SELECTOR}_${DOMAIN}" 2> /dev/null
+        rm "/etc/opendkim/keyfiles/${SELECTOR}_${DOMAIN}.dkim" 2> /dev/null
+        DELID=$(grep -i "${SELECTOR}_${DOMAIN}.dkim" /etc/opendkim/KeyTable | awk '{ print $1 }')
+        sed -i "/${DELID}/d" /etc/opendkim/KeyTable 2> /dev/null
+        sed -i "/${DELID}/d" /etc/opendkim/SigningTable 2> /dev/null
+        ;;
+esac
+
+service opendkim reload

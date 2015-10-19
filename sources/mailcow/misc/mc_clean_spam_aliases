@@ -1,0 +1,4 @@
+#!/bin/bash
+PATH=/usr/local/bin:/usr/local/sbin:/sbin:/usr/sbin:/bin:/usr/bin:/usr/bin/X11
+
+mysql --host my_dbhost -u my_mailcowuser -pmy_mailcowpass my_mailcowdb -e "DELETE FROM spamalias WHERE validity <= NOW()"

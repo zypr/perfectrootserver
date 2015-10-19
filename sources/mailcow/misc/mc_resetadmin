@@ -1,0 +1,44 @@
+#!/bin/bash
+PATH=/usr/local/bin:/usr/local/sbin:/sbin:/usr/sbin:/bin:/usr/bin:/usr/bin/X11
+
+greenb() { echo $(tput bold)$(tput setaf 2)${1}$(tput sgr0); }
+redb() { echo $(tput bold)$(tput setaf 1)${1}$(tput sgr0); }
+yellowb() { echo $(tput bold)$(tput setaf 3)${1}$(tput sgr0); }
+
+genpasswd() {
+    count=0
+    while [ $count -lt 3 ]
+    do
+        pw_valid=$(tr -cd A-Za-z0-9 < /dev/urandom | fold -w24 | head -n1)
+        count=$(grep -o "[0-9]" <<< $pw_valid | wc -l)
+    done
+    echo $pw_valid
+}
+
+DBHOST='my_dbhost'
+DBNAME='my_mailcowdb'
+DBUSER='my_mailcowuser'
+DBPASS='my_mailcowpass'
+
+echo "---------------------------"
+echo "mailcow administrator reset"
+echo "---------------------------"
+echo -n "Resetable administrator usernames: "
+admins_array=($(mysql --host ${DBHOST} -u ${DBUSER} -p${DBPASS} ${DBNAME} -e "SELECT username FROM admin;" -N -B))
+echo $(yellowb ${admins_array[*]})
+echo "---------------------------"
+NEWPASS=$(genpasswd)
+while true; do
+read -p "Please enter a username from above: " mailcow_admin_user
+        if [[ ! -z $(mysql --host ${DBHOST} -u ${DBUSER} -p${DBPASS} ${DBNAME} -e "SELECT username FROM admin WHERE username='$mailcow_admin_user' AND superadmin='1';") ]]; then
+                mailcow_admin_pass_hashed=$(doveadm pw -s SHA512-CRYPT -p ${NEWPASS})
+                mysql --host ${DBHOST} -u ${DBUSER} -p${DBPASS} ${DBNAME} -e "DELETE FROM admin WHERE username='$mailcow_admin_user';"
+                mysql --host ${DBHOST} -u ${DBUSER} -p${DBPASS} ${DBNAME} -e "INSERT INTO admin VALUES ('$mailcow_admin_user','$mailcow_admin_pass_hashed',1,now(),now(),1);"
+                echo
+                echo $(greenb "New password: ${NEWPASS}")
+                echo
+                exit 0
+        else
+                echo $(redb "Invalid administrator username")
+        fi
+done
