@@ -231,7 +231,7 @@ fi
 
 mysqladmin -u root password ${MYSQL_ROOT_PASS}
 
-sed -i 's/max_allowed_packet.*/max_allowed_packet = 128M/g' /etc/mysql/my.cnf
+sed -i 's/.*max_allowed_packet.*/max_allowed_packet = 128M/g' /etc/mysql/my.cnf
 sed -i '32s/.*/innodb_file_per_table = 1\n&/' /etc/mysql/my.cnf
 sed -i '33s/.*/innodb_additional_mem_pool_size = 50M\n&/' /etc/mysql/my.cnf
 sed -i '34s/.*/innodb_thread_concurrency = 4\n&/' /etc/mysql/my.cnf
@@ -241,7 +241,7 @@ sed -i '37s/.*/#innodb_buffer_pool_size = 2G #reserved RAM, reduce i\/o\n&/' /et
 sed -i '38s/.*/innodb_log_files_in_group = 2\n&/' /etc/mysql/my.cnf
 sed -i '39s/.*/innodb_log_file_size = 32M\n&/' /etc/mysql/my.cnf
 sed -i '40s/.*/innodb_log_buffer_size = 16M\n&/' /etc/mysql/my.cnf
-sed -i '42s/.*/#innodb_table_locks = 0 #disable table lock, uncomment if you do not want to crash all applications, if one does\n&/' /etc/mysql/my.cnf
+sed -i '41s/.*/#innodb_table_locks = 0 #disable table lock, uncomment if you do not want to crash all applications, if one does\n&/' /etc/mysql/my.cnf
 
 # Automated mysql_secure_installation
 mysql -u root -p${MYSQL_ROOT_PASS} -e "DELETE FROM mysql.user WHERE User=''; DELETE FROM mysql.user WHERE User='root' AND Host NOT IN ('localhost', '127.0.0.1', '::1'); DROP DATABASE IF EXISTS test; FLUSH PRIVILEGES; DELETE FROM mysql.db WHERE Db='test' OR Db='test\\_%'; FLUSH PRIVILEGES;" >/dev/null 2>&1
@@ -700,36 +700,36 @@ ln -s /etc/nginx/sites-available/${MYDOMAIN}.conf /etc/nginx/sites-enabled/${MYD
 
 # Configure PHP
 echo "${info} Configuring PHP..." | awk '{ print strftime("[%H:%M:%S] |"), $0 }'
-sed -i '303s/.*/disable_functions = pcntl_alarm,pcntl_fork,pcntl_waitpid,pcntl_wait,pcntl_wifexited,pcntl_wifstopped,pcntl_wifsignaled,pcntl_wexitstatus,pcntl_wtermsig,pcntl_wstopsig,pcntl_signal,pcntl_signal_dispatch,pcntl_get_last_error,pcntl_strerror,pcntl_sigprocmask,pcntl_sigwaitinfo,pcntl_sigtimedwait,pcntl_exec,pcntl_getpriority,pcntl_setpriority,escapeshellarg,passthru,proc_close,proc_get_status,proc_nice,proc_open,proc_terminate,/' /etc/php5/fpm/php.ini
-sed -i '324s/.*/ignore_user_abort = Off/' /etc/php5/fpm/php.ini
-sed -i '363s/.*/expose_php = Off/' /etc/php5/fpm/php.ini
-sed -i '660s/.*/post_max_size = 15M/' /etc/php5/fpm/php.ini
-sed -i '680s/.*/default_charset = "UTF-8"/' /etc/php5/fpm/php.ini
-sed -i '755s/.*/cgi.fix_pathinfo=0/' /etc/php5/fpm/php.ini
-sed -i '792s/.*/upload_max_filesize = 15M/' /etc/php5/fpm/php.ini
-sed -i '820s/.*/default_socket_timeout = 30/' /etc/php5/fpm/php.ini
-sed -i '866s/.*/date.timezone = Europe\/Berlin/' /etc/php5/fpm/php.ini
-sed -i '1058s/.*/mysql.allow_persistent = Off/' /etc/php5/fpm/php.ini
-sed -i '1389s/.*/session.cookie_httponly = 1/' /etc/php5/fpm/php.ini
+sed -i 's/.*disable_functions =.*/disable_functions = pcntl_alarm,pcntl_fork,pcntl_waitpid,pcntl_wait,pcntl_wifexited,pcntl_wifstopped,pcntl_wifsignaled,pcntl_wexitstatus,pcntl_wtermsig,pcntl_wstopsig,pcntl_signal,pcntl_signal_dispatch,pcntl_get_last_error,pcntl_strerror,pcntl_sigprocmask,pcntl_sigwaitinfo,pcntl_sigtimedwait,pcntl_exec,pcntl_getpriority,pcntl_setpriority,escapeshellarg,passthru,proc_close,proc_get_status,proc_nice,proc_open,proc_terminate,/' /etc/php5/fpm/php.ini
+sed -i 's/.*ignore_user_abort =.*/ignore_user_abort = Off/' /etc/php5/fpm/php.ini
+sed -i 's/.*expose_php =.*/expose_php = Off/' /etc/php5/fpm/php.ini
+sed -i 's/.*post_max_size =.*/post_max_size = 15M/' /etc/php5/fpm/php.ini
+sed -i 's/.*default_charset =.*/default_charset = "UTF-8"/' /etc/php5/fpm/php.ini
+sed -i 's/.*cgi.fix_pathinfo=.*/cgi.fix_pathinfo=0/' /etc/php5/fpm/php.ini
+sed -i 's/.*upload_max_filesize =.*/upload_max_filesize = 15M/' /etc/php5/fpm/php.ini
+sed -i 's/.*default_socket_timeout =.*/default_socket_timeout = 30/' /etc/php5/fpm/php.ini
+sed -i 's/.*date.timezone =.*/date.timezone = Europe\/Berlin/' /etc/php5/fpm/php.ini
+sed -i 's/.*mysql.allow_persistent =.*/mysql.allow_persistent = Off/' /etc/php5/fpm/php.ini
+sed -i 's/.*session.cookie_httponly =.*/session.cookie_httponly = 1/' /etc/php5/fpm/php.ini
 
 # Configure PHP-FPM
-sed -i '56s/.*/emergency_restart_threshold = 10/' /etc/php5/fpm/php-fpm.conf
-sed -i '64s/.*/emergency_restart_interval = 1m/' /etc/php5/fpm/php-fpm.conf
-sed -i '70s/.*/process_control_timeout = 10/' /etc/php5/fpm/php-fpm.conf
-sed -i '108s/.*/events.mechanism = epoll/' /etc/php5/fpm/php-fpm.conf
-sed -i '51s/.*/listen.mode = 0666/' /etc/php5/fpm/pool.d/www.conf
-sed -i '59s/.*/listen.allowed_clients = 127.0.0.1/' /etc/php5/fpm/pool.d/www.conf
-sed -i '104s/.*/pm.max_children = 50/' /etc/php5/fpm/pool.d/www.conf
-sed -i '109s/.*/pm.start_servers = 15/' /etc/php5/fpm/pool.d/www.conf
-sed -i '114s/.*/pm.min_spare_servers = 5/' /etc/php5/fpm/pool.d/www.conf
-sed -i '119s/.*/pm.max_spare_servers = 25/' /etc/php5/fpm/pool.d/www.conf
-sed -i '124s/.*/pm.process_idle_timeout = 60s;/' /etc/php5/fpm/pool.d/www.conf
-sed -i '323s/.*/request_terminate_timeout = 30/' /etc/php5/fpm/pool.d/www.conf
-sed -i '372s/.*/security.limit_extensions = .php/' /etc/php5/fpm/pool.d/www.conf
-sed -i '403s/.*/php_flag[display_errors] = off/' /etc/php5/fpm/pool.d/www.conf
-sed -i '404s/.*/php_admin_value[error_log] = \/var\/log\/fpm5-php.www.log/' /etc/php5/fpm/pool.d/www.conf
-sed -i '405s/.*/php_admin_flag[log_errors] = on/' /etc/php5/fpm/pool.d/www.conf
-sed -i '406s/.*/php_admin_value[memory_limit] = 128M/' /etc/php5/fpm/pool.d/www.conf
+sed -i 's/.*emergency_restart_threshold =.*/emergency_restart_threshold = 10/' /etc/php5/fpm/php-fpm.conf
+sed -i 's/.*emergency_restart_interval =.*/emergency_restart_interval = 1m/' /etc/php5/fpm/php-fpm.conf
+sed -i 's/.*process_control_timeout =.*/process_control_timeout = 10/' /etc/php5/fpm/php-fpm.conf
+sed -i 's/.*events.mechanism =.*/events.mechanism = epoll/' /etc/php5/fpm/php-fpm.conf
+sed -i 's/.*listen.mode =.*/listen.mode = 0666/' /etc/php5/fpm/pool.d/www.conf
+sed -i 's/.*listen.allowed_clients =.*/listen.allowed_clients = 127.0.0.1/' /etc/php5/fpm/pool.d/www.conf
+sed -i 's/.*pm.max_children =.*/pm.max_children = 50/' /etc/php5/fpm/pool.d/www.conf
+sed -i 's/.*pm.start_servers =.*/pm.start_servers = 15/' /etc/php5/fpm/pool.d/www.conf
+sed -i 's/.*pm.min_spare_servers =.*/pm.min_spare_servers = 5/' /etc/php5/fpm/pool.d/www.conf
+sed -i 's/.*pm.max_spare_servers =.*/pm.max_spare_servers = 25/' /etc/php5/fpm/pool.d/www.conf
+sed -i 's/.*pm.process_idle_timeout =.*/pm.process_idle_timeout = 60s;/' /etc/php5/fpm/pool.d/www.conf
+sed -i 's/.*request_terminate_timeout =.*/request_terminate_timeout = 30/' /etc/php5/fpm/pool.d/www.conf
+sed -i 's/.*security.limit_extensions =.*/security.limit_extensions = .php/' /etc/php5/fpm/pool.d/www.conf
+sed -i 's/.*php_flag[display_errors] =.*/php_flag[display_errors] = off/' /etc/php5/fpm/pool.d/www.conf
+sed -i 's/.*php_admin_value[error_log] =.*/php_admin_value[error_log] = \/var\/log\/fpm5-php.www.log/' /etc/php5/fpm/pool.d/www.conf
+sed -i 's/.*php_admin_flag[log_errors] =.*/php_admin_flag[log_errors] = on/' /etc/php5/fpm/pool.d/www.conf
+sed -i 's/.*php_admin_value[memory_limit] =.*/php_admin_value[memory_limit] = 128M/' /etc/php5/fpm/pool.d/www.conf
 echo -e "php_flag[display_errors] = off" >> /etc/php5/fpm/pool.d/www.conf
 
 # Configure APCu
@@ -1485,19 +1485,20 @@ update-rc.d -f arno-iptables-firewall start 11 S . stop 10 0 6 >/dev/null 2>&1
 # Configure firewall.conf
 bash /usr/local/share/environment >/dev/null 2>&1
 sed -i "s/^Port 22/Port ${SSH}/g" /etc/ssh/sshd_config
-sed -i '39s/.*/EXT_IF="eth0"/' /etc/arno-iptables-firewall/firewall.conf
-sed -i '44s/.*/EXT_IF_DHCP_IP="0"/' /etc/arno-iptables-firewall/firewall.conf
-sed -i '307s/.*/DRDOS_PROTECT="1"/' /etc/arno-iptables-firewall/firewall.conf
-sed -i '312s/.*/IPV6_SUPPORT="0"/' /etc/arno-iptables-firewall/firewall.conf
-sed -i '1154s/.*/OPEN_ICMP="1"/' /etc/arno-iptables-firewall/firewall.conf
-sed -i '1212s/.*/BLOCK_HOSTS_FILE="\/etc\/arno-iptables-firewall\/blocked-hosts"/' /etc/arno-iptables-firewall/firewall.conf
+sed -i 's/.*EXT_IF=.*/EXT_IF="eth0"/' /etc/arno-iptables-firewall/firewall.conf
+sed -i 's/.*EXT_IF_DHCP_IP=.*/EXT_IF_DHCP_IP="0"/' /etc/arno-iptables-firewall/firewall.conf
+sed -i 's/.*FIREWALL_LOG=.*/FIREWALL_LOG="\/var\/log\/firewall.log"/' /etc/arno-iptables-firewall/firewall.conf
+sed -i 's/.*DRDOS_PROTECT=.*/DRDOS_PROTECT="1"/' /etc/arno-iptables-firewall/firewall.conf
+sed -i 's/.*IPV6_SUPPORT=.*/IPV6_SUPPORT="0"/' /etc/arno-iptables-firewall/firewall.conf
+sed -i 's/.*OPEN_ICMP=.*/OPEN_ICMP="1"/' /etc/arno-iptables-firewall/firewall.conf
+sed -i 's/.*BLOCK_HOSTS_FILE=.*/BLOCK_HOSTS_FILE="\/etc\/arno-iptables-firewall\/blocked-hosts"/' /etc/arno-iptables-firewall/firewall.conf
 if [ ${USE_MAILSERVER} == '1' ]; then
-	sed -i "1164s/.*/OPEN_TCP=\"${SSH}, 25, 80, 110, 143, 443, 465, 587, 993, 995\"/" /etc/arno-iptables-firewall/firewall.conf
+	sed -i "s/.*OPEN_TCP=.*/OPEN_TCP=\"${SSH}, 25, 80, 110, 143, 443, 465, 587, 993, 995\"/" /etc/arno-iptables-firewall/firewall.conf
 else
-	sed -i "1164s/.*/OPEN_TCP=\"${SSH}, 80, 443\"/" /etc/arno-iptables-firewall/firewall.conf
+	sed -i "s/.*OPEN_TCP=.*/OPEN_TCP=\"${SSH}, 80, 443\"/" /etc/arno-iptables-firewall/firewall.conf
 fi
-sed -i '1165s/.*/OPEN_UDP=""/' /etc/arno-iptables-firewall/firewall.conf
-sed -i '27s/.*/VERBOSE=1/' /etc/init.d/arno-iptables-firewall
+sed -i 's/.*OPEN_UDP=.*/OPEN_UDP=""/' /etc/arno-iptables-firewall/firewall.conf
+sed -i 's/.*VERBOSE=.*/VERBOSE=1/' /etc/init.d/arno-iptables-firewall
 
 # Start the firewall
 systemctl -q daemon-reload
@@ -1505,7 +1506,7 @@ systemctl -q start arno-iptables-firewall.service
 
 # Blacklist some bad guys
 mkdir ~/sources/blacklist
-sed -i '1212s/.*/BLOCK_HOSTS_FILE="\/etc\/arno-iptables-firewall\/blocked-hosts"/' /etc/arno-iptables-firewall/firewall.conf
+sed -i 's/.*BLOCK_HOSTS_FILE=.*/BLOCK_HOSTS_FILE="\/etc\/arno-iptables-firewall\/blocked-hosts"/' /etc/arno-iptables-firewall/firewall.conf
 cat > /etc/cron.daily/blocked-hosts <<END
 #!/bin/bash
 BLACKLIST_DIR="/root/sources/blacklist"
@@ -1532,6 +1533,7 @@ done
 
 sort \$BLACKLIST_TEMP -n | uniq > \$BLACKLIST
 rm \$BLACKLIST_TEMP
+systemctl force-reload arno-iptables-firewall.service
 END
 chmod +x /etc/cron.daily/blocked-hosts
 
