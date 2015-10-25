@@ -27,4 +27,4 @@ Follow the instructions!
 
 > At the end of the installation, the script creates a file with all the credentials. The wizard helps you set up your system and checks if the settings are correct.
 
-> **Tip:** Check out [mailcow on github](https://github.com/andryyy/mailcow) for a description of the functions.  
+> **Tip:** Check out [mailcow on github](https://github.com/andryyy/mailcow) for a description of the mailserver features.  
