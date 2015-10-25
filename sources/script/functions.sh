@@ -222,7 +222,7 @@ apt-get update -y >/dev/null 2>&1 && apt-get -y upgrade >/dev/null 2>&1
 apt-get -y --force-yes install aptitude >/dev/null 2>&1
 apt-get -y --force-yes install ssl-cert whiptail apt-utils jq >/dev/null 2>&1
 /usr/sbin/make-ssl-cert generate-default-snakeoil --force-overwrite
-DEBIAN_FRONTEND=noninteractive aptitude -y install apache2-threaded-dev apache2-utils apt-listchanges arj autoconf automake bison bsd-mailx build-essential bzip2 ca-certificates cabextract checkinstall curl dnsutils file flex gcc git htop libapr1-dev libaprutil1 libaprutil1-dev libauthen-sasl-perl-Daemon libawl-php libcrypt-ssleay-perl libcurl4-openssl-dev libdbi-perl libio-socket-ssl-perl libio-string-perl liblockfile-simple-perl liblogger-syslog-perl libmail-dkim-perl libmail-spf-perl libmime-base64-urlsafe-perl libnet-dns-perl libnet-ident-perl libnet-LDAP-perl libnet1 libnet1-dev libpam-dev libpcre-ocaml-dev libpcre3 libpcre3-dev libreadline6-dev libtest-tempdir-perl libtool libwww-perl libxml2 libxml2-dev libxml2-utils libxslt1-dev libyaml-dev lsb-release lzop mariadb-server mlocate nomarch opendkim opendkim-tools php-auth-sasl php-auth-sasl php-http-request php-http-request php-mail php-mail-mime php-mail-mimedecode php-net-dime php-net-smtp php-net-url php-pear php-soap php5 php5-apcu php5-cli php5-common php5-common php5-curl php5-dev php5-fpm php5-gd php5-imap php5-intl php5-mcrypt php5-mysql php5-sqlite php5-xmlrpc php5-xsl python-setuptools python-software-properties rkhunter software-properties-common subversion sudo unzip vim-nox zip zlib1g zlib1g-dbg zlib1g-de zoo >/dev/null 2>&1
+DEBIAN_FRONTEND=noninteractive aptitude -y install apache2-threaded-dev apache2-utils apt-listchanges arj autoconf automake bison bsd-mailx build-essential bzip2 ca-certificates cabextract checkinstall curl dnsutils file flex gcc git htop libapr1-dev libaprutil1 libaprutil1-dev libauthen-sasl-perl-Daemon libawl-php libcrypt-ssleay-perl libcurl4-openssl-dev libdbi-perl libio-socket-ssl-perl libio-string-perl liblockfile-simple-perl liblogger-syslog-perl libmail-dkim-perl libmail-spf-perl libmime-base64-urlsafe-perl libnet-dns-perl libnet-ident-perl libnet-LDAP-perl libnet1 libnet1-dev libpam-dev libpcre-ocaml-dev libpcre3 libpcre3-dev libreadline6-dev libtest-tempdir-perl libtool libwww-perl libxml2 libxml2-dev libxml2-utils libxslt1-dev libyaml-dev lsb-release lzop mariadb-server mlocate nomarch opendkim opendkim-tools php-auth-sasl php-auth-sasl php-http-request php-http-request php-mail php-mail-mime php-mail-mimedecode php-net-dime php-net-smtp php-net-url php-pear php-soap php5 php5-apcu php5-cli php5-common php5-common php5-curl php5-dev php5-fpm php5-gd php5-igbinary php5-imap php5-intl php5-mcrypt php5-mysql php5-sqlite php5-xmlrpc php5-xsl python-setuptools python-software-properties rkhunter software-properties-common subversion sudo unzip vim-nox zip zlib1g zlib1g-dbg zlib1g-de zoo >/dev/null 2>&1
 
 if [ "$?" -ne "0" ]; then
 	echo "${error} Package installation failed!" | awk '{ print strftime("[%H:%M:%S] |"), $0 }'
@@ -291,6 +291,7 @@ sed -i 's/^#RhostsRSAAuthentication no/RhostsRSAAuthentication no/g' /etc/ssh/ss
 sed -i 's/^#HostbasedAuthentication no/HostbasedAuthentication no/g' /etc/ssh/sshd_config
 sed -i 's/^#PermitEmptyPasswords no/PermitEmptyPasswords no/g' /etc/ssh/sshd_config
 sed -i 's/^#ChallengeResponseAuthentication yes/ChallengeResponseAuthentication no/g' /etc/ssh/sshd_config
+sed -i 's/^#AllowTcpForwarding yes/AllowTcpForwarding yes/g' /etc/ssh/sshd_config
 sed -i 's/^#X11Forwarding no/X11Forwarding yes/g' /etc/ssh/sshd_config
 sed -i 's/^#X11DisplayOffset 10/X11DisplayOffset 10/g' /etc/ssh/sshd_config
 sed -i 's/^#PrintMotd yes/PrintMotd no/g' /etc/ssh/sshd_config
@@ -334,8 +335,6 @@ cd ngx_pagespeed-release-${NPS_VERSION}-beta/
 wget https://dl.google.com/dl/page-speed/psol/${NPS_VERSION}.tar.gz >/dev/null 2>&1
 tar -xzf ${NPS_VERSION}.tar.gz
 cd ~/sources
-echo "${info} Downloading Ngnx HTTP Auth Digest..." | awk '{ print strftime("[%H:%M:%S] |"), $0 }'
-git clone https://github.com/maneulyori/nginx-http-auth-digest.git -q
 echo "${info} Downloading Naxsi..." | awk '{ print strftime("[%H:%M:%S] |"), $0 }'
 wget --no-check-certificate https://github.com/nbs-system/naxsi/archive/${NAXSI_VERSION}.tar.gz >/dev/null 2>&1
 tar -xzf ${NAXSI_VERSION}.tar.gz
@@ -437,7 +436,6 @@ sed -i '720s/.*/                (void) BIO_set_write_buffer_size(wbio, 16384);/'
 --with-cc-opt='-O2 -g -pipe -Wall -Wformat -Werror=format-security -Wp,-D_FORTIFY_SOURCE=2 -fexceptions -fstack-protector --param=ssp-buffer-size=4 -m64 -mtune=generic' \
 --with-openssl=$HOME/sources/openssl-${OPENSSL_VERSION} \
 --add-module=$HOME/sources/ngx_pagespeed-release-${NPS_VERSION}-beta \
---add-module=$HOME/sources/nginx-http-auth-digest \
 --add-module=$HOME/sources/naxsi-${NAXSI_VERSION}/naxsi_src >/dev/null 2>&1
 
 # make the package
@@ -582,10 +580,12 @@ server {
 			ssl_ciphers "EECDH+AESGCM:EDH+AESGCM:AES256+EECDH:AES256+EDH";
 
 			#add_header Strict-Transport-Security "max-age=63072000; includeSubdomains; preload";
+			add_header Cache-Control "public";
 			add_header X-Frame-Options SAMEORIGIN;
 			add_header Alternate-Protocol  443:npn-http/2;
 			add_header X-Content-Type-Options nosniff;
 			add_header X-XSS-Protection "1; mode=block";
+			add_header X-Permitted-Cross-Domain-Policies "master-only";
 			add_header Content-Security-Policy "script-src 'self' 'unsafe-inline' 'unsafe-eval' *.youtube.com maps.gstatic.com *.googleapis.com *.google-analytics.com cdnjs.cloudflare.com assets.zendesk.com connect.facebook.net; frame-src 'self' *.youtube.com assets.zendesk.com *.facebook.com s-static.ak.facebook.com tautt.zendesk.com; object-src 'self'";
 
 			pagespeed on;
@@ -1082,10 +1082,12 @@ server {
 			ssl_ciphers "ECDHE-RSA-AES128-GCM-SHA256:ECDHE-ECDSA-AES128-GCM-SHA256:ECDHE-RSA-AES256-GCM-SHA384:ECDHE-ECDSA-AES256-GCM-SHA384:DHE-RSA-AES128-GCM-SHA256:DHE-DSS-AES128-GCM-SHA256:kEDH+AESGCM:ECDHE-RSA-AES128-SHA256:ECDHE-ECDSA-AES128-SHA256:ECDHE-RSA-AES128-SHA:ECDHE-ECDSA-AES128-SHA:ECDHE-RSA-AES256-SHA384:ECDHE-ECDSA-AES256-SHA384:ECDHE-RSA-AES256-SHA:ECDHE-ECDSA-AES256-SHA:DHE-RSA-AES128-SHA256:DHE-RSA-AES128-SHA:DHE-DSS-AES128-SHA256:DHE-RSA-AES256-SHA256:DHE-DSS-AES256-SHA:DHE-RSA-AES256-SHA:AES128-GCM-SHA256:AES256-GCM-SHA384:AES128-SHA256:AES256-SHA256:AES128-SHA:AES256-SHA:AES:CAMELLIA:DES-CBC3-SHA:!aNULL:!eNULL:!EXPORT:!DES:!RC4:!MD5:!PSK:!aECDH:!EDH-DSS-DES-CBC3-SHA:!EDH-RSA-DES-CBC3-SHA:!KRB5-DES-CBC3-SHA";
 
 			#add_header Strict-Transport-Security "max-age=63072000; includeSubdomains; preload";
+			add_header Cache-Control "public";
 			add_header X-Frame-Options SAMEORIGIN;
 			add_header Alternate-Protocol  443:npn-http/2;
 			add_header X-Content-Type-Options nosniff;
 			add_header X-XSS-Protection "1; mode=block";
+			add_header X-Permitted-Cross-Domain-Policies "master-only";
 			add_header Content-Security-Policy "script-src 'self' 'unsafe-inline' 'unsafe-eval' *.youtube.com maps.gstatic.com *.googleapis.com *.google-analytics.com cdnjs.cloudflare.com assets.zendesk.com connect.facebook.net; frame-src 'self' *.youtube.com assets.zendesk.com *.facebook.com s-static.ak.facebook.com tautt.zendesk.com; object-src 'self'";
 
 			auth_basic_user_file htpasswd/.htpasswd;
@@ -1193,10 +1195,12 @@ server {
 			ssl_ciphers "ECDHE-RSA-AES128-GCM-SHA256:ECDHE-ECDSA-AES128-GCM-SHA256:ECDHE-RSA-AES256-GCM-SHA384:ECDHE-ECDSA-AES256-GCM-SHA384:DHE-RSA-AES128-GCM-SHA256:DHE-DSS-AES128-GCM-SHA256:kEDH+AESGCM:ECDHE-RSA-AES128-SHA256:ECDHE-ECDSA-AES128-SHA256:ECDHE-RSA-AES128-SHA:ECDHE-ECDSA-AES128-SHA:ECDHE-RSA-AES256-SHA384:ECDHE-ECDSA-AES256-SHA384:ECDHE-RSA-AES256-SHA:ECDHE-ECDSA-AES256-SHA:DHE-RSA-AES128-SHA256:DHE-RSA-AES128-SHA:DHE-DSS-AES128-SHA256:DHE-RSA-AES256-SHA256:DHE-DSS-AES256-SHA:DHE-RSA-AES256-SHA:AES128-GCM-SHA256:AES256-GCM-SHA384:AES128-SHA256:AES256-SHA256:AES128-SHA:AES256-SHA:AES:CAMELLIA:DES-CBC3-SHA:!aNULL:!eNULL:!EXPORT:!DES:!RC4:!MD5:!PSK:!aECDH:!EDH-DSS-DES-CBC3-SHA:!EDH-RSA-DES-CBC3-SHA:!KRB5-DES-CBC3-SHA";
 
 			#add_header Strict-Transport-Security "max-age=63072000; includeSubdomains; preload";
+			add_header Cache-Control "public";
 			add_header X-Frame-Options SAMEORIGIN;
 			add_header Alternate-Protocol  443:npn-http/2;
 			add_header X-Content-Type-Options nosniff;
 			add_header X-XSS-Protection "1; mode=block";
+			add_header X-Permitted-Cross-Domain-Policies "master-only";
 			add_header Content-Security-Policy "script-src 'self' 'unsafe-inline' 'unsafe-eval' *.youtube.com maps.gstatic.com *.googleapis.com *.google-analytics.com cdnjs.cloudflare.com assets.zendesk.com connect.facebook.net; frame-src 'self' *.youtube.com assets.zendesk.com *.facebook.com s-static.ak.facebook.com tautt.zendesk.com; object-src 'self'";
 
 			auth_basic_user_file htpasswd/.htpasswd;
@@ -1349,6 +1353,9 @@ if [ $USE_PMA == '1' ]; then
 \$cfg['UploadDir'] = 'upload';
 \$cfg['SaveDir'] = 'save';
 \$cfg['ForceSSL'] = true;
+\$cfg['ExecTimeLimit'] = 300;
+\$cfg['VersionCheck'] = false;
+\$cfg['NavigationTreeEnableGrouping'] = false;
 \$cfg['AllowArbitraryServer'] = true;
 \$cfg['AllowThirdPartyFraming'] = true;
 \$cfg['ShowServerInfo'] = false;
@@ -1373,6 +1380,7 @@ if [ $USE_PMA == '1' ]; then
 \$cfg['DefaultLang'] = 'en';
 \$cfg['ServerDefault'] = 1;
 \$cfg['Servers'][\$i]['auth_type'] = 'cookie';
+\$cfg['Servers'][\$i]['auth_http_realm'] = 'phpMyAdmin Login';
 \$cfg['Servers'][\$i]['host'] = '${MYSQL_HOSTNAME}';
 \$cfg['Servers'][\$i]['connect_type'] = 'tcp';
 \$cfg['Servers'][\$i]['compress'] = false;
@@ -1400,10 +1408,55 @@ if [ $USE_PMA == '1' ]; then
 \$cfg['Servers'][\$i]['central_columns'] = 'pma__central_columns';
 \$cfg['Servers'][\$i]['designer_settings'] = 'pma__designer_settings';
 \$cfg['Servers'][\$i]['export_templates'] = 'pma__export_templates';
+\$cfg['Servers'][\$i]['hide_db'] = 'information_schema';
 ?>
 END
-	chown -R www-data:www-data phpmyadmin/
-	cat > /etc/nginx/sites-custom/phpmyadmin.conf <<END
+	if [ ${PMA_RESTRICT} == '1' ]; then
+		sed -i "64s/.*/\$cfg['Servers'][\$i]['AllowDeny']['order'] = 'deny,allow';\n&/" /usr/local/phpmyadmin/config.inc.php
+		sed -i "65s/.*/\$cfg['Servers'][\$i]['AllowDeny']['rules'] = array(\n&/" /usr/local/phpmyadmin/config.inc.php
+		sed -i "66s/.*/		'deny % from all',\n&/" /usr/local/phpmyadmin/config.inc.php
+		sed -i "67s/.*/		'allow % from localhost',\n&/" /usr/local/phpmyadmin/config.inc.php
+		sed -i "68s/.*/		'allow % from 127.0.0.1',\n&/" /usr/local/phpmyadmin/config.inc.php
+		sed -i "69s/.*/		'allow % from ::1',\n&/" /usr/local/phpmyadmin/config.inc.php
+		sed -i "70s/.*/		'allow root from localhost',\n&/" /usr/local/phpmyadmin/config.inc.php
+		sed -i "71s/.*/		'allow root from 127.0.0.1',\n&/" /usr/local/phpmyadmin/config.inc.php
+		sed -i "72s/.*/		'allow root from ::1',\n&/" /usr/local/phpmyadmin/config.inc.php
+		sed -i "73s/.*/);\n&/" /usr/local/phpmyadmin/config.inc.php
+		sed -i "74s/.*/?>/" /usr/local/phpmyadmin/config.inc.php
+
+		cat > /etc/nginx/sites-custom/phpmyadmin.conf <<END
+location /pma {
+	allow 127.0.0.1;
+	deny all;
+    auth_basic "Restricted";
+    alias /usr/local/phpmyadmin;
+    index index.php;
+
+    location ~ ^/pma/(.+\.php)$ {
+        alias /usr/local/phpmyadmin/\$1;
+        fastcgi_split_path_info ^(.+\.php)(/.+)$;
+        include fastcgi_params;
+        fastcgi_index index.php;
+        fastcgi_param SCRIPT_FILENAME /usr/local/phpmyadmin/\$1;
+        fastcgi_pass unix:/var/run/php5-fpm.sock;
+    }
+
+    location ~* ^/pma/(.+\.(jpg|jpeg|gif|css|png|js|ico|html|xml|txt))$ {
+        alias /usr/local/phpmyadmin/\$1;
+    }
+
+    location ~ ^/pma/save/ {
+        deny all;
+    }
+
+    location ~ ^/pma/upload/ {
+        deny all;
+    }
+}
+END
+
+	else
+		cat > /etc/nginx/sites-custom/phpmyadmin.conf <<END
 location /pma {
     auth_basic "Restricted";
     alias /usr/local/phpmyadmin;
@@ -1431,7 +1484,11 @@ location /pma {
     }
 }
 END
-systemctl -q reload nginx.service
+	fi
+
+	chown -R www-data:www-data phpmyadmin/	
+	systemctl -q reload nginx.service
+
 fi
 
 # FIREWALL & SYSTEM TUNING
@@ -1511,7 +1568,7 @@ cat > /etc/cron.daily/blocked-hosts <<END
 #!/bin/bash
 BLACKLIST_DIR="/root/sources/blacklist"
 BLACKLIST="/etc/arno-iptables-firewall/blocked-hosts"
-BLACKLIST_TEMP="\$BLACKLIST_DIR/blacklist
+BLACKLIST_TEMP="\$BLACKLIST_DIR/blacklist"
 
 LIST=(
 "http://www.projecthoneypot.org/list_of_ips.php?t=d&rss=1"
