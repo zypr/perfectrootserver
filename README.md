@@ -5,7 +5,7 @@ Description follows..
 
 Get the latest release:
 ```
-wget -O ~/perfectrootserver.tar.gz https://github.com/zypr/perfectrootserver/archive/v0.3.1.tar.gz
+wget -O ~/perfectrootserver.tar.gz https://github.com/zypr/perfectrootserver/archive/v0.3.2.tar.gz
 ```
 
 Extract:
