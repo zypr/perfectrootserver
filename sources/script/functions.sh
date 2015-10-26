@@ -59,7 +59,7 @@ checksystem() {
 
 checkconfig() {
 	echo "${info} Checking your configuration..." | awk '{ print strftime("[%H:%M:%S] |"), $0 }'
-	for var in NGINX_VERSION OPENSSL_VERSION OPENSSH_VERSION NPS_VERSION NAXSI_VERSION MYDOMAIN CLOUDFLARE USE_PMA MYSQL_MCDB_NAME MYSQL_MCDB_USER MYSQL_RCDB_NAME MYSQL_RCDB_USER MYSQL_PMADB_NAME MYSQL_PMADB_USER WORKER MYSQL_HOSTNAME USE_MAILSERVER USE_WEBMAIL PMA_HTTPAUTH_USER
+	for var in NGINX_VERSION OPENSSL_VERSION OPENSSH_VERSION NPS_VERSION NAXSI_VERSION TIMEZONE MYDOMAIN SSH USE_MAILSERVER MAILCOW_ADMIN_USER USE_WEBMAIL USE_PMA PMA_HTTPAUTH_USER PMA_RESTRICT MYSQL_MCDB_NAME MYSQL_MCDB_USER MYSQL_RCDB_NAME MYSQL_RCDB_USER MYSQL_PMADB_NAME MYSQL_PMADB_USER WORKER MYSQL_HOSTNAME CLOUDFLARE
 	do
 		if [[ -z ${!var} ]]; then
 			echo "${error} Parameter $(textb $var) must not be empty." | awk '{ print strftime("[%H:%M:%S] |"), $0 }'
@@ -76,7 +76,7 @@ checkconfig() {
 		apt-get update -y >/dev/null 2>&1 && apt-get -y --force-yes install libcrack2 >/dev/null 2>&1
 	fi
 
-	for var in ${MAILCOW_ADMIN_PASS} ${MYSQL_ROOT_PASS} ${MYSQL_MCDB_PASS} ${MYSQL_RCDB_PASS} ${MYSQL_PMADB_PASS} ${PMA_BFSECURE_PASS} ${PMA_HTTPAUTH_PASS} ${SSH_PASS} ${MAILCOW_ADMIN_PASS}
+	for var in ${MAILCOW_ADMIN_PASS} ${PMA_HTTPAUTH_PASS} ${PMA_BFSECURE_PASS} ${SSH_PASS} ${MYSQL_ROOT_PASS} ${MYSQL_MCDB_PASS} ${MYSQL_RCDB_PASS} ${MYSQL_RCDB_PASS} ${MYSQL_PMADB_PASS}
 	do
 		if echo "$var" | grep -P '(?=^.{8,255}$)(?=^[^\s]*$)(?=.*\d)(?=.*[A-Z])(?=.*[a-z])' > /dev/null; then
 			if [[ "$(awk -F': ' '{ print $2}' <<<"$(cracklib-check <<<"$var")")" == "OK" ]]
@@ -1786,7 +1786,7 @@ if [ ${USE_MAILSERVER} == '1' ]; then
 	echo "--------------------------------------------" >> ~/credentials.txt
 	echo "autoconfigure" >> ~/credentials.txt
 	echo "--------------------------------------------" >> ~/credentials.txt
-	echo "https://autoconfigure.${MYDOMAIN}" >> ~/credentials.txt
+	echo "https://autodiscover.${MYDOMAIN}" >> ~/credentials.txt
 	echo "" >> ~/credentials.txt
 	echo "" >> ~/credentials.txt
 fi
@@ -1886,6 +1886,12 @@ instructions() {
 				echo "${warn} dav.${MYDOMAIN} does not resolve to the IP address of your server (${IPADR})" | awk '{ print strftime("[%H:%M:%S] |"), $0 }'
 			else	
 				echo "${ok} dav.${MYDOMAIN} resolve to the IP adress of your server (${IPADR})" | awk '{ print strftime("[%H:%M:%S] |"), $0 }'
+			fi
+			sleep 1
+			if [[ $CHECKRDNS != mail.${MYDOMAIN}. ]]; then
+				echo "${warn} Your reverse DNS does not match the SMTP Banner. Please set your Reverse DNS to $(textb mail.${MYDOMAIN})" | awk '{ print strftime("[%H:%M:%S] |"), $0 }'
+			else	
+				echo "${ok} Your reverse DNS is a valid Hostname ($(textb ${CHECKRDNS}))" | awk '{ print strftime("[%H:%M:%S] |"), $0 }'
 			fi
 			echo
 			echo "${info} Repeat this check? Press $(textb ENTER) for yes or $(textb [N]) to skip" | awk '{ print strftime("[%H:%M:%S] |"), $0 }'
@@ -2087,6 +2093,7 @@ if [ $(dpkg-query -l | grep dig | wc -l) -ne 1 ]; then
 	apt-get update -y >/dev/null 2>&1 && apt-get -y --force-yes install dnsutils >/dev/null 2>&1
 fi
 
+IPADR=$(ifconfig eth0 | awk -F ' *|:' '/inet /{print $4}')
 FQDNIP=$(source ~/userconfig.cfg; dig @4.2.2.1 +short ${MYDOMAIN})
 ADIP=$(source ~/userconfig.cfg; dig @4.2.2.1 +short autodiscover.${MYDOMAIN})
 DAVIP=$(source ~/userconfig.cfg; dig @4.2.2.1 +short dav.${MYDOMAIN})
@@ -2094,4 +2101,4 @@ MAILIP=$(source ~/userconfig.cfg; dig @4.2.2.1 +short mail.${MYDOMAIN})
 CHECKMX=$(source ~/userconfig.cfg; dig mx ${MYDOMAIN} @4.2.2.1 +short)
 CHECKSPF=$(source ~/userconfig.cfg; dig ${MYDOMAIN} txt @4.2.2.1 | grep -i spf)
 CHECKDKIM=$(source ~/userconfig.cfg; dig mail._domainkey.${MYDOMAIN} txt @4.2.2.1 | grep -i DKIM1)
-IPADR=$(ifconfig eth0 | awk -F ' *|:' '/inet /{print $4}')
+CHECKRDNS=$(dig -x ${IPADR} +short)
