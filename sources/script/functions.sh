@@ -349,10 +349,10 @@ sed -i '49s/.*/static char ngx_http_server_string[] = "";/' src/http/ngx_http_he
 sed -i '50s/.*/static char ngx_http_server_full_string[] = "";/' src/http/ngx_http_header_filter_module.c
 sed -i '281s/.*/        len += clcf->server_tokens ? sizeof(ngx_http_server_full_string) - 0:/' src/http/ngx_http_header_filter_module.c
 sed -i '282s/.*/                                     sizeof(ngx_http_server_string) - 0;/' src/http/ngx_http_header_filter_module.c
-sed -i '215s/.*/\/*    if (r->headers_out.server == NULL) {/' src/http/v2/ngx_http_v2_filter_module.c
-sed -i '218s/.*/    } *\//' src/http/v2/ngx_http_v2_filter_module.c
-sed -i '413s/.*/\/*    if (r->headers_out.server == NULL) {/' src/http/v2/ngx_http_v2_filter_module.c
-sed -i '424s/.*/    } *\//' src/http/v2/ngx_http_v2_filter_module.c
+sed -i '217s/.*/\/*    if (r->headers_out.server == NULL) {/' src/http/v2/ngx_http_v2_filter_module.c
+sed -i '220s/.*/    } *\//' src/http/v2/ngx_http_v2_filter_module.c
+sed -i '407s/.*/\/*    if (r->headers_out.server == NULL) {/' src/http/v2/ngx_http_v2_filter_module.c
+sed -i '418s/.*/    } *\//' src/http/v2/ngx_http_v2_filter_module.c
 
 sed -i '20,298d' src/http/ngx_http_special_response.c
 sed -i '20s/.*/static char ngx_http_error_507_page[] ="";\n&/' src/http/ngx_http_special_response.c
@@ -391,8 +391,8 @@ sed -i '20s/.*/static u_char ngx_http_msie_padding[] ="";\n&/' src/http/ngx_http
 sed -i '20s/.*/static u_char ngx_http_error_tail[] =""CRLF;\n&/' src/http/ngx_http_special_response.c
 sed -i '20s/.*/static u_char ngx_http_error_full_tail[] =""CRLF;\n&/' src/http/ngx_http_special_response.c
 
-sed -i '120s/.*/#define NGX_SSL_BUFSIZE  1400/' src/event/ngx_event_openssl.h
-sed -i '720s/.*/                (void) BIO_set_write_buffer_size(wbio, 16384);/' src/event/ngx_event_openssl.c
+sed -i '121s/.*/#define NGX_SSL_BUFSIZE  1400/' src/event/ngx_event_openssl.h
+sed -i '732s/.*/                (void) BIO_set_write_buffer_size(wbio, 16384);/' src/event/ngx_event_openssl.c
 
 ./configure --prefix=/etc/nginx \
 --sbin-path=/usr/sbin/nginx \
