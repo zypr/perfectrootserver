@@ -3,9 +3,9 @@ Description follows..
 
 #Short instructions:
 
-Get the latest release:
+[Get the latest release](https://github.com/zypr/perfectrootserver/releases/latest "Latest Release"):
 ```
-wget -O ~/perfectrootserver.tar.gz https://github.com/zypr/perfectrootserver/archive/v0.3.3.tar.gz
+wget -O ~/perfectrootserver.tar.gz https://github.com/zypr/perfectrootserver/archive/v0.x.x.tar.gz
 ```
 
 Extract:
