@@ -545,7 +545,7 @@ server {
 
 server {
 			listen 443;
-			server_name ${IPADR} mail.${MYDOMAIN};
+			server_name ${IPADR} www.${MYDOMAIN} mail.${MYDOMAIN};
 			return 301 https://${MYDOMAIN}\$request_uri;
 }
 
@@ -588,7 +588,7 @@ server {
 			add_header X-Permitted-Cross-Domain-Policies "master-only";
 			add_header Content-Security-Policy "script-src 'self' 'unsafe-inline' 'unsafe-eval' *.youtube.com maps.gstatic.com *.googleapis.com *.google-analytics.com cdnjs.cloudflare.com assets.zendesk.com connect.facebook.net; frame-src 'self' *.youtube.com assets.zendesk.com *.facebook.com s-static.ak.facebook.com tautt.zendesk.com; object-src 'self'";
 
-			pagespeed on;
+			pagespeed off;
 			pagespeed FetchHttps enable,allow_self_signed;
 			pagespeed FileCachePath /var/lib/nginx/nps_cache;
 			pagespeed RewriteLevel PassThrough;
