@@ -1142,7 +1142,8 @@ DatabaseMirror clamav.inode.at" >> /etc/clamav/freshclam.conf
 	sed -i "s/MAILCOW_DAV_HOST.MAILCOW_DOMAIN/dav.${MYDOMAIN}/g" /var/www/zpush/backend/carddav/config.php
 	mkdir /var/{lib,log}/z-push 2>/dev/null
 	chown -R www-data: /var/{lib,log}/z-push
-	cat > /var/www/zpush/config-v1.1.xml <<END
+	mkdir /var/www/zpush/mail
+	cat > /var/www/zpush/mail/config-v1.1.xml <<END
 <?xml version="1.0" encoding="UTF-8"?>
 
 <clientConfig version="1.1">
@@ -1196,7 +1197,7 @@ DatabaseMirror clamav.inode.at" >> /etc/clamav/freshclam.conf
   </emailProvider>
 </clientConfig>
 END
-	chown www-data: /var/www/zpush/config-v1.1.xml
+	chown -R www-data: /var/www/zpush/mail/
 
 	# Cleaning up old files
 	sed -i '/test -d /var/run/fetchmail/d' /etc/rc.local >/dev/null 2>&1
@@ -2156,7 +2157,7 @@ instructions() {
 		echo
 		echo "NAME         TYPE      VALUE" | awk '{ print strftime("[%H:%M:%S] |"), $0 }'
 		echo "----------------------------------------------------------" | awk '{ print strftime("[%H:%M:%S] |"), $0 }'
-		echo " @     		 TXT       \"mailconf=https://autoconfig.${MYDOMAIN}/config-v1.1.xml\"" | awk '{ print strftime("[%H:%M:%S] |"), $0 }'
+		echo " @     		 TXT       \"mailconf=https://autoconfig.${MYDOMAIN}/mail/config-v1.1.xml\"" | awk '{ print strftime("[%H:%M:%S] |"), $0 }'
 		echo
 		echo
 		yellow "The second record should look like this:" | awk '{ print strftime("[%H:%M:%S] |"), $0 }'
