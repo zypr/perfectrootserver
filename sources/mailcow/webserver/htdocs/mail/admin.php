@@ -452,7 +452,7 @@ elseif (isset($_SESSION['mailcow_cc_loggedin']) && $_SESSION['mailcow_cc_loggedi
 }
 ?>
 <br />
-<p><b><a href="../">&#8592; go back</a></b></p>
+<p><b><a href="/admin">&#8592; go back</a></b></p>
 </div> <!-- /container -->
 <?php
 require_once("inc/footer.inc.php");
