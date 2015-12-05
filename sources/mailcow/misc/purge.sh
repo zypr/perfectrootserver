@@ -54,9 +54,15 @@ service rsyslog stop
 service spamassassin stop
 service dovecot stop
 service postfix stop
+service solr stop
+service fuglu stop
 update-rc.d -f fail2ban remove
+update-rc.d -f fuglu remove
+update-rc.d -f solr remove
 systemctl disable fail2ban
-rm /lib/systemd/system/fail2ban.service
+systemctl disable fuglu
+rm /etc/systemd/system/fail2ban.service
+rm /etc/systemd/system/fuglu.service
 # dovecot purge fails at first
 if [[ $FULLWIPE == "yes" ]]; then
 apt-get -y purge zip jq dnsutils python-sqlalchemy python-beautifulsoup python-setuptools \
@@ -70,11 +76,11 @@ apt-get -y purge zip php5 python-sqlalchemy python-beautifulsoup python-setuptoo
 python-magic php-auth-sasl php-http-request php-mail php-mail-mime php-mail-mimedecode php-net-dime php-net-smtp \
 php-net-socket php-net-url php-pear php-soap php5 php5-cli php5-common php5-curl php5-fpm php5-gd php5-imap subversion \
 php5-intl php5-mcrypt php5-sqlite dovecot-common dovecot-core clamav-daemon clamav clamav-base clamav-freshclam \
-dovecot-imapd dovecot-lmtpd dovecot-managesieved dovecot-sieve dovecot-mysql dovecot-pop3d postfix \
+dovecot-imapd dovecot-solr dovecot-lmtpd dovecot-managesieved dovecot-sieve dovecot-mysql dovecot-pop3d postfix \
 postfix-mysql postfix-pcre spamassassin curl mpack
-apt-get -y purge dovecot-imapd dovecot-lmtpd dovecot-managesieved dovecot-pop3d dovecot-sieve
+apt-get -y purge dovecot-imapd dovecot-solr dovecot-lmtpd dovecot-managesieved dovecot-pop3d dovecot-sieve
 apt-get -y autoremove --purge
-apt-get -y purge dovecot-imapd dovecot-lmtpd dovecot-managesieved dovecot-pop3d dovecot-sieve
+apt-get -y purge dovecot-imapd dovecot-solr dovecot-lmtpd dovecot-managesieved dovecot-pop3d dovecot-sieve
 apt-get -y autoremove --purge
 killall -u vmail
 userdel vmail
@@ -84,6 +90,10 @@ rm -rf /opt/vfilter
 rm -rf /var/vmail
 rm -rf /var/www
 fi
+rm -rf /etc/fuglu
+rm -rf /usr/local/lib/python2.7/dist-packages/fuglu*
+rm -rf /opt/solr/
+rm -rf /var/solr/
 rm -rf /etc/ssl/mail/
 rm -rf /etc/spamassassin/
 rm -rf /etc/dovecot/
@@ -92,7 +102,7 @@ rm -rf /var/{lib,log}/z-push/
 rm -rf /etc/fail2ban/
 rm -f /etc/fufix_version
 rm -f /etc/mailcow_version
-rm -f /etc/{cron.daily,cron.hourly,cron.monthly}/mailcow_backup
+rm -f /etc/{cron.daily,cron.weekly,cron.hourly,cron.monthly}/mailcow_backup
 rm -rf /etc/mail/postfixadmin
 rm -rf /var/www/{mail,zpush,dav}
 rm -f /usr/local/sbin/mc_*
@@ -101,6 +111,7 @@ rm -rf /var/run/fetchmail
 rm -rf /usr/local/lib/python2.7/dist-packages/fail2ban-*
 rm -f /usr/local/bin/fail2ban*
 rm -f /etc/init.d/fail2ban
+rm -f /etc/init.d/solr
 rm -rf /var/run/fail2ban/
 rm -f /var/log/fail2ban.log
 cat /dev/null > /var/log/mail.warn
@@ -113,6 +124,10 @@ rm -f /var/log/mail*1
 rm -f /var/log/mail*gz
 rm -rf /opt/vfilter/
 rm -f /etc/cron.d/pfadminfetchmail
+rm -f /etc/cron.d/clamav-unofficial-sigs-cron
+rm -f /etc/cron.d/solrmaint
+rm -f /etc/cron.daily/dovemaint
+rm -f /etc/cron.daily/doverecalcq
 rm -f /etc/cron.daily/spam*
 rm -rf /etc/opendkim*
 rm -f /usr/local/bin/mc_*

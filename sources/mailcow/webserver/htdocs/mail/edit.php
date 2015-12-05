@@ -21,7 +21,7 @@ if (isset($_SESSION['mailcow_cc_loggedin']) &&
 		}
 		else {
 			$alias = mysqli_real_escape_string($link, $_GET["alias"]);
-			if (mysqli_num_rows(mysqli_query($link, "SELECT address, domain FROM alias WHERE address='$alias' AND domain IN (SELECT domain from domain_admins WHERE username='$logged_in_as') OR 'admin'='$logged_in_role';")) > 0) {
+			if (mysqli_num_rows(mysqli_query($link, "SELECT address, domain FROM alias WHERE address='$alias' AND (domain IN (SELECT domain from domain_admins WHERE username='$logged_in_as') OR 'admin'='$logged_in_role');")) > 0) {
 			$result = mysqli_fetch_assoc(mysqli_query($link, "SELECT active, goto FROM alias WHERE address='$alias'"));
 ?>
 				<h4>Change alias attributes for <strong><?=$alias;?></strong></h4>
@@ -163,9 +163,13 @@ endwhile;
 						</div>
 					</div>
 					<div class="form-group">
-						<div class="col-sm-offset-2 col-sm-10">
+						<label class="control-label col-sm-2">Backup MX options:</label>
+						<div class="col-sm-10">
 							<div class="checkbox">
-							<label><input type="checkbox" name="backupmx" <?php if (isset($result['backupmx']) && $result['backupmx']=="1") { echo "checked"; }; ?>> Backup MX</label>
+							<label><input type="checkbox" name="backupmx" <?php if (isset($result['backupmx']) && $result['backupmx']=="1") { echo "checked"; }; ?>> Relay domain</label>
+							<br />
+							<label><input type="checkbox" name="relay_all_recipients" <?php if (isset($result['relay_all_recipients']) && $result['relay_all_recipients']=="1") { echo "checked"; }; ?>> Relay all recipient addresses</label>
+							<p><small>If you choose not to relay all recipient addresses, a mailbox must be created for each recipient on this server.</small></p>
 							</div>
 						</div>
 					</div>
@@ -196,7 +200,7 @@ endwhile;
 		else {
 			$mailbox = mysqli_real_escape_string($link, $_GET["mailbox"]);
 			if (mysqli_num_rows(mysqli_query($link, "SELECT username, domain FROM mailbox WHERE username='".$mailbox."' AND ((domain IN (SELECT domain from domain_admins WHERE username='".$logged_in_as."') OR 'admin'='".$logged_in_role."'))")) > 0) {
-			$result = mysqli_fetch_assoc(mysqli_query($link, "SELECT username, name, round(sum(quota / 1048576)) as quota, active FROM mailbox WHERE username='".$mailbox."'"));
+			$result = mysqli_fetch_assoc(mysqli_query($link, "SELECT username, domain, name, round(sum(quota / 1048576)) as quota, active FROM mailbox WHERE username='".$mailbox."'"));
 	?>
 				<h4>Change settings for mailbox <strong><?=$mailbox;?></strong></h4>
 				<form class="form-horizontal" role="form" method="post">
@@ -211,6 +215,41 @@ endwhile;
 						<label class="control-label col-sm-2" for="quota">Quota (MB), 0 = unlimited:</label>
 						<div class="col-sm-10">
 						<input type="number" class="form-control" name="quota" id="quota" value="<?=$result['quota'];?>">
+						</div>
+					</div>
+					<div class="form-group">
+						<label class="control-label col-sm-2" for="quota">Sender ACL:</label>
+						<div class="col-sm-10">
+							<select title="Search users..." style="width:100%" name="sender_acl[]" size="10" multiple>
+							<?php
+							$result_goto_from_alias = mysqli_query($link, "SELECT address FROM alias
+								WHERE goto='".$mailbox."'");
+							while ($row_goto_from_alias = mysqli_fetch_array($result_goto_from_alias)):
+							?>
+								<option selected disabled="disabled"><?=$row_goto_from_alias['address'];?></option>
+							<?php
+							endwhile;
+
+							$result_selected_sender_acl = mysqli_query($link, "SELECT send_as FROM sender_acl
+								WHERE logged_in_as='".$mailbox."'");
+							while ($row_selected_sender_acl = mysqli_fetch_array($result_selected_sender_acl)):
+								?>
+									<option selected><?=$row_selected_sender_acl['send_as'];?></option>
+								<?php
+							endwhile;
+
+							$result_unselected_sender_acl = mysqli_query($link, "SELECT address FROM alias
+								WHERE goto!='".$mailbox."' AND
+								domain='".$result['domain']."' AND
+								address NOT IN (SELECT send_as FROM sender_acl WHERE logged_in_as='".$mailbox."')");
+							while ($row_unselected_sender_acl = mysqli_fetch_array($result_unselected_sender_acl)):
+							?>
+								<option><?=$row_unselected_sender_acl['address'];?></option>
+							<?php
+							endwhile;
+							?>
+							</select>
+							<p><small>Usernames and aliases cannot be removed from sender list.</small></p>
 						</div>
 					</div>
 					<div class="form-group">

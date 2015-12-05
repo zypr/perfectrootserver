@@ -20,7 +20,6 @@ smtpd_tls_key_file = /etc/ssl/mail/mail.key
 # Opportunistic TLS. TLS auth only.
 smtpd_tls_security_level=may
 smtpd_tls_auth_only=yes
-smtpd_use_tls=yes
 
 # DH parameters, actually 2048 bit long
 smtpd_tls_dh1024_param_file = /etc/ssl/mail/dhparams.pem
@@ -75,7 +74,10 @@ z1_greylisting = permit_dnswl_client list.dnswl.org,
    check_policy_service inet:127.0.0.1:10023
 
 # Determine valid MAIL FROM addresses for a SASL authenticated user.
-smtpd_sender_login_maps = proxy:mysql:/etc/postfix/sql/mysql_virtual_alias_maps.cf
+
+smtpd_sender_login_maps =
+   proxy:mysql:/etc/postfix/sql/mysql_virtual_sender_acl.cf,
+   proxy:mysql:/etc/postfix/sql/mysql_virtual_alias_maps.cf
 
 # Certificates
 smtp_tls_cert_file = /etc/ssl/mail/mail.crt
@@ -91,7 +93,7 @@ smtp_tls_security_level=may
 smtp_tls_session_cache_database = btree:${data_directory}/smtp_scache
 
 # A custom list with secure ciphers.
-tls_high_cipherlist=AES128+EECDH:AES128+EDH
+tls_high_cipherlist=EDH+CAMELLIA:EDH+aRSA:EECDH+aRSA+AESGCM:EECDH+aRSA+SHA384:EECDH+aRSA+SHA256:EECDH:+CAMELLIA256:+AES256:+CAMELLIA128:+AES128:+SSLv3:!aNULL:!eNULL:!LOW:!3DES:!MD5:!EXP:!PSK:!DSS:!RC4:!SEED:!ECDSA:CAMELLIA256-SHA:AES256-SHA:CAMELLIA128-SHA:AES128-SHA
 
 # Use the FQDN for the local hostname!
 myhostname = MAILCOW_HOST.MAILCOW_DOMAIN
@@ -128,7 +130,7 @@ recipient_delimiter = +
 inet_interfaces = all
 
 # Specifies what protocols Postfix will use when it makes or accepts network connections, and also controls what DNS lookups Postfix will use when it makes network connections.
-inet_protocols = ipv4
+inet_protocols = all
 
 # VRFY command is not really needed anymore
 disable_vrfy_command = yes

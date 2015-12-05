@@ -29,8 +29,7 @@ require_once "inc/triggers.inc.php";
 <![endif]-->
 <link rel="stylesheet" href="//cdnjs.cloudflare.com/ajax/libs/twitter-bootstrap/3.3.5/css/bootstrap.min.css">
 <link rel="stylesheet" href="//maxcdn.bootstrapcdn.com/bootswatch/3.3.5/lumen/bootstrap.min.css">
-<link rel="stylesheet" href="//cdnjs.cloudflare.com/ajax/libs/bootstrap-select/1.7.4/css/bootstrap-select.min.css" rel="stylesheet" />
-<link rel="stylesheet" href="//cdnjs.cloudflare.com/ajax/libs/bootstrap-select/1.7.4/css/bootstrap-select.css.map" rel="stylesheet" />
+<link rel="stylesheet" href="//cdnjs.cloudflare.com/ajax/libs/bootstrap-select/1.7.5/css/bootstrap-select.min.css" rel="stylesheet" />
 <?php
 if (basename($_SERVER['PHP_SELF']) == "mailbox.php"):
 ?>

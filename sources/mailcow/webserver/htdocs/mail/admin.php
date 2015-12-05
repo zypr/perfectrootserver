@@ -87,7 +87,7 @@ $_SESSION['return_to'] = basename($_SERVER['PHP_SELF']);
 				<h4>Add domain administrator</h4>
 				<form class="form-horizontal" role="form" method="post">
 					<div class="form-group">
-						<label class="control-label col-sm-4" for="username">Username (<kbd>aA-zZ, @,.-</kbd>):</label>
+						<label class="control-label col-sm-4" for="username">Username (<kbd>aA-zZ, @, ., -</kbd>):</label>
 						<div class="col-sm-8">
 							<input type="text" class="form-control" name="username" id="username" required>
 						</div>
@@ -144,7 +144,7 @@ $_SESSION['return_to'] = basename($_SERVER['PHP_SELF']);
 <div class="panel-body">
 <form class="form-horizontal" role="form" method="post">
 	<div class="form-group">
-		<label class="control-label col-sm-4" for="location">Location <small>(will be created if missing)</small>:</label>
+		<label class="control-label col-sm-4" for="location">Location (<kbd>aA-zZ, 0-9, -, _, /</kbd>)<small>, will be created if missing</small>:</label>
 		<div class="col-sm-8">
 			<input type="text" class="form-control" name="location" id="location" value="<?=return_mailcow_config("backup_location");?>">
 		</div>
@@ -155,6 +155,7 @@ $_SESSION['return_to'] = basename($_SERVER['PHP_SELF']);
 			<select title="Select a runtime..." style="width:50%" name="runtime">
 				<option <?php if (return_mailcow_config("backup_runtime") == "hourly") { echo "selected"; } ?>>hourly</option>
 				<option <?php if (return_mailcow_config("backup_runtime") == "daily") { echo "selected"; } ?>>daily</option>
+				<option <?php if (return_mailcow_config("backup_runtime") == "weekly") { echo "selected"; } ?>>weekly</option>
 				<option <?php if (return_mailcow_config("backup_runtime") == "monthly") { echo "selected"; } ?>>monthly</option>
 			</select>
 		</div>
@@ -373,7 +374,7 @@ opendkim_table();
 <p>This is a very simple system information function. Please be aware that a high RAM usage is what you want on a server.</p>
 <div class="row">
 	<div class="col-md-6">
-		<h4>Disk usage (/var/vmail) - <?php echo_sys_info("maildisk");?>%</h4>
+		<h4>Disk usage (/var/vmail) - <?=formatBytes(disk_free_space('/var/vmail'))?> free (<?=formatBytes(disk_total_space('/var/vmail'))?> total)</h4>
 		<div class="progress">
 		  <div class="progress-bar progress-bar-info progress-bar-striped" role="progressbar" aria-valuenow="<?php echo_sys_info("maildisk");?>"
 		  aria-valuemin="0" aria-valuemax="100" style="width:<?php echo_sys_info("maildisk");?>%">
@@ -397,12 +398,16 @@ opendkim_table();
 <textarea rows="20" style="font-family:monospace;font-size:9pt;width:100%;">
 <?php echo_sys_info("pflog");?>
 </textarea>
+<p>Last refresh: <?=round(abs(date('U') - filemtime($PFLOG)) / 60,0). " minutes ago";?></p>
+
 <form method="post">
 	<div class="form-group">
 		<input type="hidden" name="pflog_renew" value="1">
-		<button type="submit" class="btn btn-default">Renew Pflogsumm</button>
+		<button type="submit" class="btn btn-default">Refresh Pflogsumm log</button>
 	</div>
 </form>
+<h4>Mailgraph</h4>
+<?php echo_sys_info("mailgraph");?>
 </div>
 </div>
 </div>
@@ -410,20 +415,19 @@ opendkim_table();
 <?php
 }
 elseif (isset($_SESSION['mailcow_cc_loggedin']) && $_SESSION['mailcow_cc_loggedin'] == "yes" && $_SESSION['mailcow_cc_role'] == "domainadmin") {
-header('Location: mailbox.php');
-die("Permission denied");
+	header('Location: mailbox.php');
+	die("Permission denied");
 }
 elseif (isset($_SESSION['mailcow_cc_loggedin']) && $_SESSION['mailcow_cc_loggedin'] == "yes" && $_SESSION['mailcow_cc_role'] == "user") {
-header('Location: user.php');
-die("Permission denied");
+	header('Location: user.php');
+	die("Permission denied");
 } else {
-if (!function_exists('exec') || !function_exists('shell_exec')):
+	if (!function_exists('exec') || !function_exists('shell_exec')):
 ?>
-<div class="alert alert-danger">Please enable "exec" and "shell_exec" PHP functions.</div>
+		<div class="alert alert-danger">Please enable "exec" and "shell_exec" PHP functions.</div>
 <?php
-endif;
+	endif;
 ?>
-
 <div class="panel panel-default">
 <div class="panel-heading">Login</div>
 <div class="panel-body">
@@ -437,6 +441,7 @@ endif;
 		<input name="pass_user" type="password" id="pass_user" class="form-control" required>
 	</div>
 	<button type="submit" class="btn btn-sm btn-success" value="Login">Login</button>
+	<a class="btn btn-sm btn-primary" href="/rc">Webmail</a>
 	<hr>
 	<p><strong>Hint:</strong> Run "mc_resetadmin" from a shell to reset the password.</p>
 </form>

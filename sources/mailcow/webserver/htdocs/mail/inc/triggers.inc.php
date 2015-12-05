@@ -48,40 +48,11 @@ if (isset($_SESSION['mailcow_cc_loggedin']) && $_SESSION['mailcow_cc_loggedin'] 
 	if (isset($_GET["del"])) {
 		opendkim_table("delete", $_GET["del"]);
 	}
-	if (isset($_GET["av_dl"])) {
-		dl_clamav_positives();
-	}
 	if (isset($_POST["maxmsgsize"])) {
 		set_mailcow_config("maxmsgsize", $_POST["maxmsgsize"]);
 	}
 	if (isset($_POST["dkim_selector"])) {
 		opendkim_table("add", $_POST["dkim_selector"] . "_" . $_POST["dkim_domain"]);
-	}
-	if (isset($_POST["trigger_set_attachments"])) {
-		if (isset($_POST["vtapikey"])) {
-			set_mailcow_config("vtapikey", $_POST["vtapikey"]);
-		}
-		if (isset($_POST["virustotalcheckonly"]) && $_POST["virustotalcheckonly"] == "on") {
-			set_mailcow_config("vtupload", "0");
-		} else {
-			set_mailcow_config("vtupload", "1");
-		}
-		if (isset($_POST["virustotalenable"]) && $_POST["virustotalenable"] == "on") {
-			set_mailcow_config("vtenable", "1");
-		} else {
-			set_mailcow_config("vtenable", "0");
-		}
-		if (isset($_POST["clamavenable"]) && $_POST["clamavenable"] == "on") {
-			set_mailcow_config("cavenable", "1");
-		} else {
-			set_mailcow_config("cavenable", "0");
-		}
-		if (isset($_POST["vfilter"]) && $_POST["vfilter"] == "filter") {
-			set_mailcow_config("extlist", $_POST["ext"], "filter");
-		} else {
-			set_mailcow_config("extlist", $_POST["ext"], "reject");
-		}
-		postfix_reload();
 	}
 	if (isset($_POST["trigger_anonymize"])) {
 		isset($_POST['anonymize']) ? $anonymize = 'on' : $anonymize = '';
@@ -166,8 +137,6 @@ if (isset($_POST["logout"])) {
 	session_destroy();
 	session_write_close();
 	setcookie(session_name(),'',0,'/');
-	sleep(1);
 	return false;
 }
 ?>
-

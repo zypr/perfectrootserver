@@ -1,0 +1,8 @@
+# mysql_virtual_sender_acl.cf
+user = my_mailcowuser
+password = my_mailcowpass
+hosts = my_dbhost
+dbname = my_mailcowdb
+query = SELECT logged_in_as FROM sender_acl WHERE send_as='%s'
+#expansion_limit = 100
+

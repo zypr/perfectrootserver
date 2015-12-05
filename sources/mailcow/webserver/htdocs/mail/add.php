@@ -56,9 +56,13 @@ if (isset($_SESSION['mailcow_cc_loggedin']) &&
 						</div>
 					</div>
 					<div class="form-group">
-						<div class="col-sm-offset-2 col-sm-10">
+						<label class="control-label col-sm-2">Backup MX options:</label>
+						<div class="col-sm-10">
 							<div class="checkbox">
-							<label><input type="checkbox" name="backupmx"> Backup MX</label>
+							<label><input type="checkbox" name="backupmx" <?php if (isset($result['backupmx']) && $result['backupmx']=="1") { echo "checked"; }; ?>> Relay domain</label>
+							<br />
+							<label><input type="checkbox" name="relay_all_recipients" <?php if (isset($result['relay_all_recipients']) && $result['relay_all_recipients']=="1") { echo "checked"; }; ?>> Relay all recipient addresses</label>
+							<p><small>If you choose not to relay all recipient addresses, a mailbox must be created for each recipient on this server.</small></p>
 							</div>
 						</div>
 					</div>

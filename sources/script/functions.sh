@@ -9,7 +9,10 @@
 #################################
 
 generatepw() {
-	openssl rand -base64 30 | tr -d /=+ | cut -c -24
+	while [[ $pw == "" ]]; do
+		pw=$(openssl rand -base64 30 | tr -d / | cut -c -24 | grep -P '(?=^.{8,255}$)(?=^[^\s]*$)(?=.*\d)(?=.*[A-Z])(?=.*[a-z])')
+	done
+	echo "$pw" && unset pw
 }
 
 checksystem() {
@@ -35,15 +38,20 @@ checksystem() {
 
 	if [ $(grep MemTotal /proc/meminfo | awk '{print $2}') -lt 1000000 ]; then
 		echo "${warn} At least ~1000MB of memory is highly recommended" | awk '{ print strftime("[%H:%M:%S] |"), $0 }'
-		echo "$info Press $(textb ENTER) to skip this warning or $(textb CTRL-C) to cancel the process" | awk '{ print strftime("[%H:%M:%S] |"), $0 }'
+		echo "${info} Press $(textb ENTER) to skip this warning or $(textb CTRL-C) to cancel the process" | awk '{ print strftime("[%H:%M:%S] |"), $0 }'
 		read -s -n 1 i
 	fi
 
-	if [ "$(dmidecode -s system-product-name)" == 'Bochs' ] || [ "$(dmidecode -s system-product-name)" == 'KVM' ] || [ "$(dmidecode -s system-product-name)" == 'All Series' ] || [ "$(dmidecode -s system-product-name)" == 'OpenStack Nova' ]; then
+	if [ $(dpkg-query -l | grep dmidecode | wc -l) -ne 1 ]; then
+    	echo "${error} This script does not support the virtualization technology!" | awk '{ print strftime("[%H:%M:%S] |"), $0 }'
+    	exit 1
+	fi
+
+	if [ "$(dmidecode -s system-product-name)" == 'Bochs' ] || [ "$(dmidecode -s system-product-name)" == 'KVM' ] || [ "$(dmidecode -s system-product-name)" == 'All Series' ] || [ "$(dmidecode -s system-product-name)" == 'OpenStack Nova' ] || [ "$(dmidecode -s system-product-name)" == 'Standard' ]; then
 		echo >> /dev/null
 	else	
         echo "${warn} This script does not support the virtualization technology ($(textb $(dmidecode -s system-product-name)))" | awk '{ print strftime("[%H:%M:%S] |"), $0 }'
-        echo "$info Press $(textb ENTER) to skip this warning and proceed at your own risk or $(textb CTRL-C) to cancel the process" | awk '{ print strftime("[%H:%M:%S] |"), $0 }'
+        echo "${info} Press $(textb ENTER) to skip this warning and proceed at your own risk or $(textb CTRL-C) to cancel the process" | awk '{ print strftime("[%H:%M:%S] |"), $0 }'
         read -s -n 1 i
 	fi
 
@@ -52,6 +60,61 @@ checksystem() {
 			echo "${error} The domain (${MYDOMAIN} - ${FQDNIP}) does not resolve to the IP address of your server (${IPADR})" | awk '{ print strftime("[%H:%M:%S] |"), $0 }'
 			echo "${error} Please check the userconfig and/or your DNS-Records." | awk '{ print strftime("[%H:%M:%S] |"), $0 }'
 			exit 1
+		else
+			if [ ${USE_VALID_SSL} == '1' ]; then
+				if [[ $(echo ${SSLMAIL} | egrep "^(([-a-zA-Z0-9\!#\$%\&\'*+/=?^_\`{\|}~])+\.)*[-a-zA-Z0-9\!#\$%\&\'*+/=?^_\`{\|}~]+@\w((-|\w)*\w)*\.(\w((-|\w)*\w)*\.)*\w{2,4}$") != ${SSLMAIL} ]]; then
+					echo "${error} Please chose a valid e-mail adress for your letsencrypt ssl certificate!" | awk '{ print strftime("[%H:%M:%S] |"), $0 }'
+					exit 1
+				fi
+				if [ ${USE_MAILSERVER} == '1' ]; then
+						while true; do
+							p=0
+							if [[ $MAILIP != $IPADR ]]; then
+								echo "${error} mail.${MYDOMAIN} does not resolve to the IP address of your server (${IPADR})" | awk '{ print strftime("[%H:%M:%S] |"), $0 }'
+							else	
+								p=$((p + 1))
+							fi
+							sleep 1
+							if [[ $ADIP != $IPADR ]]; then
+								echo "${error} autodiscover.${MYDOMAIN} does not resolve to the IP address of your server (${IPADR})" | awk '{ print strftime("[%H:%M:%S] |"), $0 }'
+							else	
+								p=$((p + 1))
+							fi
+							sleep 1
+							if [[ $DAVIP != $IPADR ]]; then
+								echo "${error} dav.${MYDOMAIN} does not resolve to the IP address of your server (${IPADR})" | awk '{ print strftime("[%H:%M:%S] |"), $0 }'
+							else	
+								p=$((p + 1))
+							fi
+							sleep 1
+							if [[ $WWWIP != $IPADR ]]; then
+								echo "${error} www.${MYDOMAIN} does not resolve to the IP address of your server (${IPADR})" | awk '{ print strftime("[%H:%M:%S] |"), $0 }'
+							else	
+								p=$((p + 1))
+							fi
+							if [ ${p} -eq 4 ]; then
+								break
+							else
+								echo
+								echo "${warn} Please check your DNS-Records." | awk '{ print strftime("[%H:%M:%S] |"), $0 }'
+								echo "${info} Press $(textb ENTER) to repeat this check or $(textb CTRL-C) to cancel the process" | awk '{ print strftime("[%H:%M:%S] |"), $0 }'
+								read -s -n 1 i
+							fi
+						done
+				else
+					while true; do
+						if [[ $WWWIP != $IPADR ]]; then
+							echo "${error} www.${MYDOMAIN} does not resolve to the IP address of your server (${IPADR})" | awk '{ print strftime("[%H:%M:%S] |"), $0 }'
+							echo
+							echo "${warn} Please check your DNS-Records." | awk '{ print strftime("[%H:%M:%S] |"), $0 }'
+							echo "${info} Press $(textb ENTER) to repeat this check or $(textb CTRL-C) to cancel the process" | awk '{ print strftime("[%H:%M:%S] |"), $0 }'
+							read -s -n 1 i
+						else	
+							break
+						fi
+					done
+				fi
+			fi
 		fi
 	fi
 	echo "${ok} The system meets the minimum requirements." | awk '{ print strftime("[%H:%M:%S] |"), $0 }'
@@ -62,7 +125,7 @@ checkconfig() {
 	for var in NGINX_VERSION OPENSSL_VERSION OPENSSH_VERSION NPS_VERSION NAXSI_VERSION TIMEZONE MYDOMAIN SSH USE_MAILSERVER MAILCOW_ADMIN_USER USE_WEBMAIL USE_PMA PMA_HTTPAUTH_USER PMA_RESTRICT MYSQL_MCDB_NAME MYSQL_MCDB_USER MYSQL_RCDB_NAME MYSQL_RCDB_USER MYSQL_PMADB_NAME MYSQL_PMADB_USER WORKER MYSQL_HOSTNAME CLOUDFLARE
 	do
 		if [[ -z ${!var} ]]; then
-			echo "${error} Parameter $(textb $var) must not be empty." | awk '{ print strftime("[%H:%M:%S] |"), $0 }'
+			echo "${error} Parameter $(textb ${var}) must not be empty." | awk '{ print strftime("[%H:%M:%S] |"), $0 }'
 			exit 1
 		fi
 	done
@@ -78,9 +141,8 @@ checkconfig() {
 
 	for var in ${MAILCOW_ADMIN_PASS} ${PMA_HTTPAUTH_PASS} ${PMA_BFSECURE_PASS} ${SSH_PASS} ${MYSQL_ROOT_PASS} ${MYSQL_MCDB_PASS} ${MYSQL_RCDB_PASS} ${MYSQL_RCDB_PASS} ${MYSQL_PMADB_PASS}
 	do
-		if echo "$var" | grep -P '(?=^.{8,255}$)(?=^[^\s]*$)(?=.*\d)(?=.*[A-Z])(?=.*[a-z])' > /dev/null; then
-			if [[ "$(awk -F': ' '{ print $2}' <<<"$(cracklib-check <<<"$var")")" == "OK" ]]
-			then
+		if echo "${var}" | grep -P '(?=^.{8,255}$)(?=^[^\s]*$)(?=.*\d)(?=.*[A-Z])(?=.*[a-z])' > /dev/null; then
+			if [[ "$(awk -F': ' '{ print $2}' <<<"$(cracklib-check <<<"${var}")")" == "OK" ]]; then
 				echo >> /dev/null
 			else
 				echo "${error} One of your passwords was rejected!" | awk '{ print strftime("[%H:%M:%S] |"), $0 }'
@@ -88,10 +150,10 @@ checkconfig() {
 				echo "${info} Recommended password settings: Leave \`generatepw\` to generate a strong password." | awk '{ print strftime("[%H:%M:%S] |"), $0 }'
 				echo
 				while true; do
-					echo "$info Press $(textb ENTER) to show the weak password or $(textb CTRL-C) to cancel the process" | awk '{ print strftime("[%H:%M:%S] |"), $0 }'
+					echo "${info} Press $(textb ENTER) to show the weak password or $(textb CTRL-C) to cancel the process" | awk '{ print strftime("[%H:%M:%S] |"), $0 }'
 					read -s -n 1 i
 					case $i in
-					* ) echo;echo "-----------------------" | awk '{ print strftime("[%H:%M:%S] |"), $0 }';echo "$(cracklib-check <<<\"$var\")" | awk '{ print strftime("[%H:%M:%S] |"), $0 }';echo "-----------------------" | awk '{ print strftime("[%H:%M:%S] |"), $0 }';echo;break;;
+					* ) echo;echo "-----------------------" | awk '{ print strftime("[%H:%M:%S] |"), $0 }';echo "$(cracklib-check <<<\"${var}\")" | awk '{ print strftime("[%H:%M:%S] |"), $0 }';echo "-----------------------" | awk '{ print strftime("[%H:%M:%S] |"), $0 }';echo;break;;
 					esac
 				done
 				exit 1
@@ -102,10 +164,10 @@ checkconfig() {
 			echo "${info} Recommended password settings: Leave \`generatepw\` to generate a strong password." | awk '{ print strftime("[%H:%M:%S] |"), $0 }'
 			echo
 			while true; do
-				echo "$info Press $(textb ENTER) to show the weak password or $(textb CTRL-C) to cancel the process" | awk '{ print strftime("[%H:%M:%S] |"), $0 }'
+				echo "${info} Press $(textb ENTER) to show the weak password or $(textb CTRL-C) to cancel the process" | awk '{ print strftime("[%H:%M:%S] |"), $0 }'
 				read -s -n 1 i
 				case $i in
-				* ) echo;echo "-----------------------" | awk '{ print strftime("[%H:%M:%S] |"), $0 }';echo "$(textb $var)" | awk '{ print strftime("[%H:%M:%S] |"), $0 }';echo "-----------------------" | awk '{ print strftime("[%H:%M:%S] |"), $0 }';echo;break;;
+				* ) echo;echo "-----------------------" | awk '{ print strftime("[%H:%M:%S] |"), $0 }';echo "$(textb ${var})" | awk '{ print strftime("[%H:%M:%S] |"), $0 }';echo "-----------------------" | awk '{ print strftime("[%H:%M:%S] |"), $0 }';echo;break;;
 				esac
 				done
 				exit 1
@@ -118,7 +180,7 @@ checkconfig() {
 	else
 		if [ ${SSH} == '22' ]; then
 			echo "${warn} Do you really want to use the standard SSH port? -> $(textb 22)" | awk '{ print strftime("[%H:%M:%S] |"), $0 }'
-			echo "$info Press $(textb ENTER) to skip this warning and proceed or $(textb CTRL-C) to cancel the process" | awk '{ print strftime("[%H:%M:%S] |"), $0 }'
+			echo "${info} Press $(textb ENTER) to skip this warning and proceed or $(textb CTRL-C) to cancel the process" | awk '{ print strftime("[%H:%M:%S] |"), $0 }'
         	read -s -n 1 i
         else
         	if [[ $SSH =~ ^-?[0-9]+$ ]]; then
@@ -150,16 +212,11 @@ else
 	echo "mail.${MYDOMAIN}" > /etc/mailname
 fi
 echo "${info} Setting your hostname..." | awk '{ print strftime("[%H:%M:%S] |"), $0 }'
-if [[ -f /lib/systemd/systemd ]]; then
-	if [[ -z $(dpkg --get-selections | grep -E "^dbus.*install$") ]]; then
-		apt-get update -y >/dev/null 2>&1 && apt-get -y --force-yes install dbus >/dev/null 2>&1
-	fi
-		hostnamectl set-hostname mail
-else
-		echo mail > /etc/hostname
-		hostname mail >/dev/null 2>&1
-		service hostname.sh start >/dev/null 2>&1
+if [[ -z $(dpkg --get-selections | grep -E "^dbus.*install$") ]]; then
+	apt-get update -y >/dev/null 2>&1 && apt-get -y --force-yes install dbus >/dev/null 2>&1
 fi
+hostnamectl set-hostname mail
+
 echo "${info} Setting your timezone..." | awk '{ print strftime("[%H:%M:%S] |"), $0 }'
 if [[ -f /usr/share/zoneinfo/${TIMEZONE} ]] ; then
 	echo ${TIMEZONE} > /etc/timezone
@@ -219,10 +276,9 @@ END
 wget -O ~/sources/dovecot.key http://xi.rename-it.nl/debian/archive.key  >/dev/null 2>&1 && apt-key add ~/sources/dovecot.key >/dev/null 2>&1
 wget -O ~/sources/dotdeb.gpg http://www.dotdeb.org/dotdeb.gpg >/dev/null 2>&1 && apt-key add ~/sources/dotdeb.gpg >/dev/null 2>&1
 apt-get update -y >/dev/null 2>&1 && apt-get -y upgrade >/dev/null 2>&1
-apt-get -y --force-yes install aptitude >/dev/null 2>&1
-apt-get -y --force-yes install ssl-cert whiptail apt-utils jq >/dev/null 2>&1
+apt-get -y --force-yes install aptitude ssl-cert whiptail apt-utils jq >/dev/null 2>&1
 /usr/sbin/make-ssl-cert generate-default-snakeoil --force-overwrite
-DEBIAN_FRONTEND=noninteractive aptitude -y install apache2-threaded-dev apache2-utils apt-listchanges arj autoconf automake bison bsd-mailx build-essential bzip2 ca-certificates cabextract checkinstall curl dnsutils file flex gcc git htop libapr1-dev libaprutil1 libaprutil1-dev libauthen-sasl-perl-Daemon libawl-php libcrypt-ssleay-perl libcurl4-openssl-dev libdbi-perl libio-socket-ssl-perl libio-string-perl liblockfile-simple-perl liblogger-syslog-perl libmail-dkim-perl libmail-spf-perl libmime-base64-urlsafe-perl libnet-dns-perl libnet-ident-perl libnet-LDAP-perl libnet1 libnet1-dev libpam-dev libpcre-ocaml-dev libpcre3 libpcre3-dev libreadline6-dev libtest-tempdir-perl libtool libwww-perl libxml2 libxml2-dev libxml2-utils libxslt1-dev libyaml-dev lsb-release lzop mariadb-server mlocate nomarch opendkim opendkim-tools php-auth-sasl php-auth-sasl php-http-request php-http-request php-mail php-mail-mime php-mail-mimedecode php-net-dime php-net-smtp php-net-url php-pear php-soap php5 php5-apcu php5-cli php5-common php5-common php5-curl php5-dev php5-fpm php5-gd php5-igbinary php5-imap php5-intl php5-mcrypt php5-mysql php5-sqlite php5-xmlrpc php5-xsl python-setuptools python-software-properties rkhunter software-properties-common subversion sudo unzip vim-nox zip zlib1g zlib1g-dbg zlib1g-de zoo >/dev/null 2>&1
+DEBIAN_FRONTEND=noninteractive aptitude -y install apache2-threaded-dev apache2-utils apt-listchanges arj autoconf automake bison bsd-mailx build-essential bzip2 ca-certificates cabextract checkinstall curl dnsutils fcgiwrap file flex gcc git htop libapr1-dev libaprutil1 libaprutil1-dev libauthen-sasl-perl-Daemon libawl-php libcrypt-ssleay-perl libcurl4-openssl-dev libdbi-perl libio-socket-ssl-perl libio-string-perl liblockfile-simple-perl liblogger-syslog-perl libmail-dkim-perl libmail-spf-perl libmime-base64-urlsafe-perl libnet-dns-perl libnet-ident-perl libnet-LDAP-perl libnet1 libnet1-dev libpam-dev libpcre-ocaml-dev libpcre3 libpcre3-dev libreadline6-dev libtest-tempdir-perl libtool libwww-perl libxml2 libxml2-dev libxml2-utils libxslt1-dev libyaml-dev lsb-release lzop mailgraph mariadb-server memcached mlocate nomarch opendkim opendkim-tools php-auth-sasl php-auth-sasl php-http-request php-http-request php-mail php-mail-mime php-mail-mimedecode php-net-dime php-net-smtp php-net-url php-pear php-soap php5 php5-apcu php5-cli php5-common php5-common php5-curl php5-dev php5-fpm php5-gd php5-igbinary php5-imap php5-intl php5-mcrypt php5-mysql php5-sqlite php5-xmlrpc php5-xsl python-setuptools python-software-properties rkhunter rrdtool software-properties-common spawn-fcgi subversion sudo unzip vim-nox zip zlib1g zlib1g-dbg zlib1g-de zoo >/dev/null 2>&1
 
 if [ "$?" -ne "0" ]; then
 	echo "${error} Package installation failed!" | awk '{ print strftime("[%H:%M:%S] |"), $0 }'
@@ -249,7 +305,7 @@ mysql -u root -p${MYSQL_ROOT_PASS} -e "DELETE FROM mysql.user WHERE User=''; DEL
 cd ~/sources
 mkdir bash && cd $_
 echo "${info} Downloading GNU bash & latest security patches..." | awk '{ print strftime("[%H:%M:%S] |"), $0 }'
-wget -N https://ftp.gnu.org/gnu/bash/bash-4.3.tar.gz >/dev/null 2>&1
+wget https://ftp.gnu.org/gnu/bash/bash-4.3.tar.gz >/dev/null 2>&1
 for i in $(seq -f "%03g" 1 42); do wget http://ftp.gnu.org/gnu/bash/bash-4.3-patches/bash43-$i; done >/dev/null 2>&1
 tar zxf bash-4.3.tar.gz && cd bash-4.3 >/dev/null 2>&1
 echo "${info} Patching sourcefiles..." | awk '{ print strftime("[%H:%M:%S] |"), $0 }'
@@ -411,7 +467,6 @@ sed -i '732s/.*/                (void) BIO_set_write_buffer_size(wbio, 16384);/'
 --without-http_autoindex_module \
 --without-http_browser_module \
 --without-http_empty_gif_module \
---without-http_map_module \
 --without-http_userid_module \
 --without-http_split_clients_module \
 --with-http_ssl_module \
@@ -478,7 +533,7 @@ echo "${info} Configuring Nginx..." | awk '{ print strftime("[%H:%M:%S] |"), $0 
 rm -rf /etc/nginx/nginx.conf
 cat > /etc/nginx/nginx.conf <<END
 user www-data;
-worker_processes ${WORKER};
+worker_processes auto;
 pid /var/run/nginx.pid;
 
 events {
@@ -534,83 +589,127 @@ http {
 }
 END
 
+# SSL certificate
+if [ ${CLOUDFLARE} == '0' ] && [ ${USE_VALID_SSL} == '1' ]; then
+	echo "${info} Creating valid SSL certificates..." | awk '{ print strftime("[%H:%M:%S] |"), $0 }'
+	git clone https://github.com/letsencrypt/letsencrypt ~/sources/letsencrypt -q
+	cd ~/sources/letsencrypt
+	if [ ${USE_MAILSERVER} == '1' ]; then
+		./letsencrypt-auto --agree-tos --renew-by-default --email ${SSLMAIL} --rsa-key-size 4096 -d ${MYDOMAIN} -d www.${MYDOMAIN} -d mail.${MYDOMAIN} -d autodiscover.${MYDOMAIN} -d dav.${MYDOMAIN} certonly >/dev/null 2>&1
+	else
+		./letsencrypt-auto --agree-tos --renew-by-default --email ${SSLMAIL} --rsa-key-size 4096 -d ${MYDOMAIN} -d www.${MYDOMAIN} certonly >/dev/null 2>&1
+	fi
+	ln -s /etc/letsencrypt/live/${MYDOMAIN}/fullchain.pem /etc/nginx/ssl/${MYDOMAIN}.pem
+	ln -s /etc/letsencrypt/live/${MYDOMAIN}/privkey.pem /etc/nginx/ssl/${MYDOMAIN}.key.pem
+else
+	echo "${info} Creating self-signed SSL certificates..." | awk '{ print strftime("[%H:%M:%S] |"), $0 }'
+	openssl ecparam -genkey -name secp384r1 -out /etc/nginx/ssl/${MYDOMAIN}.key.pem >/dev/null 2>&1
+	openssl req -new -sha256 -key /etc/nginx/ssl/${MYDOMAIN}.key.pem -out /etc/nginx/ssl/csr.pem -subj "/C=/ST=/L=/O=/OU=/CN=*.${MYDOMAIN}" >/dev/null 2>&1
+	openssl req -x509 -days 365 -key /etc/nginx/ssl/${MYDOMAIN}.key.pem -in /etc/nginx/ssl/csr.pem -out /etc/nginx/ssl/${MYDOMAIN}.pem >/dev/null 2>&1
+fi
+
+HPKP1=$(openssl x509 -pubkey < /etc/nginx/ssl/${MYDOMAIN}.pem | openssl pkey -pubin -outform der | openssl dgst -sha256 -binary | base64)
+HPKP2=$(openssl rand -base64 32)
+
+echo "${info} Creating strong Diffie-Hellman parameters, please wait..." | awk '{ print strftime("[%H:%M:%S] |"), $0 }'
+openssl dhparam -out /etc/nginx/ssl/dh.pem 2048 >/dev/null 2>&1
+
 # Create server config
 rm -rf /etc/nginx/sites-available/${MYDOMAIN}.conf
 cat > /etc/nginx/sites-available/${MYDOMAIN}.conf <<END
 server {
-			listen 80 default_server;
-			server_name ${IPADR} ${MYDOMAIN};
-			return 301 https://${MYDOMAIN}\$request_uri;
+			listen 				80 default_server;
+			server_name 		${IPADR} ${MYDOMAIN};
+			return 301 			https://${MYDOMAIN}\$request_uri;
 }
 
 server {
-			listen 443;
-			server_name ${IPADR} www.${MYDOMAIN} mail.${MYDOMAIN};
-			return 301 https://${MYDOMAIN}\$request_uri;
+			listen 				443;
+			server_name 		${IPADR} www.${MYDOMAIN} mail.${MYDOMAIN};
+			return 301 			https://${MYDOMAIN}\$request_uri;
 }
 
 server {
-			listen 443 ssl http2 default deferred;
-			server_name ${MYDOMAIN};
+			listen 				443 ssl http2 default deferred;
+			server_name 		${MYDOMAIN};
 
-			root /etc/nginx/html;
-			index index.php index.html index.htm;
+			root 				/etc/nginx/html;
+			index 				index.php index.html index.htm;
 
-			charset utf-8;
+			charset 			utf-8;
 
-			error_page 404 /index.php;
+			error_page 404 		/index.php;
 
 			ssl_certificate 	ssl/${MYDOMAIN}.pem;
-			ssl_certificate_key ssl/${MYDOMAIN}.key;
-			#ssl_trusted_certificate ssl/trustedbundle.pem;
+			ssl_certificate_key ssl/${MYDOMAIN}.key.pem;
+			#ssl_trusted_certificate ssl/${MYDOMAIN}.pem;
 			ssl_dhparam	     	ssl/dh.pem;
-			ssl_ecdh_curve		secp384r1;
+			#ssl_ecdh_curve		secp384r1;
 			ssl_session_cache   shared:SSL:10m;
 			ssl_session_timeout 10m;
 			ssl_session_tickets off;
 			ssl_protocols       TLSv1 TLSv1.1 TLSv1.2;
 			ssl_prefer_server_ciphers on;
-			ssl_buffer_size 	4k;
+			ssl_buffer_size 	1400;
 
-			#ssl_stapling on;
+			#ssl_stapling 		on;
 			#ssl_stapling_verify on;
-			#resolver 8.8.8.8 8.8.4.4 valid=300s;
-			#resolver_timeout 5s;
+			#resolver 			8.8.8.8 8.8.4.4 208.67.222.222 208.67.220.220 valid=60s;
+			#resolver_timeout 	2s;
 
-			ssl_ciphers "EECDH+AESGCM:EDH+AESGCM:AES256+EECDH:AES256+EDH";
+			ssl_ciphers 		"ECDHE-RSA-AES128-GCM-SHA256:ECDHE-ECDSA-AES128-GCM-SHA256:ECDHE-RSA-AES256-GCM-SHA384:ECDHE-ECDSA-AES256-GCM-SHA384:DHE-RSA-AES128-GCM-SHA256:DHE-DSS-AES128-GCM-SHA256:kEDH+AESGCM:ECDHE-RSA-AES128-SHA256:ECDHE-ECDSA-AES128-SHA256:ECDHE-RSA-AES128-SHA:ECDHE-ECDSA-AES128-SHA:ECDHE-RSA-AES256-SHA384:ECDHE-ECDSA-AES256-SHA384:ECDHE-RSA-AES256-SHA:ECDHE-ECDSA-AES256-SHA:DHE-RSA-AES128-SHA256:DHE-RSA-AES128-SHA:DHE-DSS-AES128-SHA256:DHE-RSA-AES256-SHA256:DHE-DSS-AES256-SHA:DHE-RSA-AES256-SHA:!aNULL:!eNULL:!EXPORT:!DES:!RC4:!3DES:!MD5:!PSK";
 
-			#add_header Strict-Transport-Security "max-age=63072000; includeSubdomains; preload";
-			add_header Cache-Control "public";
-			add_header X-Frame-Options SAMEORIGIN;
-			add_header Alternate-Protocol  443:npn-http/2;
-			add_header X-Content-Type-Options nosniff;
-			add_header X-XSS-Protection "1; mode=block";
-			add_header X-Permitted-Cross-Domain-Policies "master-only";
-			add_header Content-Security-Policy "script-src 'self' 'unsafe-inline' 'unsafe-eval' *.youtube.com maps.gstatic.com *.googleapis.com *.google-analytics.com cdnjs.cloudflare.com assets.zendesk.com connect.facebook.net; frame-src 'self' *.youtube.com assets.zendesk.com *.facebook.com s-static.ak.facebook.com tautt.zendesk.com; object-src 'self'";
+			#add_header 		Strict-Transport-Security "max-age=63072000; includeSubdomains; preload";
+			#add_header 		Public-Key-Pins 'pin-sha256="${HPKP1}"; pin-sha256="${HPKP2}"; max-age=5184000; includeSubDomains';
+			add_header 			Cache-Control "public";
+			add_header 			X-Frame-Options SAMEORIGIN;
+			add_header 			Alternate-Protocol  443:npn-http/2;
+			add_header 			X-Content-Type-Options nosniff;
+			add_header 			X-XSS-Protection "1; mode=block";
+			add_header 			X-Permitted-Cross-Domain-Policies "master-only";
+			add_header 			"X-UA-Compatible" "IE=Edge";
+			add_header 			"Access-Control-Allow-Origin" "*";
+			add_header 			Content-Security-Policy "script-src 'self' 'unsafe-inline' 'unsafe-eval' *.youtube.com maps.gstatic.com *.googleapis.com *.google-analytics.com cdnjs.cloudflare.com assets.zendesk.com connect.facebook.net; frame-src 'self' *.youtube.com assets.zendesk.com *.facebook.com s-static.ak.facebook.com tautt.zendesk.com; object-src 'self'";
 
-			pagespeed off;
-			pagespeed FetchHttps enable,allow_self_signed;
-			pagespeed FileCachePath /var/lib/nginx/nps_cache;
-			pagespeed RewriteLevel PassThrough;
-			pagespeed EnableFilters collapse_whitespace;
-			pagespeed EnableFilters canonicalize_javascript_libraries;
-			pagespeed EnableFilters combine_css;
-			pagespeed EnableFilters combine_javascript;
-			pagespeed EnableFilters elide_attributes;
-			pagespeed EnableFilters extend_cache;
-			pagespeed EnableFilters flatten_css_imports;
-			pagespeed CssFlattenMaxBytes 5120;
-			pagespeed EnableFilters lazyload_images;
-			pagespeed EnableFilters rewrite_javascript;
-			pagespeed EnableFilters rewrite_images;
-			pagespeed EnableFilters insert_dns_prefetch;
-			pagespeed EnableFilters prioritize_critical_css;
+			pagespeed 			on;
+			pagespeed 			EnableFilters collapse_whitespace;
+			pagespeed 			EnableFilters canonicalize_javascript_libraries;
+			pagespeed 			EnableFilters combine_css;
+			pagespeed 			EnableFilters combine_javascript;
+			pagespeed 			EnableFilters elide_attributes;
+			pagespeed 			EnableFilters extend_cache;
+			pagespeed 			EnableFilters flatten_css_imports;
+			pagespeed 			EnableFilters lazyload_images;
+			pagespeed 			EnableFilters rewrite_javascript;
+			pagespeed 			EnableFilters rewrite_images;
+			pagespeed 			EnableFilters insert_dns_prefetch;
+			pagespeed 			EnableFilters prioritize_critical_css;
+
+			pagespeed 			FetchHttps enable,allow_self_signed;
+			pagespeed 			FileCachePath /var/lib/nginx/nps_cache;
+			pagespeed 			RewriteLevel CoreFilters;
+			pagespeed 			CssFlattenMaxBytes 5120;
+			pagespeed 			LogDir /var/log/pagespeed;
+			pagespeed 			EnableCachePurge on;
+			pagespeed 			PurgeMethod PURGE;
+			pagespeed 			DownstreamCachePurgeMethod PURGE;
+			pagespeed 			DownstreamCachePurgeLocationPrefix http://127.0.0.1:80/;
+			pagespeed 			DownstreamCacheRewrittenPercentageThreshold 95;
+			pagespeed 			LazyloadImagesAfterOnload on;
+			pagespeed 			LazyloadImagesBlankUrl "data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7";
+
+			pagespeed 			MemcachedThreads 1;
+			pagespeed 			MemcachedServers "localhost:11211";
+			pagespeed 			MemcachedTimeoutUs 100000;
+			pagespeed 			RespectVary on;
+
+			pagespeed 			Disallow "*/pma/*";
 
 			# This will correctly rewrite your subresources with https:// URLs and thus avoid mixed content warnings.
 			# Note, that you should only enable this option if you are behind a load-balancer that will set this header,
 			# otherwise your users will be able to set the protocol PageSpeed uses to interpret the request.
 			#
-			#pagespeed RespectXForwardedProto on;
+			#pagespeed 			RespectXForwardedProto on;
 
 			auth_basic_user_file htpasswd/.htpasswd;
 
@@ -638,11 +737,23 @@ server {
 
 			location / {
 			   	include /etc/nginx/naxsi.rules;
+
+			   	# Uncomment, if you need to remove index.php from the
+				# URL. Usefull if you use Codeigniter, Zendframework, etc.
+				# or just need to remove the index.php
+				#
+			   	#try_files \$uri \$uri/ /index.php?\$args;
 			}
 
-			location ~ /\. {
-				deny all;
-				access_log off;
+			location ~* /\.(?!well-known\/) {
+			    deny all;
+			    access_log off;
+				log_not_found off;
+			}
+
+			location ~* (?:\.(?:bak|conf|dist|fla|in[ci]|log|psd|sh|sql|sw[op])|~)$ {
+			    deny all;
+			    access_log off;
 				log_not_found off;
 			}
 
@@ -656,14 +767,6 @@ server {
 				access_log off;
 				log_not_found off;
 			}
-
-			# Uncomment, if you need to remove index.php from the
-			# URL. Usefull if you use Codeigniter, Zendframework, etc.
-			# or just need to remove the index.php
-			#
-			#location / {
-			#   try_files \$uri \$uri/ /index.php?\$args;
-			#}
 
 			location ~* ^.+\.(css|js)\$ {
 				rewrite ^(.+)\.(\d+)\.(css|js)\$ \$1.\$3 last;
@@ -682,21 +785,19 @@ server {
 				add_header Cache-Control "max-age=2592000, public";
 			}
 
+			if ($http_user_agent ~ "FeedDemon|JikeSpider|Indy Library|Alexa Toolbar|AskTbFXTV|AhrefsBot|CrawlDaddy|CoolpadWebkit|Java|Feedly|UniversalFeedParser|ApacheBench|Microsoft URL Control|Swiftbot|ZmEu|oBot|jaunty|Python-urllib|lightDeckReports Bot|YYSpider|DigExt|YisouSpider|HttpClient|MJ12bot|heritrix|EasouSpider|Ezooms|^$" ) {
+			    return 403;
+			}
 }
 END
 
-if [ ${CLOUDFLARE} == '1' ]; then
-	sed -i "3s/.*/			server_name ${MYDOMAIN};/" /etc/nginx/sites-available/${MYDOMAIN}.conf
-	sed -i '6s/.*/\n&/' /etc/nginx/sites-available/${MYDOMAIN}.conf
-	sed -i '7s/.*/server {\n&/' /etc/nginx/sites-available/${MYDOMAIN}.conf
-	sed -i '8s/.*/			listen 80;\n&/' /etc/nginx/sites-available/${MYDOMAIN}.conf
-	sed -i "9s/.*/			server_name ${IPADR};\n&/" /etc/nginx/sites-available/${MYDOMAIN}.conf
-	sed -i '10s/.*/			return 503;\n&/' /etc/nginx/sites-available/${MYDOMAIN}.conf
-	sed -i '11s/.*/}\n&/' /etc/nginx/sites-available/${MYDOMAIN}.conf
-	sed -i '16s/.*/			return 503;/' /etc/nginx/sites-available/${MYDOMAIN}.conf
-fi
-
 ln -s /etc/nginx/sites-available/${MYDOMAIN}.conf /etc/nginx/sites-enabled/${MYDOMAIN}.conf
+
+if [ ${CLOUDFLARE} == '0' ] && [ ${USE_VALID_SSL} == '1' ]; then
+	sed -i 's/#ssl/ssl/g' /etc/nginx/sites-available/${MYDOMAIN}.conf
+	sed -i 's/#resolver/resolver/g' /etc/nginx/sites-available/${MYDOMAIN}.conf
+	sed -i 's/#add/add/g' /etc/nginx/sites-available/${MYDOMAIN}.conf
+fi
 
 # Configure PHP
 echo "${info} Configuring PHP..." | awk '{ print strftime("[%H:%M:%S] |"), $0 }'
@@ -780,16 +881,6 @@ CheckRule "\$EVADE >= 4" BLOCK;
 CheckRule "\$XSS >= 8" BLOCK;
 END
 
-
-# Create a self-signed SSL certificate
-echo "${info} Creating self-signed SSL certificates..." | awk '{ print strftime("[%H:%M:%S] |"), $0 }'
-openssl ecparam -genkey -name secp384r1 -out /etc/nginx/ssl/${MYDOMAIN}.key >/dev/null 2>&1
-openssl req -new -sha256 -key /etc/nginx/ssl/${MYDOMAIN}.key -out /etc/nginx/ssl/csr.pem -subj "/C=/ST=/L=/O=/OU=/CN=*.${MYDOMAIN}" >/dev/null 2>&1
-openssl req -x509 -days 365 -key /etc/nginx/ssl/${MYDOMAIN}.key -in /etc/nginx/ssl/csr.pem -out /etc/nginx/ssl/${MYDOMAIN}.pem >/dev/null 2>&1
-
-echo "${info} Creating strong Diffie-Hellman parameters, please wait..." | awk '{ print strftime("[%H:%M:%S] |"), $0 }'
-openssl dhparam -out /etc/nginx/ssl/dh.pem 2048 >/dev/null 2>&1
-
 # Restart FPM & Nginx
 systemctl -q start nginx.service
 systemctl -q restart php5-fpm.service
@@ -799,22 +890,27 @@ if [ ${USE_MAILSERVER} == '1' ]; then
 
 	# Prerequisites
 	update-alternatives --set mailx /usr/bin/bsd-mailx --quiet >/dev/null 2>&1
-	DEBIAN_FRONTEND=noninteractive aptitude -y install clamav-daemon dovecot-common dovecot-core dovecot-imapd dovecot-lmtpd dovecot-managesieved dovecot-mysql dovecot-pop3d dovecot-sieve fetchmail imagemagick mailutils mpack pflogsumm postfix postfix-mysql postfix-pcre postgrey pyzor razor spamassassin spamc wkhtmltopdf >/dev/null 2>&1
+	DEBIAN_FRONTEND=noninteractive aptitude -y install clamav-daemon dovecot-common dovecot-core dovecot-imapd dovecot-lmtpd dovecot-managesieved dovecot-mysql dovecot-pop3d dovecot-sieve dovecot-solr fetchmail imagemagick mailutils mpack pflogsumm postfix postfix-mysql postfix-pcre postgrey pyzor razor spamassassin spamc wkhtmltopdf >/dev/null 2>&1
 
 	# Create SSL
-	mkdir -p /etc/ssl/mail 2> /dev/null
-	rm /etc/ssl/mail/* 2> /dev/null
+	mkdir -p /etc/ssl/mail >/dev/null 2>&1
+	rm /etc/ssl/mail/* >/dev/null 2>&1
 	cp /etc/nginx/ssl/dh.pem /etc/ssl/mail/dhparams.pem
 	openssl req -new -newkey rsa:4096 -sha256 -days 1095 -nodes -x509 -subj "/C=/ST=/L=/O=/OU=/CN=mail.${MYDOMAIN}" -keyout /etc/ssl/mail/mail.key -out /etc/ssl/mail/mail.crt >/dev/null 2>&1
 	chmod 600 /etc/ssl/mail/mail.key
 	cp /etc/ssl/mail/mail.crt /usr/local/share/ca-certificates/
 	update-ca-certificates >/dev/null 2>&1
+	mkdir -p /etc/dovecot/private/
+	cp /etc/ssl/certs/ssl-cert-snakeoil.pem /etc/dovecot/dovecot.pem
+	cp /etc/ssl/private/ssl-cert-snakeoil.key /etc/dovecot/dovecot.key
+	cp /etc/ssl/certs/ssl-cert-snakeoil.pem /etc/dovecot/private/dovecot.pem
+	cp /etc/ssl/private/ssl-cert-snakeoil.key /etc/dovecot/private/dovecot.key
 
 	# Create MySQL databases
 	echo "${info} Creating MySQL databases..." | awk '{ print strftime("[%H:%M:%S] |"), $0 }'
-	mysql --host ${MYSQL_HOSTNAME} -u root -p${MYSQL_ROOT_PASS} -e "CREATE DATABASE ${MYSQL_MCDB_NAME}; GRANT SELECT, INSERT, UPDATE, DELETE ON ${MYSQL_MCDB_NAME}.* TO '${MYSQL_MCDB_USER}'@'%' IDENTIFIED BY '${MYSQL_MCDB_PASS}';"
-	mysql --host ${MYSQL_HOSTNAME} -u root -p${MYSQL_ROOT_PASS} -e "CREATE DATABASE ${MYSQL_RCDB_NAME}; GRANT ALL PRIVILEGES ON ${MYSQL_RCDB_NAME}.* TO '${MYSQL_RCDB_USER}'@'%' IDENTIFIED BY '${MYSQL_RCDB_PASS}';"
-	mysql --host ${MYSQL_HOSTNAME} -u root -p${MYSQL_ROOT_PASS} -e "GRANT SELECT ON ${MYSQL_MCDB_NAME}.* TO 'vmail'@'%'; FLUSH PRIVILEGES;"
+	mysql -uroot -p${MYSQL_ROOT_PASS} -h${MYSQL_HOSTNAME} -e "CREATE DATABASE ${MYSQL_MCDB_NAME}; GRANT SELECT, INSERT, UPDATE, DELETE ON ${MYSQL_MCDB_NAME}.* TO '${MYSQL_MCDB_USER}'@'%' IDENTIFIED BY '${MYSQL_MCDB_PASS}';"
+	mysql -uroot -p${MYSQL_ROOT_PASS} -h${MYSQL_HOSTNAME} -e "CREATE DATABASE ${MYSQL_RCDB_NAME}; GRANT ALL PRIVILEGES ON ${MYSQL_RCDB_NAME}.* TO '${MYSQL_RCDB_USER}'@'%' IDENTIFIED BY '${MYSQL_RCDB_PASS}';"
+	mysql -uroot -p${MYSQL_ROOT_PASS} -h${MYSQL_HOSTNAME} -e "GRANT SELECT ON ${MYSQL_MCDB_NAME}.* TO 'vmail'@'%'; FLUSH PRIVILEGES;"
 
 	# Postfix
 	echo "${info} Installing Postfix..." | awk '{ print strftime("[%H:%M:%S] |"), $0 }'
@@ -828,16 +924,14 @@ if [ ${USE_MAILSERVER} == '1' ]; then
 	chown root:postfix "/etc/postfix/sql/mysql_virtual_mxdomain_maps.cf"; chmod 640 "/etc/postfix/sql/mysql_virtual_mxdomain_maps.cf"
 	chown root:postfix "/etc/postfix/sql/mysql_virtual_alias_domain_maps.cf"; chmod 640 "/etc/postfix/sql/mysql_virtual_alias_domain_maps.cf"
 	chown root:postfix "/etc/postfix/sql/mysql_virtual_spamalias_maps.cf"; chmod 640 "/etc/postfix/sql/mysql_virtual_spamalias_maps.cf"
+	chown root:postfix "/etc/postfix/sql/mysql_virtual_sender_acl.cf"; chmod 640 "/etc/postfix/sql/mysql_virtual_sender_acl.cf"
 	chown root:postfix "/etc/postfix/sql/mysql_virtual_domains_maps.cf"; chmod 640 "/etc/postfix/sql/mysql_virtual_domains_maps.cf"
 	chown root:root "/etc/postfix/master.cf"; chmod 644 "/etc/postfix/master.cf"
 	chown root:root "/etc/postfix/main.cf"; chmod 644 "/etc/postfix/main.cf"
-	sed -i "s/MAILCOW_HOST.MAILCOW_DOMAIN/mail.${MYDOMAIN}/g" /etc/postfix/* 2> /dev/null
-	cp ~/sources/mailcow/misc/mc_clean_spam_aliases /etc/cron.daily/mc_clean_spam_aliases
-	cp ~/sources/mailcow/misc/mc_pfset /usr/local/sbin/mc_pfset
-	cp ~/sources/mailcow/misc/mc_pflog_renew /usr/local/sbin/mc_pflog_renew
+	sed -i "s/MAILCOW_HOST.MAILCOW_DOMAIN/mail.${MYDOMAIN}/g" /etc/postfix/main.cf
+	sed -i "s/MAILCOW_DOMAIN/${MYDOMAIN}/g" /etc/postfix/main.cf
 	chmod +x /usr/local/sbin/mc_pfset /usr/local/sbin/mc_pflog_renew
 	chmod 700 /etc/cron.daily/mc_clean_spam_aliases
-	sed -i "s/MAILCOW_DOMAIN/${MYDOMAIN}/g" /etc/postfix/* 2> /dev/null
 	sed -i "s/my_mailcowpass/${MYSQL_MCDB_PASS}/g" /etc/postfix/sql/* /etc/cron.daily/mc_clean_spam_aliases
 	sed -i "s/my_mailcowuser/${MYSQL_MCDB_USER}/g" /etc/postfix/sql/* /etc/cron.daily/mc_clean_spam_aliases
 	sed -i "s/my_mailcowdb/${MYSQL_MCDB_NAME}/g" /etc/postfix/sql/* /etc/cron.daily/mc_clean_spam_aliases
@@ -845,12 +939,11 @@ if [ ${USE_MAILSERVER} == '1' ]; then
 	sed -i '/^POSTGREY_OPTS=/s/=.*/="--inet=127.0.0.1:10023"/' /etc/default/postgrey
 	chown www-data: /etc/postfix/mailcow_*
 	chmod 755 /var/spool/
-	sed -i "/%www-data/d" /etc/sudoers 2> /dev/null
-	sed -i "/%vmail/d" /etc/sudoers 2> /dev/null
+	sed -i "/%www-data/d" /etc/sudoers >/dev/null 2>&1
+	sed -i "/%vmail/d" /etc/sudoers >/dev/null 2>&1
 	echo '%www-data ALL=(ALL) NOPASSWD: /usr/bin/doveadm * sync *, /usr/local/sbin/mc_pfset *, /usr/bin/doveadm quota recalc -A, /usr/sbin/dovecot reload, /usr/sbin/postfix reload, /usr/local/sbin/mc_dkim_ctrl, /usr/local/sbin/mc_msg_size, /usr/local/sbin/mc_pflog_renew, /usr/local/sbin/mc_setup_backup' >> /etc/sudoers
 
-	# fuglu
-	echo "${info} Installing Fuglu..." | awk '{ print strftime("[%H:%M:%S] |"), $0 }'
+	# Fuglu
 	if [[ -z $(grep fuglu /etc/passwd) ]]; then
 		userdel fuglu >/dev/null 2>&1
 		groupadd fuglu >/dev/null 2>&1
@@ -861,55 +954,59 @@ if [ ${USE_MAILSERVER} == '1' ]; then
 	rm /tmp/fuglu_control.sock >/dev/null 2>&1
 	mkdir /var/log/fuglu >/dev/null 2>&1
 	chown fuglu:fuglu /var/log/fuglu
-	tar xf ~/sources/mailcow/fuglu/inst/0.6.4.tar -C ~/sources/mailcow/fuglu/inst/ >/dev/null 2>&1
-	(cd ~/sources/mailcow/fuglu/inst/0.6.4 ; python setup.py -q install)
+	tar xf ~/sources/mailcow/fuglu/inst/0.6.5.tar -C ~/sources/mailcow/fuglu/inst/ >/dev/null 2>&1
+	(cd ~/sources/mailcow/fuglu/inst/0.6.5 ; python setup.py -q install)
 	cp -R ~/sources/mailcow/fuglu/conf/* /etc/fuglu/
-	cp ~/sources/mailcow/fuglu/inst/0.6.4/scripts/startscripts/debian/8/fuglu.service /lib/systemd/system/fuglu.service
-	systemctl enable fuglu 2> /dev/null
-	rm -rf ~/sources/mailcow/fuglu/inst/0.6.4
+	cp ~/sources/mailcow/fuglu/inst/0.6.5/scripts/startscripts/debian/8/fuglu.service /etc/systemd/system/fuglu.service
+	systemctl -q disable fuglu
+	[[ -f /lib/systemd/system/fuglu.service ]] && rm /lib/systemd/system/fuglu.service
+	systemctl -q daemon-reload
+	systemctl -q enable fuglu
+	rm -rf ~/sources/mailcow/fuglu/inst/0.6.5
 
 	# Dovecot
 	echo "${info} Installing Dovecot..." | awk '{ print strftime("[%H:%M:%S] |"), $0 }'
-	if [[ -f /lib/systemd/systemd ]]; then
-		systemctl -q disable dovecot.socket
-	fi
-	rm -rf /etc/dovecot/*
-	cp -R ~/sources/mailcow/dovecot/conf/*.conf /etc/dovecot/
-	userdel vmail >/dev/null 2>&1
-	groupdel vmail >/dev/null 2>&1
-	groupadd -g 5000 vmail >/dev/null 2>&1
-	useradd -g vmail -u 5000 vmail -d /var/vmail >/dev/null 2>&1
+	systemctl -q disable dovecot.socket
+	if [[ -z $(grep '/var/vmail:' /etc/passwd | grep '5000:5000') ]]; then
+		userdel vmail >/dev/null 2>&1
+		groupdel vmail >/dev/null 2>&1
+		groupadd -g 5000 vmail
+		useradd -g vmail -u 5000 vmail -d /var/vmail
+ 	fi
 	chmod 755 "/etc/dovecot/"
-	chown root:dovecot "/etc/dovecot/dovecot-dict-sql.conf"; chmod 640 "/etc/dovecot/dovecot-dict-sql.conf"
-	chown root:vmail "/etc/dovecot/dovecot-mysql.conf"; chmod 640 "/etc/dovecot/dovecot-mysql.conf"
-	chown root:root "/etc/dovecot/dovecot.conf"; chmod 644 "/etc/dovecot/dovecot.conf"
-	touch "/etc/dovecot/mailcow_public_folder.conf"; chmod 664 "/etc/dovecot/mailcow_public_folder.conf"
-	chown root:www-data "/etc/dovecot/mailcow_public_folder.conf"
-	sed -i "s/MAILCOW_HOST.MAILCOW_DOMAIN/mail.${MYDOMAIN}/g" /etc/dovecot/*
-	sed -i "s/MAILCOW_DOMAIN/${MYDOMAIN}/g" /etc/dovecot/*
-	sed -i "s/my_mailcowpass/${MYSQL_MCDB_PASS}/g" /etc/dovecot/*
-	sed -i "s/my_mailcowuser/${MYSQL_MCDB_USER}/g" /etc/dovecot/*
-	sed -i "s/my_mailcowdb/${MYSQL_MCDB_NAME}/g" /etc/dovecot/*
-	sed -i "s/my_dbhost/${MYSQL_HOSTNAME}/g" /etc/dovecot/*
-	mkdir /etc/dovecot/conf.d 2> /dev/null
-	mkdir -p /var/vmail/sieve 2> /dev/null
-	mkdir -p /var/vmail/public 2> /dev/null
+	install -o root -g dovecot -m 640 ~/sources/mailcow/dovecot/conf/dovecot-dict-sql.conf /etc/dovecot/dovecot-dict-sql.conf
+	install -o root -g vmail -m 640 ~/sources/mailcow/dovecot/conf/dovecot-mysql.conf /etc/dovecot/dovecot-mysql.conf
+	install -m 644 ~/sources/mailcow/dovecot/conf/dovecot.conf /etc/dovecot/dovecot.conf
+	touch /etc/dovecot/mailcow_public_folder.conf
+	chmod 664 "/etc/dovecot/mailcow_public_folder.conf"; chown root:www-data "/etc/dovecot/mailcow_public_folder.conf"
+	DOVEFILES=$(find /etc/dovecot -maxdepth 1 -type f -printf '/etc/dovecot/%f ')
+	sed -i "s/MAILCOW_HOST.MAILCOW_DOMAIN/mail.${MYDOMAIN}/g" ${DOVEFILES}
+	sed -i "s/MAILCOW_DOMAIN/${MYDOMAIN}/g" ${DOVEFILES}
+	sed -i "s/my_mailcowpass/${MYSQL_MCDB_PASS}/g" ${DOVEFILES}
+	sed -i "s/my_mailcowuser/${MYSQL_MCDB_USER}/g" ${DOVEFILES}
+	sed -i "s/my_mailcowdb/${MYSQL_MCDB_NAME}/g" ${DOVEFILES}
+	sed -i "s/my_dbhost/${MYSQL_HOSTNAME}/g" ${DOVEFILES}
+	mkdir /etc/dovecot/conf.d >/dev/null 2>&1
+	mkdir -p /var/vmail/sieve >/dev/null 2>&1
+	mkdir -p /var/vmail/public >/dev/null 2>&1
 	if [ ! -f /var/vmail/public/dovecot-acl ]; then
 		echo "anyone lrwstipekxa" > /var/vmail/public/dovecot-acl
 	fi
-	cp ~/sources/mailcow/dovecot/conf/global.sieve /var/vmail/sieve/global.sieve
+	install -m 644 ~/sources/mailcow/dovecot/conf/global.sieve /var/vmail/sieve/global.sieve
 	touch /var/vmail/sieve/default.sieve
 	install -m 755 ~/sources/mailcow/misc/mc_msg_size /usr/local/sbin/mc_msg_size
 	sievec /var/vmail/sieve/global.sieve
 	chown -R vmail:vmail /var/vmail
-	install -m 755 ~/sources/mailcow/dovecot/conf/doverecalcq /etc/cron.daily/
+	[[ -f /etc/cron.daily/doverecalcq ]] && rm /etc/cron.daily/doverecalcq
+	install -m 755 ~/sources/mailcow/dovecot/conf/dovemaint /etc/cron.daily/
+	install -m 644 ~/sources/mailcow/dovecot/conf/solrmaint /etc/cron.d/
 
 	# clamav
 	echo "${info} Installing ClamaV..." | awk '{ print strftime("[%H:%M:%S] |"), $0 }'
 	usermod -a -G vmail clamav >/dev/null 2>&1
 	service clamav-freshclam stop >/dev/null 2>&1
 	killall freshclam >/dev/null 2>&1
-	rm -f /var/lib/clamav/* 2> /dev/null >/dev/null 2>&1
+	rm -f /var/lib/clamav/* >/dev/null 2>&1 >/dev/null 2>&1
 	sed -i '/DatabaseMirror/d' /etc/clamav/freshclam.conf
 	sed -i '/MaxFileSize/c\MaxFileSize 10240M' /etc/clamav/clamd.conf
 	sed -i '/StreamMaxLength/c\StreamMaxLength 10240M' /etc/clamav/clamd.conf
@@ -927,7 +1024,7 @@ DatabaseMirror clamav.inode.at" >> /etc/clamav/freshclam.conf
 	cp -f ~/sources/mailcow/clamav/clamav-unofficial-sigs.8 /usr/share/man/man8/clamav-unofficial-sigs.8
 	cp -f ~/sources/mailcow/clamav/clamav-unofficial-sigs-cron /etc/cron.d/clamav-unofficial-sigs-cron
 	cp -f ~/sources/mailcow/clamav/clamav-unofficial-sigs-logrotate /etc/logrotate.d/clamav-unofficial-sigs-logrotate
-	mkdir -p /var/log/clamav-unofficial-sigs 2> /dev/null
+	mkdir -p /var/log/clamav-unofficial-sigs >/dev/null 2>&1
 	sed -i '/MaxFileSize/c\MaxFileSize 10M' /etc/clamav/clamd.conf
 	sed -i '/StreamMaxLength/c\StreamMaxLength 10M' /etc/clamav/clamd.conf
 	freshclam >/dev/null 2>&1
@@ -935,12 +1032,11 @@ DatabaseMirror clamav.inode.at" >> /etc/clamav/freshclam.conf
 	# OpenDKIM
 	echo "${info} Installing OpenDKIM..." | awk '{ print strftime("[%H:%M:%S] |"), $0 }'
 	echo 'SOCKET="inet:10040@localhost"' > /etc/default/opendkim
-	mkdir -p /etc/opendkim/{keyfiles,dnstxt} 2> /dev/null
+	mkdir -p /etc/opendkim/{keyfiles,dnstxt} >/dev/null 2>&1
 	touch /etc/opendkim/{KeyTable,SigningTable}
-	install -m 755 ~/sources/mailcow/misc/mc_dkim_ctrl /usr/local/sbin/
 	install -m 644 ~/sources/mailcow/opendkim/conf/opendkim.conf /etc/opendkim.conf
 
-	#SpamAssassin
+	# SpamAssassin
 	echo "${info} Installing SpamAssassin..." | awk '{ print strftime("[%H:%M:%S] |"), $0 }'
 	cp ~/sources/mailcow/spamassassin/conf/local.cf /etc/spamassassin/local.cf
 	sed -i '/^OPTIONS=/s/=.*/="--create-prefs --max-children 5 --helper-home-dir --username debian-spamd --socketpath \/var\/run\/spamd.sock --socketowner debian-spamd --socketgroup debian-spamd"/' /etc/default/spamassassin
@@ -958,12 +1054,18 @@ DatabaseMirror clamav.inode.at" >> /etc/clamav/freshclam.conf
 	razor-admin -register -home /etc/razor >/dev/null 2>&1
 	su debian-spamd -c "pyzor --homedir /etc/mail/spamassassin/.pyzor discover >/dev/null 2>&1"
 	su debian-spamd -c "sa-update >/dev/null 2>&1"
-	if [[ -f /lib/systemd/systemd ]]; then
-		systemctl enable spamassassin 2> /dev/null
-	fi
+	systemctl enable spamassassin >/dev/null 2>&1
 
-	# Webserver
+	# Mailcow
 	echo "${info} Installing Mailcow..." | awk '{ print strftime("[%H:%M:%S] |"), $0 }'
+	mkdir -p /var/mailcow/log
+	install -m 755 ~/sources/mailcow/misc/mc_clean_spam_aliases /etc/cron.daily/mc_clean_spam_aliases
+	install -m 755 ~/sources/mailcow/misc/mc_pfset /usr/local/sbin/mc_pfset
+	install -m 755 ~/sources/mailcow/misc/mc_pflog_renew /usr/local/sbin/mc_pflog_renew
+	install -m 755 ~/sources/mailcow/misc/mc_msg_size /usr/local/sbin/mc_msg_size
+	install -m 755 ~/sources/mailcow/misc/mc_dkim_ctrl /usr/local/sbin/mc_dkim_ctrl
+	install -m 755 ~/sources/mailcow/misc/mc_setup_backup /usr/local/sbin/mc_setup_backup
+	install -m 700 ~/sources/mailcow/misc/mc_resetadmin /usr/local/sbin/mc_resetadmin
 	mkdir -p /var/www/ >/dev/null 2>&1
 	cp ~/sources/mailcow/webserver/php5-fpm/conf/pool/mail.conf /etc/php5/fpm/pool.d/mail.conf
 	sed -i "/date.timezone/c\php_admin_value[date.timezone] = ${TIMEZONE}" /etc/php5/fpm/pool.d/mail.conf
@@ -976,8 +1078,8 @@ DatabaseMirror clamav.inode.at" >> /etc/clamav/freshclam.conf
 	find /var/www/{dav,mail,zpush} -type d -exec chmod 755 {} \;
 	find /var/www/{dav,mail,zpush} -type f -exec chmod 644 {} \;
 	sed -i "/date_default_timezone_set/c\date_default_timezone_set('${TIMEZONE}');" /var/www/dav/server.php
-	touch /var/www/MAILBOX_BACKUP
-	echo none > /var/www/PFLOG
+	touch /var/mailcow/mailbox_backup_env
+	echo none > /var/mailcow/log/pflogsumm.log
 	cp ~/sources/mailcow/misc/mc_resetadmin /usr/local/sbin/mc_resetadmin ; chmod 700 /usr/local/sbin/mc_resetadmin
 	sed -i "s/mailcow_sub/mail/g" /var/www/mail/autoconfig.xml
 	sed -i "s/my_dbhost/${MYSQL_HOSTNAME}/g" /var/www/mail/inc/vars.inc.php /var/www/dav/server.php /usr/local/sbin/mc_resetadmin /var/www/zpush/config.php /var/www/zpush/backend/imap/config.php
@@ -985,21 +1087,24 @@ DatabaseMirror clamav.inode.at" >> /etc/clamav/freshclam.conf
 	sed -i "s/my_mailcowuser/${MYSQL_MCDB_USER}/g" /var/www/mail/inc/vars.inc.php /var/www/dav/server.php /usr/local/sbin/mc_resetadmin /var/www/zpush/config.php /var/www/zpush/backend/imap/config.php
 	sed -i "s/my_mailcowdb/${MYSQL_MCDB_NAME}/g" /var/www/mail/inc/vars.inc.php /var/www/dav/server.php /usr/local/sbin/mc_resetadmin /var/www/zpush/config.php /var/www/zpush/backend/imap/config.php
 	sed -i "s/httpd_dav_subdomain/dav/g" /var/www/mail/inc/vars.inc.php
-	chown -R www-data: /var/www/{.,mail,dav,MAILBOX_BACKUP} /var/lib/php5/sessions
-	mysql --host ${MYSQL_HOSTNAME} -u root -p${MYSQL_ROOT_PASS} ${MYSQL_MCDB_NAME} < ~/sources/mailcow/webserver/htdocs/init.sql
-	if [[ -z $(mysql --host ${MYSQL_HOSTNAME} -u root -p${MYSQL_ROOT_PASS} ${MYSQL_MCDB_NAME} -e "SHOW INDEX FROM propertystorage WHERE KEY_NAME = 'path_property';" -N -B) ]]; then
-		mysql --host ${MYSQL_HOSTNAME} -u root -p${MYSQL_ROOT_PASS} ${MYSQL_MCDB_NAME} -e "CREATE UNIQUE INDEX path_property ON propertystorage (path(600), name(100));" -N -B
+	chown -R www-data: /var/www/{.,mail,dav} /var/lib/php5/sessions /var/mailcow/mailbox_backup_env
+	mysql -uroot -p${MYSQL_ROOT_PASS} -h${MYSQL_HOSTNAME} ${MYSQL_MCDB_NAME} < ~/sources/mailcow/webserver/htdocs/init.sql
+	if [[ -z $(mysql -uroot -p${MYSQL_ROOT_PASS} -h${MYSQL_HOSTNAME} ${MYSQL_MCDB_NAME} -e "SHOW INDEX FROM propertystorage WHERE KEY_NAME = 'path_property';" -N -B) ]]; then
+		mysql -uroot -p${MYSQL_ROOT_PASS} -h${MYSQL_HOSTNAME} ${MYSQL_MCDB_NAME} -e "CREATE UNIQUE INDEX path_property ON propertystorage (path(600), name(100));" -N -B
 	fi
-	if [[ -z $(mysql --host ${MYSQL_HOSTNAME} -u root -p${MYSQL_ROOT_PASS} ${MYSQL_MCDB_NAME} -e "SHOW INDEX FROM zpush_states WHERE KEY_NAME = 'idx_zpush_states_unique';" -N -B) ]]; then
-		mysql --host ${MYSQL_HOSTNAME} -u root -p${MYSQL_ROOT_PASS} ${MYSQL_MCDB_NAME} -e "CREATE unique index idx_zpush_states_unique on zpush_states (device_id, uuid, state_type, counter);" -N -B
+	if [[ -z $(mysql -uroot -p${MYSQL_ROOT_PASS} -h${MYSQL_HOSTNAME} ${MYSQL_MCDB_NAME} -e "SHOW INDEX FROM zpush_states WHERE KEY_NAME = 'idx_zpush_states_unique';" -N -B) ]]; then
+		mysql -uroot -p${MYSQL_ROOT_PASS} -h${MYSQL_HOSTNAME} ${MYSQL_MCDB_NAME} -e "CREATE unique index idx_zpush_states_unique on zpush_states (device_id, uuid, state_type, counter);" -N -B
 	fi
-	if [[ -z $(mysql --host ${MYSQL_HOSTNAME} -u root -p${MYSQL_ROOT_PASS} ${MYSQL_MCDB_NAME} -e "SHOW INDEX FROM zpush_preauth_users WHERE KEY_NAME = 'index_zpush_preauth_users_on_username_and_device_id';" -N -B) ]]; then
-		mysql --host ${MYSQL_HOSTNAME} -u root -p${MYSQL_ROOT_PASS} ${MYSQL_MCDB_NAME} -e "CREATE unique index index_zpush_preauth_users_on_username_and_device_id on zpush_preauth_users (username, device_id);" -N -B
+	if [[ -z $(mysql -uroot -p${MYSQL_ROOT_PASS} -h${MYSQL_HOSTNAME} ${MYSQL_MCDB_NAME} -e "SHOW INDEX FROM zpush_preauth_users WHERE KEY_NAME = 'index_zpush_preauth_users_on_username_and_device_id';" -N -B) ]]; then
+		mysql -uroot -p${MYSQL_ROOT_PASS} -h${MYSQL_HOSTNAME} ${MYSQL_MCDB_NAME} -e "CREATE unique index index_zpush_preauth_users_on_username_and_device_id on zpush_preauth_users (username, device_id);" -N -B
 	fi
-	if [[ $(mysql --host ${MYSQL_HOSTNAME} -u root -p${MYSQL_ROOT_PASS} ${MYSQL_MCDB_NAME} -s -N -e "SELECT * FROM admin;" | wc -l) -lt 1 ]]; then
+	if [[ -z $(mysql -uroot -p${MYSQL_ROOT_PASS} -h${MYSQL_HOSTNAME} ${MYSQL_MCDB_NAME} -e "SHOW COLUMNS FROM domain LIKE 'relay_all_recipients';" -N -B) ]]; then
+		mysql -uroot -p${MYSQL_ROOT_PASS} -h${MYSQL_HOSTNAME} ${MYSQL_MCDB_NAME} -e "ALTER TABLE domain ADD relay_all_recipients tinyint(1) NOT NULL DEFAULT '0';" -N -B
+	fi
+	if [[ $(mysql -uroot -p${MYSQL_ROOT_PASS} -h${MYSQL_HOSTNAME} ${MYSQL_MCDB_NAME} -s -N -e "SELECT * FROM admin;" | wc -l) -lt 1 ]]; then
 		mailcow_admin_pass_hashed=$(doveadm pw -s SHA512-CRYPT -p ${MAILCOW_ADMIN_PASS})
-		mysql --host ${MYSQL_HOSTNAME} -u root -p${MYSQL_ROOT_PASS} ${MYSQL_MCDB_NAME} -e "INSERT INTO admin VALUES ('${MAILCOW_ADMIN_USER}','$mailcow_admin_pass_hashed',1,now(),now(),1);"
-		mysql --host ${MYSQL_HOSTNAME} -u root -p${MYSQL_ROOT_PASS} ${MYSQL_MCDB_NAME} -e "INSERT INTO domain_admins (username, domain, created, active) VALUES ('${MAILCOW_ADMIN_USER}', 'ALL', now(), '1');"
+		mysql -uroot -p${MYSQL_ROOT_PASS} -h${MYSQL_HOSTNAME} ${MYSQL_MCDB_NAME} -e "INSERT INTO admin VALUES ('${MAILCOW_ADMIN_USER}','$mailcow_admin_pass_hashed',1,now(),now(),1);"
+		mysql -uroot -p${MYSQL_ROOT_PASS} -h${MYSQL_HOSTNAME} ${MYSQL_MCDB_NAME} -e "INSERT INTO domain_admins (username, domain, created, active) VALUES ('${MAILCOW_ADMIN_USER}', 'ALL', now(), '1');"
 	else
 		echo "${info} At least one administrator exists, will not create another mailcow administrator" | awk '{ print strftime("[%H:%M:%S] |"), $0 }'
 	fi
@@ -1043,6 +1148,15 @@ location ~ ^/(admin/rc)/ {
     deny all;
     return 301 /admin;
 }
+
+location ~ \.cgi\$ {
+	allow 127.0.0.1;
+	deny all;
+	alias /usr/lib/cgi-bin;
+	include fastcgi_params;
+	fastcgi_param SCRIPT_FILENAME /usr/lib/cgi-bin/\$1;
+	fastcgi_pass unix:/var/run/fcgiwrap.socket;
+}
 END
 
 	cat > /etc/nginx/sites-available/autodiscover.${MYDOMAIN}.conf <<END
@@ -1063,32 +1177,35 @@ server {
 			error_page 404 /index.php;
 
 			ssl_certificate 	ssl/${MYDOMAIN}.pem;
-			ssl_certificate_key ssl/${MYDOMAIN}.key;
-			#ssl_trusted_certificate ssl/trustedbundle.pem;
+			ssl_certificate_key ssl/${MYDOMAIN}.key.pem;
+			#ssl_trusted_certificate ssl/${MYDOMAIN}.pem;
 			ssl_dhparam	     	ssl/dh.pem;
-			ssl_ecdh_curve		secp384r1;
+			#ssl_ecdh_curve		secp384r1;
 			ssl_session_cache   shared:SSL:10m;
 			ssl_session_timeout 10m;
 			ssl_session_tickets off;
 			ssl_protocols       TLSv1 TLSv1.1 TLSv1.2;
 			ssl_prefer_server_ciphers on;
-			ssl_buffer_size 	4k;
+			ssl_buffer_size 	1400;
 
-			#ssl_stapling on;
+			#ssl_stapling 		on;
 			#ssl_stapling_verify on;
-			#resolver 8.8.8.8 8.8.4.4 valid=300s;
-			#resolver_timeout 5s;
+			#resolver 			8.8.8.8 8.8.4.4 208.67.222.222 208.67.220.220 valid=60s;
+			#resolver_timeout 	2s;
 
-			ssl_ciphers "ECDHE-RSA-AES128-GCM-SHA256:ECDHE-ECDSA-AES128-GCM-SHA256:ECDHE-RSA-AES256-GCM-SHA384:ECDHE-ECDSA-AES256-GCM-SHA384:DHE-RSA-AES128-GCM-SHA256:DHE-DSS-AES128-GCM-SHA256:kEDH+AESGCM:ECDHE-RSA-AES128-SHA256:ECDHE-ECDSA-AES128-SHA256:ECDHE-RSA-AES128-SHA:ECDHE-ECDSA-AES128-SHA:ECDHE-RSA-AES256-SHA384:ECDHE-ECDSA-AES256-SHA384:ECDHE-RSA-AES256-SHA:ECDHE-ECDSA-AES256-SHA:DHE-RSA-AES128-SHA256:DHE-RSA-AES128-SHA:DHE-DSS-AES128-SHA256:DHE-RSA-AES256-SHA256:DHE-DSS-AES256-SHA:DHE-RSA-AES256-SHA:AES128-GCM-SHA256:AES256-GCM-SHA384:AES128-SHA256:AES256-SHA256:AES128-SHA:AES256-SHA:AES:CAMELLIA:DES-CBC3-SHA:!aNULL:!eNULL:!EXPORT:!DES:!RC4:!MD5:!PSK:!aECDH:!EDH-DSS-DES-CBC3-SHA:!EDH-RSA-DES-CBC3-SHA:!KRB5-DES-CBC3-SHA";
+			ssl_ciphers 		"ECDHE-RSA-AES128-GCM-SHA256:ECDHE-ECDSA-AES128-GCM-SHA256:ECDHE-RSA-AES256-GCM-SHA384:ECDHE-ECDSA-AES256-GCM-SHA384:DHE-RSA-AES128-GCM-SHA256:DHE-DSS-AES128-GCM-SHA256:kEDH+AESGCM:ECDHE-RSA-AES128-SHA256:ECDHE-ECDSA-AES128-SHA256:ECDHE-RSA-AES128-SHA:ECDHE-ECDSA-AES128-SHA:ECDHE-RSA-AES256-SHA384:ECDHE-ECDSA-AES256-SHA384:ECDHE-RSA-AES256-SHA:ECDHE-ECDSA-AES256-SHA:DHE-RSA-AES128-SHA256:DHE-RSA-AES128-SHA:DHE-DSS-AES128-SHA256:DHE-RSA-AES256-SHA256:DHE-DSS-AES256-SHA:DHE-RSA-AES256-SHA:!aNULL:!eNULL:!EXPORT:!DES:!RC4:!3DES:!MD5:!PSK";
 
-			#add_header Strict-Transport-Security "max-age=63072000; includeSubdomains; preload";
-			add_header Cache-Control "public";
-			add_header X-Frame-Options SAMEORIGIN;
-			add_header Alternate-Protocol  443:npn-http/2;
-			add_header X-Content-Type-Options nosniff;
-			add_header X-XSS-Protection "1; mode=block";
-			add_header X-Permitted-Cross-Domain-Policies "master-only";
-			add_header Content-Security-Policy "script-src 'self' 'unsafe-inline' 'unsafe-eval' *.youtube.com maps.gstatic.com *.googleapis.com *.google-analytics.com cdnjs.cloudflare.com assets.zendesk.com connect.facebook.net; frame-src 'self' *.youtube.com assets.zendesk.com *.facebook.com s-static.ak.facebook.com tautt.zendesk.com; object-src 'self'";
+			#add_header 		Strict-Transport-Security "max-age=63072000; includeSubdomains; preload";
+			#add_header 		Public-Key-Pins 'pin-sha256="${HPKP1}"; pin-sha256="${HPKP2}"; max-age=5184000; includeSubDomains';
+			add_header 			Cache-Control "public";
+			add_header 			X-Frame-Options SAMEORIGIN;
+			add_header 			Alternate-Protocol  443:npn-http/2;
+			add_header 			X-Content-Type-Options nosniff;
+			add_header 			X-XSS-Protection "1; mode=block";
+			add_header 			X-Permitted-Cross-Domain-Policies "master-only";
+			add_header 			"X-UA-Compatible" "IE=Edge";
+			add_header 			"Access-Control-Allow-Origin" "*";
+			add_header 			Content-Security-Policy "script-src 'self' 'unsafe-inline' 'unsafe-eval' *.youtube.com maps.gstatic.com *.googleapis.com *.google-analytics.com cdnjs.cloudflare.com assets.zendesk.com connect.facebook.net; frame-src 'self' *.youtube.com assets.zendesk.com *.facebook.com s-static.ak.facebook.com tautt.zendesk.com; object-src 'self'";
 
 			auth_basic_user_file htpasswd/.htpasswd;
 
@@ -1155,6 +1272,10 @@ server {
 				add_header Cache-Control "max-age=2592000, public";
 			}
 
+			if ($http_user_agent ~ "FeedDemon|JikeSpider|Indy Library|Alexa Toolbar|AskTbFXTV|AhrefsBot|CrawlDaddy|CoolpadWebkit|Java|Feedly|UniversalFeedParser|ApacheBench|Microsoft URL Control|Swiftbot|ZmEu|oBot|jaunty|Python-urllib|lightDeckReports Bot|YYSpider|DigExt|YisouSpider|HttpClient|MJ12bot|heritrix|EasouSpider|Ezooms|^$" ) {
+			    return 403;
+			}
+
 }
 END
 
@@ -1176,33 +1297,36 @@ server {
 			error_page 404 /index.php;
 
 			ssl_certificate 	ssl/${MYDOMAIN}.pem;
-			ssl_certificate_key ssl/${MYDOMAIN}.key;
-			#ssl_trusted_certificate ssl/trustedbundle.pem;
+			ssl_certificate_key ssl/${MYDOMAIN}.key.pem;
+			#ssl_trusted_certificate ssl/${MYDOMAIN}.pem;
 			ssl_dhparam	     	ssl/dh.pem;
-			ssl_ecdh_curve		secp384r1;
+			#ssl_ecdh_curve		secp384r1;
 			ssl_session_cache   shared:SSL:10m;
 			ssl_session_timeout 10m;
 			ssl_session_tickets off;
 			ssl_protocols       TLSv1 TLSv1.1 TLSv1.2;
 			ssl_prefer_server_ciphers on;
-			ssl_buffer_size 	4k;
+			ssl_buffer_size 	1400;
 
-			#ssl_stapling on;
+			#ssl_stapling 		on;
 			#ssl_stapling_verify on;
-			#resolver 8.8.8.8 8.8.4.4 valid=300s;
-			#resolver_timeout 5s;
+			#resolver 			8.8.8.8 8.8.4.4 208.67.222.222 208.67.220.220 valid=60s;
+			#resolver_timeout 	2s;
 
-			ssl_ciphers "ECDHE-RSA-AES128-GCM-SHA256:ECDHE-ECDSA-AES128-GCM-SHA256:ECDHE-RSA-AES256-GCM-SHA384:ECDHE-ECDSA-AES256-GCM-SHA384:DHE-RSA-AES128-GCM-SHA256:DHE-DSS-AES128-GCM-SHA256:kEDH+AESGCM:ECDHE-RSA-AES128-SHA256:ECDHE-ECDSA-AES128-SHA256:ECDHE-RSA-AES128-SHA:ECDHE-ECDSA-AES128-SHA:ECDHE-RSA-AES256-SHA384:ECDHE-ECDSA-AES256-SHA384:ECDHE-RSA-AES256-SHA:ECDHE-ECDSA-AES256-SHA:DHE-RSA-AES128-SHA256:DHE-RSA-AES128-SHA:DHE-DSS-AES128-SHA256:DHE-RSA-AES256-SHA256:DHE-DSS-AES256-SHA:DHE-RSA-AES256-SHA:AES128-GCM-SHA256:AES256-GCM-SHA384:AES128-SHA256:AES256-SHA256:AES128-SHA:AES256-SHA:AES:CAMELLIA:DES-CBC3-SHA:!aNULL:!eNULL:!EXPORT:!DES:!RC4:!MD5:!PSK:!aECDH:!EDH-DSS-DES-CBC3-SHA:!EDH-RSA-DES-CBC3-SHA:!KRB5-DES-CBC3-SHA";
+			ssl_ciphers 		"ECDHE-RSA-AES128-GCM-SHA256:ECDHE-ECDSA-AES128-GCM-SHA256:ECDHE-RSA-AES256-GCM-SHA384:ECDHE-ECDSA-AES256-GCM-SHA384:DHE-RSA-AES128-GCM-SHA256:DHE-DSS-AES128-GCM-SHA256:kEDH+AESGCM:ECDHE-RSA-AES128-SHA256:ECDHE-ECDSA-AES128-SHA256:ECDHE-RSA-AES128-SHA:ECDHE-ECDSA-AES128-SHA:ECDHE-RSA-AES256-SHA384:ECDHE-ECDSA-AES256-SHA384:ECDHE-RSA-AES256-SHA:ECDHE-ECDSA-AES256-SHA:DHE-RSA-AES128-SHA256:DHE-RSA-AES128-SHA:DHE-DSS-AES128-SHA256:DHE-RSA-AES256-SHA256:DHE-DSS-AES256-SHA:DHE-RSA-AES256-SHA:!aNULL:!eNULL:!EXPORT:!DES:!RC4:!3DES:!MD5:!PSK";
 
-			#add_header Strict-Transport-Security "max-age=63072000; includeSubdomains; preload";
-			add_header Cache-Control "public";
-			add_header X-Frame-Options SAMEORIGIN;
-			add_header Alternate-Protocol  443:npn-http/2;
-			add_header X-Content-Type-Options nosniff;
-			add_header X-XSS-Protection "1; mode=block";
-			add_header X-Permitted-Cross-Domain-Policies "master-only";
-			add_header Content-Security-Policy "script-src 'self' 'unsafe-inline' 'unsafe-eval' *.youtube.com maps.gstatic.com *.googleapis.com *.google-analytics.com cdnjs.cloudflare.com assets.zendesk.com connect.facebook.net; frame-src 'self' *.youtube.com assets.zendesk.com *.facebook.com s-static.ak.facebook.com tautt.zendesk.com; object-src 'self'";
-
+			#add_header 		Strict-Transport-Security "max-age=63072000; includeSubdomains; preload";
+			#add_header 		Public-Key-Pins 'pin-sha256="${HPKP1}"; pin-sha256="${HPKP2}"; max-age=5184000; includeSubDomains';
+			add_header 			Cache-Control "public";
+			add_header 			X-Frame-Options SAMEORIGIN;
+			add_header 			Alternate-Protocol  443:npn-http/2;
+			add_header 			X-Content-Type-Options nosniff;
+			add_header 			X-XSS-Protection "1; mode=block";
+			add_header 			X-Permitted-Cross-Domain-Policies "master-only";
+			add_header 			"X-UA-Compatible" "IE=Edge";
+			add_header 			"Access-Control-Allow-Origin" "*";
+			add_header 			Content-Security-Policy "script-src 'self' 'unsafe-inline' 'unsafe-eval' *.youtube.com maps.gstatic.com *.googleapis.com *.google-analytics.com cdnjs.cloudflare.com assets.zendesk.com connect.facebook.net; frame-src 'self' *.youtube.com assets.zendesk.com *.facebook.com s-static.ak.facebook.com tautt.zendesk.com; object-src 'self'";
+			
 			auth_basic_user_file htpasswd/.htpasswd;
 
 			location ~ ^(.+\.php)(.*)\$ {
@@ -1265,8 +1389,17 @@ server {
 				add_header Cache-Control "max-age=2592000, public";
 			}
 
+			if ($http_user_agent ~ "FeedDemon|JikeSpider|Indy Library|Alexa Toolbar|AskTbFXTV|AhrefsBot|CrawlDaddy|CoolpadWebkit|Java|Feedly|UniversalFeedParser|ApacheBench|Microsoft URL Control|Swiftbot|ZmEu|oBot|jaunty|Python-urllib|lightDeckReports Bot|YYSpider|DigExt|YisouSpider|HttpClient|MJ12bot|heritrix|EasouSpider|Ezooms|^$" ) {
+			    return 403;
+			}
 }
 END
+
+	if [ ${CLOUDFLARE} == '0' ] && [ ${USE_VALID_SSL} == '1' ]; then
+		sed -i 's/#ssl/ssl/g' /etc/nginx/sites-available/autodiscover.${MYDOMAIN}.conf /etc/nginx/sites-available/dav.${MYDOMAIN}.conf
+		sed -i 's/#resolver/resolver/g' /etc/nginx/sites-available/autodiscover.${MYDOMAIN}.conf /etc/nginx/sites-available/dav.${MYDOMAIN}.conf
+		sed -i 's/#add/add/g' /etc/nginx/sites-available/autodiscover.${MYDOMAIN}.conf /etc/nginx/sites-available/dav.${MYDOMAIN}.conf
+	fi
 
 	ln -s /etc/nginx/sites-available/autodiscover.${MYDOMAIN}.conf /etc/nginx/sites-enabled/autodiscover.${MYDOMAIN}.conf
 	ln -s /etc/nginx/sites-available/dav.${MYDOMAIN}.conf /etc/nginx/sites-enabled/dav.${MYDOMAIN}.conf
@@ -1288,8 +1421,8 @@ END
 		sed -i "s/my_rcdb/${MYSQL_RCDB_NAME}/g" /var/www/mail/rc/config/config.inc.php
 		sed -i "s/conf_rcdeskey/$(generatepw)/g" /var/www/mail/rc/config/config.inc.php
 		sed -i "s/MAILCOW_HOST.MAILCOW_DOMAIN/mail.${MYDOMAIN}/g" /var/www/mail/rc/config/config.inc.php
-		mysql --host ${MYSQL_HOSTNAME} -u ${MYSQL_RCDB_USER} -p${MYSQL_RCDB_PASS} ${MYSQL_RCDB_NAME} < /var/www/mail/rc/SQL/mysql.initial.sql
-		chown -R www-data: /var/www/
+		mysql -u${MYSQL_RCDB_USER} -p${MYSQL_RCDB_PASS} -h${MYSQL_HOSTNAME} ${MYSQL_RCDB_NAME} < /var/www/mail/rc/SQL/mysql.initial.sql
+		chown -R www-data: /var/www/mail/rc
 		rm -rf ~/sources/mailcow/roundcube/inst/1.1.3
 		rm -rf /var/www/mail/rc/installer/
 
@@ -1542,20 +1675,19 @@ update-rc.d -f arno-iptables-firewall start 11 S . stop 10 0 6 >/dev/null 2>&1
 # Configure firewall.conf
 bash /usr/local/share/environment >/dev/null 2>&1
 sed -i "s/^Port 22/Port ${SSH}/g" /etc/ssh/sshd_config
-sed -i 's/.*EXT_IF=.*/EXT_IF="eth0"/' /etc/arno-iptables-firewall/firewall.conf
-sed -i 's/.*EXT_IF_DHCP_IP=.*/EXT_IF_DHCP_IP="0"/' /etc/arno-iptables-firewall/firewall.conf
-sed -i 's/.*FIREWALL_LOG=.*/FIREWALL_LOG="\/var\/log\/firewall.log"/' /etc/arno-iptables-firewall/firewall.conf
-sed -i 's/.*DRDOS_PROTECT=.*/DRDOS_PROTECT="1"/' /etc/arno-iptables-firewall/firewall.conf
-sed -i 's/.*IPV6_SUPPORT=.*/IPV6_SUPPORT="0"/' /etc/arno-iptables-firewall/firewall.conf
-sed -i 's/.*OPEN_ICMP=.*/OPEN_ICMP="1"/' /etc/arno-iptables-firewall/firewall.conf
-sed -i 's/.*BLOCK_HOSTS_FILE=.*/BLOCK_HOSTS_FILE="\/etc\/arno-iptables-firewall\/blocked-hosts"/' /etc/arno-iptables-firewall/firewall.conf
+sed -i 's/^EXT_IF=.*/EXT_IF="eth0"/' /etc/arno-iptables-firewall/firewall.conf
+sed -i 's/^EXT_IF_DHCP_IP=.*/EXT_IF_DHCP_IP="0"/' /etc/arno-iptables-firewall/firewall.conf
+sed -i 's/^#FIREWALL_LOG=.*/FIREWALL_LOG="\/var\/log\/firewall.log"/' /etc/arno-iptables-firewall/firewall.conf
+sed -i 's/^DRDOS_PROTECT=.*/DRDOS_PROTECT="1"/' /etc/arno-iptables-firewall/firewall.conf
+sed -i 's/^OPEN_ICMP=.*/OPEN_ICMP="1"/' /etc/arno-iptables-firewall/firewall.conf
+sed -i 's/^#BLOCK_HOSTS_FILE=.*/BLOCK_HOSTS_FILE="\/etc\/arno-iptables-firewall\/blocked-hosts"/' /etc/arno-iptables-firewall/firewall.conf
 if [ ${USE_MAILSERVER} == '1' ]; then
-	sed -i "s/.*OPEN_TCP=.*/OPEN_TCP=\"${SSH}, 25, 80, 110, 143, 443, 465, 587, 993, 995\"/" /etc/arno-iptables-firewall/firewall.conf
+	sed -i "s/^OPEN_TCP=.*/OPEN_TCP=\"${SSH}, 25, 80, 110, 143, 443, 465, 587, 993, 995\"/" /etc/arno-iptables-firewall/firewall.conf
 else
-	sed -i "s/.*OPEN_TCP=.*/OPEN_TCP=\"${SSH}, 80, 443\"/" /etc/arno-iptables-firewall/firewall.conf
+	sed -i "s/^OPEN_TCP=.*/OPEN_TCP=\"${SSH}, 80, 443\"/" /etc/arno-iptables-firewall/firewall.conf
 fi
-sed -i 's/.*OPEN_UDP=.*/OPEN_UDP=""/' /etc/arno-iptables-firewall/firewall.conf
-sed -i 's/.*VERBOSE=.*/VERBOSE=1/' /etc/init.d/arno-iptables-firewall
+sed -i 's/^OPEN_UDP=.*/OPEN_UDP=""/' /etc/arno-iptables-firewall/firewall.conf
+sed -i 's/^VERBOSE=.*/VERBOSE=1/' /etc/init.d/arno-iptables-firewall
 
 # Start the firewall
 systemctl -q daemon-reload
@@ -1589,25 +1721,20 @@ do
 done
 
 sort \$BLACKLIST_TEMP -n | uniq > \$BLACKLIST
-rm \$BLACKLIST_TEMP
+cp $BLACKLIST_TEMP ${BLACKLIST_DIR}/blacklist\_$(date '+%d.%m.%Y_%T' | tr -d :) && rm \$BLACKLIST_TEMP
 systemctl force-reload arno-iptables-firewall.service
 END
 chmod +x /etc/cron.daily/blocked-hosts
 
 # Fail2Ban
-echo "${info} Installing fail2ban..." | awk '{ print strftime("[%H:%M:%S] |"), $0 }'
-tar xf ~/sources/mailcow/fail2ban/inst/0.9.3.tar -C ~/sources/mailcow/fail2ban/inst/ 2> /dev/null
-rm -rf /etc/fail2ban/ 2> /dev/null
-(cd ~/sources/mailcow/fail2ban/inst/0.9.3 ; python setup.py -q install 2> /dev/null)
-if [[ -f /lib/systemd/systemd ]]; then
-	mkdir -p /var/run/fail2ban
-	cp ~/sources/mailcow/fail2ban/conf/fail2ban.service /lib/systemd/system/fail2ban.service
-	systemctl enable fail2ban 2> /dev/null
-else
-	cp ~/sources/mailcow/fail2ban/conf/fail2ban.init /etc/init.d/fail2ban
-	chmod +x /etc/init.d/fail2ban
-	update-rc.d fail2ban defaults 2> /dev/null
-fi
+tar xf ~/sources/mailcow/fail2ban/inst/0.9.3.tar -C ~/sources/mailcow/fail2ban/inst/
+rm -rf /etc/fail2ban/ >/dev/null 2>&1
+(cd ~/sources/mailcow/fail2ban/inst/0.9.3 ; python setup.py -q install >/dev/null 2>&1)
+mkdir -p /var/run/fail2ban
+cp ~/sources/mailcow/fail2ban/conf/fail2ban.service /etc/systemd/system/fail2ban.service
+[[ -f /lib/systemd/system/fail2ban.service ]] && rm /lib/systemd/system/fail2ban.service
+systemctl -q daemon-reload
+systemctl -q enable fail2ban
 if [[ ! -f /var/log/mail.warn ]]; then
 	touch /var/log/mail.warn
 fi
@@ -1617,7 +1744,7 @@ fi
 cp ~/sources/mailcow/fail2ban/conf/jail.d/*.conf /etc/fail2ban/jail.d/
 rm -rf ~/sources/mailcow/fail2ban/inst/0.9.3
 [[ -z $(grep fail2ban /etc/rc.local) ]] && sed -i '/^exit 0/i\test -d /var/run/fail2ban || install -m 755 -d /var/run/fail2ban/' /etc/rc.local
-mkdir /var/run/fail2ban/ 2> /dev/null
+mkdir /var/run/fail2ban/ >/dev/null 2>&1
 
 # System Tuning
 echo "${info} Kernel hardening & system tuning..." | awk '{ print strftime("[%H:%M:%S] |"), $0 }'
@@ -2095,6 +2222,7 @@ fi
 
 IPADR=$(ifconfig eth0 | awk -F ' *|:' '/inet /{print $4}')
 FQDNIP=$(source ~/userconfig.cfg; dig @4.2.2.1 +short ${MYDOMAIN})
+WWWIP=$(source ~/userconfig.cfg; dig @4.2.2.1 +short www.${MYDOMAIN})
 ADIP=$(source ~/userconfig.cfg; dig @4.2.2.1 +short autodiscover.${MYDOMAIN})
 DAVIP=$(source ~/userconfig.cfg; dig @4.2.2.1 +short dav.${MYDOMAIN})
 MAILIP=$(source ~/userconfig.cfg; dig @4.2.2.1 +short mail.${MYDOMAIN})

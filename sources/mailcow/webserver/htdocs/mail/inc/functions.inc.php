@@ -103,19 +103,19 @@ function return_mailcow_config($s) {
 			break;
 	}
 }
-function set_mailcow_config($s, $v = "", $vext = "") {
+function set_mailcow_config($s, $v = '') {
 	switch ($s) {
 		case "backup":
 			$file="/var/www/MAILBOX_BACKUP";
 			if (isset($v['use_backup']) && ($v['use_backup'] != "on" && $v['use_backup'] != "") ||
-				($v['runtime'] != "hourly" && $v['runtime'] != "daily" && $v['runtime'] != "monthly")) {
+				($v['runtime'] != "hourly" && $v['runtime'] != "daily" && $v['runtime'] != "weekly" && $v['runtime'] != "monthly")) {
 				$_SESSION['return'] = array(
 					'type' => 'danger',
-					'msg' => 'Invalid form data'
+					'msg' => 'Invalid runtime: '.htmlspecialchars($v['runtime'])
 				);
 				break;
 			}
-			if (!ctype_alnum(str_replace("/", "", $v['location']))) {
+			if (!ctype_alnum(str_replace(array('/', '-', '_'), "", $v['location']))) {
 				$_SESSION['return'] = array(
 					'type' => 'danger',
 					'msg' => 'Invalid backup location: '.htmlspecialchars($v['location'])
@@ -323,7 +323,11 @@ function echo_sys_info($what, $extra="") {
 			echo round(shell_exec('free | grep Mem | awk \'{print $3/$2 * 100.0}\''));
 			break;
 		case "maildisk":
-			echo preg_replace('/\D/', '', shell_exec('df -h /var/vmail/ | tail -n1 | awk {\'print $5\'}'));
+			// echo preg_replace('/\D/', '', shell_exec('df -h /var/vmail/ | tail -n1 | awk {\'print $5\'}'));
+			$df = disk_free_space("/var/vmail");
+			$dt = disk_total_space("/var/vmail");
+			$du = $dt - $df;
+			echo sprintf('%.2f',($du / $dt) * 100);
 			break;
 		case "pflog":
 			$pflog_content = file_get_contents($GLOBALS['PFLOG']);
@@ -332,6 +336,14 @@ function echo_sys_info($what, $extra="") {
 			}
 			else {
 				echo file_get_contents($GLOBALS['PFLOG']);
+			}
+			break;
+		case "mailgraph":
+			$imageurls = array("0-n", "1-n", "2-n", "3-n");
+			foreach ($imageurls as $image) {
+				$image = 'http://localhost:81/mailgraph.cgi?'.$image;
+				$imageData = base64_encode(file_get_contents($image));
+				echo '<img class="img-responsive" alt="'.$image.'" src="data:image/png;base64,'.$imageData.'" />';
 			}
 			break;
 		case "mailq":
@@ -370,6 +382,7 @@ function mailbox_add_domain($link, $postarray) {
 		return false;
 	}
 	isset($postarray['active']) ? $active = '1' : $active = '0';
+	isset($postarray['relay_all_recipients']) ? $relay_all_recipients = '1' : $relay_all_recipients = '0';
 	isset($postarray['backupmx']) ? $backupmx = '1' : $backupmx = '0';
 	if (!is_valid_domain_name($domain)) {
 		$_SESSION['return'] = array(
@@ -387,8 +400,8 @@ function mailbox_add_domain($link, $postarray) {
 			return false;
 		}
 	}
-	$mystring = "INSERT INTO domain (domain, description, aliases, mailboxes, maxquota, quota, transport, backupmx, created, modified, active)
-		VALUES ('".$domain."', '$description', '$aliases', '$mailboxes', '$maxquota', '$quota', 'virtual', '".$backupmx."', now(), now(), '".$active."')";
+	$mystring = "INSERT INTO domain (domain, description, aliases, mailboxes, maxquota, quota, transport, backupmx, created, modified, active, relay_all_recipients)
+		VALUES ('".$domain."', '$description', '$aliases', '$mailboxes', '$maxquota', '$quota', 'virtual', '".$backupmx."', now(), now(), '".$active."', '".$relay_all_recipients."')";
 	if (!mysqli_query($link, $mystring)) {
 		$_SESSION['return'] = array(
 			'type' => 'danger',
@@ -402,28 +415,31 @@ function mailbox_add_domain($link, $postarray) {
 	);
 }
 function mailbox_add_alias($link, $postarray) {
-	$address_arr = array_map('trim', explode(',', $postarray['address']));
-	$goto_arr = array_map('trim', explode(',', $postarray['goto']));
+	$addresses = array_map('trim', explode(',', $postarray['address']));
+	$gotos = array_map('trim', explode(',', $postarray['goto']));
 	isset($postarray['active']) ? $active = '1' : $active = '0';
 	global $logged_in_role;
 	global $logged_in_as;
-	if (empty($address_arr)) {
+	if (empty($addresses)) {
 		$_SESSION['return'] = array(
 			'type' => 'danger',
 			'msg' => 'Alias address must not be empty'
 		);
 		return false;
 	}
-	if (empty($goto_arr)) {
+	if (empty($gotos)) {
 		$_SESSION['return'] = array(
 			'type' => 'danger',
 			'msg' => 'Destination address must not be empty'
 		);
 		return false;
 	}
-	foreach ($address_arr as $address) {
-		$domain = substr($address, strpos($address, '@')+1);
-		if (!filter_var($address, FILTER_VALIDATE_EMAIL) && empty($domain)) {
+	foreach ($addresses as $address) {
+		// Should be faster than exploding
+		$domain = idn_to_ascii(substr(strstr($address, '@'), 1));
+		$local_part = strstr($address, '@', true);
+		$address = $local_part.'@'.$domain;
+		if ((!filter_var($address, FILTER_VALIDATE_EMAIL) === true) && !empty($local_part)) {
 			$_SESSION['return'] = array(
 				'type' => 'danger',
 				'msg' => 'Alias address format invalid'
@@ -454,18 +470,30 @@ function mailbox_add_alias($link, $postarray) {
 			);
 			return false;
 		}
-		foreach ($goto_arr as $goto) {
-			if (!filter_var($goto, FILTER_VALIDATE_EMAIL)) {
+		// Passing reference to alter array
+		// This shouldn't impact perfomance too much since we usually don't paste many addresses
+		foreach ($gotos as &$goto) {
+			$goto_domain = idn_to_ascii(substr(strstr($goto, '@'), 1));
+			$goto_local_part = strstr($goto, '@', true);
+			$goto = $goto_local_part.'@'.$goto_domain;
+			if (!filter_var($goto, FILTER_VALIDATE_EMAIL) === true) {
 				$_SESSION['return'] = array(
 					'type' => 'danger',
 					'msg' => 'Destination address '.htmlspecialchars($goto).' is invalid'
 				);
 				return false;
 			}
+			if ($goto == $address) {
+				$_SESSION['return'] = array(
+					'type' => 'danger',
+					'msg' => 'Alias address and goto address must not be identical'
+				);
+				return false;
+			}
 		}
-		$goto = implode(",", $goto_arr);
-		if (!filter_var($address, FILTER_VALIDATE_EMAIL)) {
-			$mystring = "INSERT INTO alias (address, goto, domain, created, modified, active) VALUE ('@$domain', '".$goto."', '".$domain."', now(), now(), '".$active."')";
+		$goto = implode(",", $gotos);
+		if (!filter_var($address, FILTER_VALIDATE_EMAIL) === true) {
+			$mystring = "INSERT INTO alias (address, goto, domain, created, modified, active) VALUE ('@".$domain."', '".$goto."', '".$domain."', now(), now(), '".$active."')";
 		}
 		else {
 			$mystring = "INSERT INTO alias (address, goto, domain, created, modified, active) VALUE ('".$address."', '".$goto."', '".$domain."', now(), now(), '".$active."')";
@@ -776,19 +804,26 @@ function mailbox_edit_alias($link, $postarray) {
 		);
 		return false;
 	}
-	$goto_arr = array_map('trim', explode(',', $postarray['goto']));
-	foreach ($goto_arr as $goto) {
-		if (!filter_var($goto, FILTER_VALIDATE_EMAIL)) {
+	$gotos = array_map('trim', explode(',', $postarray['goto']));
+	foreach ($gotos as $goto) {
+		if (!filter_var($goto, FILTER_VALIDATE_EMAIL) === true) {
 			$_SESSION['return'] = array(
 				'type' => 'danger',
 				'msg' => 'Destination address '.htmlspecialchars($goto).' is invalid'
 			);
 			return false;
 		}
+		if ($goto == $address) {
+			$_SESSION['return'] = array(
+				'type' => 'danger',
+				'msg' => 'Alias address and goto address must not be identical'
+			);
+			return false;
+		}
 	}
-	$goto = implode(",", $goto_arr);
+	$goto = implode(",", $gotos);
 	isset($postarray['active']) ? $active = '1' : $active = '0';
-	if (!filter_var($address, FILTER_VALIDATE_EMAIL)) {
+	if (!filter_var($address, FILTER_VALIDATE_EMAIL) === true) {
 		$_SESSION['return'] = array(
 			'type' => 'danger',
 			'msg' => 'Invalid mail address'
@@ -886,8 +921,9 @@ function mailbox_edit_domain($link, $postarray) {
 		return false;
 	}
 	isset($postarray['active']) ? $active = '1' : $active = '0';
+	isset($postarray['relay_all_recipients']) ? $relay_all_recipients = '1' : $relay_all_recipients = '0';
 	isset($postarray['backupmx']) ? $backupmx = '1' : $backupmx = '0';
-	$mystring = "UPDATE domain SET modified=now(), backupmx='".$backupmx."', active='".$active."', quota='$quota', maxquota='$maxquota', mailboxes='$mailboxes', aliases='$aliases', description='$description' WHERE domain='".$domain."'";
+	$mystring = "UPDATE domain SET modified=now(), relay_all_recipients='".$relay_all_recipients."', backupmx='".$backupmx."', active='".$active."', quota='$quota', maxquota='$maxquota', mailboxes='$mailboxes', aliases='$aliases', description='$description' WHERE domain='".$domain."'";
 	if (!mysqli_query($link, $mystring)) {
 		$_SESSION['return'] = array(
 			'type' => 'danger',
@@ -1010,6 +1046,17 @@ function mailbox_edit_mailbox($link, $postarray) {
 		);
 		return false;
 	}
+	if(isset($postarray['sender_acl'])) {
+		foreach ($postarray['sender_acl'] as $sender_acl) {
+			if (!filter_var($sender_acl, FILTER_VALIDATE_EMAIL)) {
+					$_SESSION['return'] = array(
+						'type' => 'danger',
+						'msg' => 'Invalid sender ACL: '.htmlspecialchars($sender_acl).' must be a valid email address.'
+					);
+					return false;
+			}
+		}
+	}
 	if (!is_numeric($quota_m)) {
 		$_SESSION['return'] = array(
 			'type' => 'danger',
@@ -1040,6 +1087,24 @@ function mailbox_edit_mailbox($link, $postarray) {
 		return false;
 	}
 	isset($postarray['active']) ? $active = '1' : $active = '0';
+	$mystring = "DELETE FROM sender_acl WHERE logged_in_as='".$username."';";
+	if (!mysqli_query($link, $mystring)) {
+	$_SESSION['return'] = array(
+		'type' => 'danger',
+		'msg' => 'MySQL Error: '.mysqli_error($link)
+	);
+	return false;
+	}
+	foreach ($postarray['sender_acl'] as $sender_acl) {
+		$mystring = "INSERT INTO sender_acl (send_as, logged_in_as) VALUES ('".$sender_acl."', '".$username."')";
+		if (!mysqli_query($link, $mystring)) {
+		$_SESSION['return'] = array(
+			'type' => 'danger',
+			'msg' => 'MySQL Error: '.mysqli_error($link)
+		);
+		return false;
+		}
+	}
 	if (!empty($password) && !empty($password2)) {
 		if ($password != $password2) {
 			$_SESSION['return'] = array(
@@ -1058,7 +1123,8 @@ function mailbox_edit_mailbox($link, $postarray) {
 			);
 			return false;
 		}
-		$update_user = "UPDATE mailbox SET modified=now(), active='".$active."', password='".$password_sha512c."', name='".$name."', quota='".$quota_b."' WHERE username='".$username."';";
+		$update_user = "UPDATE alias SET modified=now(), active='".$active."' WHERE address='".$username."';";
+		$update_user .= "UPDATE mailbox SET modified=now(), active='".$active."', password='".$password_sha512c."', name='".$name."', quota='".$quota_b."' WHERE username='".$username."';";
 		$update_user .= "UPDATE users SET digesta1=MD5(CONCAT('".$username."', ':SabreDAV:', '".$password."')) WHERE username='".$username."';";
 		if (!mysqli_multi_query($link, $update_user)) {
 			$_SESSION['return'] = array(
@@ -1076,13 +1142,17 @@ function mailbox_edit_mailbox($link, $postarray) {
 		);
 		return true;
 	}
-	$mystring = "UPDATE mailbox SET modified=now(), active='".$active."', name='".$name."', quota='".$quota_b."' WHERE username='".$username."'";
-	if (!mysqli_query($link, $mystring)) {
+	$update_user = "UPDATE alias SET modified=now(), active='".$active."' WHERE address='".$username."';";
+	$update_user .= "UPDATE mailbox SET modified=now(), active='".$active."', name='".$name."', quota='".$quota_b."' WHERE username='".$username."'";
+	if (!mysqli_multi_query($link, $update_user)) {
 		$_SESSION['return'] = array(
 			'type' => 'danger',
 			'msg' => 'MySQL Error: '.mysqli_error($link)
 		);
 		return false;
+	}
+	while ($link->next_result()) {
+		if (!$link->more_results()) break;
 	}
 	$_SESSION['return'] = array(
 		'type' => 'success',
@@ -1284,19 +1354,13 @@ function mailbox_delete_domain($link, $postarray) {
 }
 function mailbox_delete_alias($link, $postarray) {
 	$address = mysqli_real_escape_string($link, $postarray['address']);
+	$local_part = strstr($address, '@', true);
 	global $logged_in_role;
 	global $logged_in_as;
 	if (!mysqli_result(mysqli_query($link, "SELECT domain FROM alias WHERE address='".$address."' AND (domain NOT IN (SELECT domain from domain_admins WHERE username='".$logged_in_as."') OR 'admin'!='".$logged_in_role."')"))) { 
 		$_SESSION['return'] = array(
 			'type' => 'danger',
 			'msg' => 'Permission denied'
-		);
-		return false;
-	}
-	if (!ctype_alnum(str_replace(array('@', '.', '-'), '', $address))) {
-		$_SESSION['return'] = array(
-			'type' => 'danger',
-			'msg' => 'Invalid mail address'
 		);
 		return false;
 	}
@@ -1370,6 +1434,7 @@ function mailbox_delete_mailbox($link, $postarray) {
 	$delete_user .= "DELETE FROM calendarobjects WHERE calendarid IN (SELECT id from calendars where principaluri='principals/".$username."');";
 	$delete_user .= "DELETE FROM cards WHERE addressbookid IN (SELECT id from calendars where principaluri='principals/".$username."');";
 	$delete_user .= "DELETE FROM mailbox WHERE username='".$username."';";
+	$delete_user .= "DELETE FROM sender_acl WHERE logged_in_as='".$username."';";
 	$delete_user .= "DELETE FROM users WHERE username='".$username."';";
 	$delete_user .= "DELETE FROM principals WHERE uri='principals/".$username."';";
 	$delete_user .= "DELETE FROM principals WHERE uri='principals/".$username."/calendar-proxy-read';";
@@ -1588,7 +1653,7 @@ function set_user_account($link, $postarray) {
 		}
 	}
 	if (!empty($user_real_name)) {
-		$mystring = "UPDATE mailbox SET modified=NOW(), name='".$user_real_name."'";
+		$mystring = "UPDATE mailbox SET modified=NOW(), name='".$user_real_name."' WHERE username='".$name_now."'";
 		if (!mysqli_query($link, $mystring)) {
 			$_SESSION['return'] = array(
 				'type' => 'danger',

@@ -48,7 +48,7 @@ $getpostmaster = mysqli_query($link, "SELECT alias.active as aactive, mailbox.ac
 $postmasterstatus = mysqli_fetch_assoc($getpostmaster);
 if ($row['backupmx'] == "No" && !isset($postmasterstatus['address']) || ($postmasterstatus['aactive'] == "0" || $postmasterstatus['mactive'] == "0")):
 ?>
-							<span data-toggle="tooltip" title="Postmaster missing/invalid"><i class="glyphicon glyphicon-exclamation-sign"></i> <?=$row['domain'];?></span>
+							<span data-toggle="tooltip" title="Postmaster missing/invalid - Please create an alias or a mailbox for the postmaster user."><i class="glyphicon glyphicon-exclamation-sign"></i> <?=$row['domain'];?></span>
 <?php
 else:
 ?>
@@ -64,8 +64,8 @@ endif;
 							<td><?= mysqli_result(mysqli_query($link, "SELECT coalesce(round(sum(quota)/1048576), 0) FROM mailbox WHERE domain='".$row['domain']."'"));?>M of <?=$row['quota'];?>M</td>
 							<td><?=$row['backupmx'];?></td>
 							<td><?=$row['active'];?></td>
-							<td><a href="delete.php?domain=<?=$row['domain'];?>">delete</a> | 
-							<a href="edit.php?domain=<?=$row['domain'];?>">edit</a></td>
+							<td><a href="delete.php?domain=<?=urlencode($row['domain']);?>">delete</a> | 
+							<a href="edit.php?domain=<?=urlencode($row['domain']);?>">edit</a></td>
 <?php
 endwhile;
 ?>
@@ -111,7 +111,7 @@ while ($row = mysqli_fetch_array($result)):
 	<tr><td><?=$row['alias_domain'];?>
 	</td><td><?=$row['target_domain'];?>
 	</td><td><?=$row['active'];?>
-	</td><td><a href="delete.php?alias_domain=<?=$row['alias_domain'];?>">delete</a>
+	</td><td><a href="delete.php?alias_domain=<?=urlencode($row['alias_domain']);?>">delete</a>
 	</td></tr>
 <?php
 endwhile;
@@ -186,8 +186,8 @@ else {
 			<td><?= formatBytes($row['bytes'], 2);?></td>
 			<td><?=$row['messages'];?></td>
 			<td><?=$row['active'];?></td>
-			<td><a href="delete.php?mailbox=<?=$row['username'];?>">delete</a> | 
-			<a href="edit.php?mailbox=<?=$row['username'];?>">edit</a></td>
+			<td><a href="delete.php?mailbox=<?=urlencode($row['username']);?>">delete</a> | 
+			<a href="edit.php?mailbox=<?=urlencode($row['username']);?>">edit</a></td>
 		</tr>
 <?php
 endwhile;
@@ -254,11 +254,11 @@ endforeach;
 						</td>
 						<td><?=$row['domain'];?></td>
 						<td><?=$row['active'];?></td>
-						<td><a href="delete.php?alias=<?=$row['address'];?>">delete</a> 
+						<td><a href="delete.php?alias=<?=urlencode($row['address']);?>">delete</a> 
 <?php
 if(filter_var($row['address'], FILTER_VALIDATE_EMAIL)):
 ?>
-	| <a href="edit.php?alias=<?=$row['address'];?>">edit</a>
+	| <a href="edit.php?alias=<?=urlencode($row['address']);?>">edit</a>
 <?php
 endif;
 ?>

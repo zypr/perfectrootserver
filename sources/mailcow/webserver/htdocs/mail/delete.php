@@ -42,7 +42,8 @@ if (isset($_SESSION['mailcow_cc_loggedin']) &&
 		}
 	}
 	elseif (isset($_GET["alias"])) {
-		if (!ctype_alnum(str_replace(array('@', '.', '-'), '', $_GET["alias"])) || empty($_GET["alias"])) {
+                $local_part = strstr($_GET["alias"], '@', true);
+                if (empty($_GET["alias"]) || ((!filter_var($_GET["alias"], FILTER_VALIDATE_EMAIL) === true) && !empty($local_part))) {
 			echo 'Your provided alias name is invalid';
 		}
 		else {
