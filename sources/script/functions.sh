@@ -616,7 +616,7 @@ if [ ${CLOUDFLARE} == '0' ] && [ ${USE_VALID_SSL} == '1' ]; then
 	git clone https://github.com/letsencrypt/letsencrypt ~/sources/letsencrypt -q
 	cd ~/sources/letsencrypt
 	if [ ${USE_MAILSERVER} == '1' ]; then
-		./letsencrypt-auto --agree-tos --renew-by-default --email ${SSLMAIL} --rsa-key-size 4096 -d ${MYDOMAIN} -d www.${MYDOMAIN} -d mail.${MYDOMAIN} -d autodiscover.${MYDOMAIN} -d dav.${MYDOMAIN} certonly >/dev/null 2>&1
+		./letsencrypt-auto --agree-tos --renew-by-default --email ${SSLMAIL} --rsa-key-size 4096 -d ${MYDOMAIN} -d www.${MYDOMAIN} -d mail.${MYDOMAIN} -d autodiscover.${MYDOMAIN} -d autoconfig.${MYDOMAIN} -d dav.${MYDOMAIN} certonly >/dev/null 2>&1
 	else
 		./letsencrypt-auto --agree-tos --renew-by-default --email ${SSLMAIL} --rsa-key-size 4096 -d ${MYDOMAIN} -d www.${MYDOMAIN} certonly >/dev/null 2>&1
 	fi
