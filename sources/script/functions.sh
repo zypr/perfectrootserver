@@ -75,6 +75,12 @@ checksystem() {
 								p=$((p + 1))
 							fi
 							sleep 1
+							if [[ $ACIP != $IPADR ]]; then
+								echo "${error} autoconfig.${MYDOMAIN} does not resolve to the IP address of your server (${IPADR})" | awk '{ print strftime("[%H:%M:%S] |"), $0 }'
+							else	
+								p=$((p + 1))
+							fi
+							sleep 1
 							if [[ $ADIP != $IPADR ]]; then
 								echo "${error} autodiscover.${MYDOMAIN} does not resolve to the IP address of your server (${IPADR})" | awk '{ print strftime("[%H:%M:%S] |"), $0 }'
 							else	
@@ -92,7 +98,7 @@ checksystem() {
 							else	
 								p=$((p + 1))
 							fi
-							if [ ${p} -eq 4 ]; then
+							if [ ${p} -eq 5 ]; then
 								break
 							else
 								echo
@@ -122,7 +128,7 @@ checksystem() {
 
 checkconfig() {
 	echo "${info} Checking your configuration..." | awk '{ print strftime("[%H:%M:%S] |"), $0 }'
-	for var in NGINX_VERSION OPENSSL_VERSION OPENSSH_VERSION NPS_VERSION NAXSI_VERSION TIMEZONE MYDOMAIN SSH USE_MAILSERVER MAILCOW_ADMIN_USER USE_WEBMAIL USE_PMA PMA_HTTPAUTH_USER PMA_RESTRICT MYSQL_MCDB_NAME MYSQL_MCDB_USER MYSQL_RCDB_NAME MYSQL_RCDB_USER MYSQL_PMADB_NAME MYSQL_PMADB_USER WORKER MYSQL_HOSTNAME CLOUDFLARE
+	for var in NGINX_VERSION OPENSSL_VERSION OPENSSH_VERSION NPS_VERSION NAXSI_VERSION TIMEZONE MYDOMAIN SSH USE_MAILSERVER MAILCOW_ADMIN_USER USE_WEBMAIL USE_PMA PMA_HTTPAUTH_USER PMA_RESTRICT MYSQL_MCDB_NAME MYSQL_MCDB_USER MYSQL_RCDB_NAME MYSQL_RCDB_USER MYSQL_PMADB_NAME MYSQL_PMADB_USER MYSQL_HOSTNAME CLOUDFLARE
 	do
 		if [[ -z ${!var} ]]; then
 			echo "${error} Parameter $(textb ${var}) must not be empty." | awk '{ print strftime("[%H:%M:%S] |"), $0 }'
@@ -585,6 +591,21 @@ http {
 		access_log		logs/access.log main buffer=16k;
 		error_log       	logs/error.log;
 
+		map \$http_referer \$bad_referer {
+			default 0;
+			~(?i)(adult|babes|click|diamond|forsale|girl|jewelry|love|nudit|organic|poker|porn|poweroversoftware|sex|teen|webcam|zippo|casino|replica) 1;
+		}
+
+		map \$http_cookie \$cache_uid {
+		  default nil;
+		  ~SESS[[:alnum:]]+=(?<session_id>[[:alnum:]]+) \$session_id;
+		}
+		
+		map \$request_method \$no_cache {
+		  default 1;
+		  HEAD 0;
+		}
+
 		include			/etc/nginx/sites-enabled/*.conf;
 }
 END
@@ -785,9 +806,9 @@ server {
 				add_header Cache-Control "max-age=2592000, public";
 			}
 
-			if ($http_user_agent ~ "FeedDemon|JikeSpider|Indy Library|Alexa Toolbar|AskTbFXTV|AhrefsBot|CrawlDaddy|CoolpadWebkit|Java|Feedly|UniversalFeedParser|ApacheBench|Microsoft URL Control|Swiftbot|ZmEu|oBot|jaunty|Python-urllib|lightDeckReports Bot|YYSpider|DigExt|YisouSpider|HttpClient|MJ12bot|heritrix|EasouSpider|Ezooms|^$" ) {
-			    return 403;
-			}
+			if ($http_user_agent ~* "FeedDemon|JikeSpider|Indy Library|Alexa Toolbar|AskTbFXTV|AhrefsBot|CrawlDaddy|CoolpadWebkit|Java|Feedly|UniversalFeedParser|ApacheBench|Microsoft URL Control|Swiftbot|ZmEu|oBot|jaunty|Python-urllib|lightDeckReports Bot|YYSpider|DigExt|YisouSpider|HttpClient|MJ12bot|heritrix|EasouSpider|Ezooms|Scrapy") {
+            	return 403;
+            }
 }
 END
 
@@ -887,6 +908,15 @@ systemctl -q restart php5-fpm.service
 
 if [ ${USE_MAILSERVER} == '1' ]; then
 	echo "${info} Installing mailserver..." | awk '{ print strftime("[%H:%M:%S] |"), $0 }'
+
+	# Mailcow binaries
+	install -m 755 ~/sources/mailcow/misc/mc_clean_spam_aliases /etc/cron.daily/mc_clean_spam_aliases
+	install -m 755 ~/sources/mailcow/misc/mc_pfset /usr/local/sbin/mc_pfset
+	install -m 755 ~/sources/mailcow/misc/mc_pflog_renew /usr/local/sbin/mc_pflog_renew
+	install -m 755 ~/sources/mailcow/misc/mc_msg_size /usr/local/sbin/mc_msg_size
+	install -m 755 ~/sources/mailcow/misc/mc_dkim_ctrl /usr/local/sbin/mc_dkim_ctrl
+	install -m 755 ~/sources/mailcow/misc/mc_setup_backup /usr/local/sbin/mc_setup_backup
+	install -m 700 ~/sources/mailcow/misc/mc_resetadmin /usr/local/sbin/mc_resetadmin
 
 	# Prerequisites
 	update-alternatives --set mailx /usr/bin/bsd-mailx --quiet >/dev/null 2>&1
@@ -1059,13 +1089,6 @@ DatabaseMirror clamav.inode.at" >> /etc/clamav/freshclam.conf
 	# Mailcow
 	echo "${info} Installing Mailcow..." | awk '{ print strftime("[%H:%M:%S] |"), $0 }'
 	mkdir -p /var/mailcow/log
-	install -m 755 ~/sources/mailcow/misc/mc_clean_spam_aliases /etc/cron.daily/mc_clean_spam_aliases
-	install -m 755 ~/sources/mailcow/misc/mc_pfset /usr/local/sbin/mc_pfset
-	install -m 755 ~/sources/mailcow/misc/mc_pflog_renew /usr/local/sbin/mc_pflog_renew
-	install -m 755 ~/sources/mailcow/misc/mc_msg_size /usr/local/sbin/mc_msg_size
-	install -m 755 ~/sources/mailcow/misc/mc_dkim_ctrl /usr/local/sbin/mc_dkim_ctrl
-	install -m 755 ~/sources/mailcow/misc/mc_setup_backup /usr/local/sbin/mc_setup_backup
-	install -m 700 ~/sources/mailcow/misc/mc_resetadmin /usr/local/sbin/mc_resetadmin
 	mkdir -p /var/www/ >/dev/null 2>&1
 	cp ~/sources/mailcow/webserver/php5-fpm/conf/pool/mail.conf /etc/php5/fpm/pool.d/mail.conf
 	sed -i "/date.timezone/c\php_admin_value[date.timezone] = ${TIMEZONE}" /etc/php5/fpm/pool.d/mail.conf
@@ -1074,7 +1097,7 @@ DatabaseMirror clamav.inode.at" >> /etc/clamav/freshclam.conf
 	install -m 755 ~/sources/mailcow/misc/mc_setup_backup /usr/local/sbin/mc_setup_backup
 	cp -R ~/sources/mailcow/webserver/htdocs/{mail,dav,zpush} /var/www/
 	tar xf /var/www/dav/vendor.tar -C /var/www/dav/ ; rm /var/www/dav/vendor.tar
-	tar xzf /var/www/zpush/vendor.tar.gz -C /var/www/zpush/ ; rm /var/www/zpush/vendor.tar.gz
+	tar xf /var/www/zpush/vendor.tar -C /var/www/zpush/ ; rm /var/www/zpush/vendor.tar
 	find /var/www/{dav,mail,zpush} -type d -exec chmod 755 {} \;
 	find /var/www/{dav,mail,zpush} -type f -exec chmod 644 {} \;
 	sed -i "/date_default_timezone_set/c\date_default_timezone_set('${TIMEZONE}');" /var/www/dav/server.php
@@ -1117,6 +1140,61 @@ DatabaseMirror clamav.inode.at" >> /etc/clamav/freshclam.conf
 	sed -i "s/MAILCOW_DAV_HOST.MAILCOW_DOMAIN/dav.${MYDOMAIN}/g" /var/www/zpush/backend/carddav/config.php
 	mkdir /var/{lib,log}/z-push 2>/dev/null
 	chown -R www-data: /var/{lib,log}/z-push
+	cat > /var/www/zpush/config-v1.1.xml <<END
+<?xml version="1.0" encoding="UTF-8"?>
+
+<clientConfig version="1.1">
+  <emailProvider id="${MYDOMAIN}">
+    <domain>${MYDOMAIN}</domain>
+    <displayName>${MYDOMAIN} Mail</displayName>
+    <displayShortName>${MYDOMAIN}</displayShortName>
+    <incomingServer type="imap">
+      <hostname>mail.${MYDOMAIN}</hostname>
+      <port>993</port>
+      <socketType>SSL</socketType>
+      <authentication>password-cleartext</authentication>
+      <username>%EMAILADDRESS%</username>
+    </incomingServer>
+    <incomingServer type="imap">
+      <hostname>mail.${MYDOMAIN}</hostname>
+      <port>143</port>
+      <socketType>STARTTLS</socketType>
+      <authentication>password-cleartext</authentication>
+      <username>%EMAILADDRESS%</username>
+    </incomingServer>
+    <incomingServer type="pop3">
+      <hostname>mail.${MYDOMAIN}</hostname>
+      <port>995</port>
+      <socketType>SSL</socketType>
+      <authentication>password-cleartext</authentication>
+      <username>%EMAILADDRESS%</username>
+    </incomingServer>
+    <incomingServer type="pop3">
+      <hostname>mail.${MYDOMAIN}</hostname>
+      <port>110</port>
+      <socketType>STARTTLS</socketType>
+      <authentication>password-cleartext</authentication>
+      <username>%EMAILADDRESS%</username>
+    </incomingServer>
+    <outgoingServer type="smtp">
+      <hostname>mail.${MYDOMAIN}</hostname>
+      <port>587</port>
+      <socketType>STARTTLS</socketType>
+      <authentication>password-cleartext</authentication>
+      <username>%EMAILADDRESS%</username>
+    </outgoingServer>
+    <documentation url="https://${MYDOMAIN}/admin">
+      <descr lang="de">Allgemeine Beschreibung der Einstellungen</descr>
+      <descr lang="en">Generic settings page</descr>
+    </documentation>
+    <documentation url="https://${MYDOMAIN}/admin">
+      <descr lang="de">TB 2.0 IMAP-Einstellungen</descr>
+      <descr lang="en">TB 2.0 IMAP settings</descr>
+    </documentation>
+  </emailProvider>
+</clientConfig>
+END
+	chown www-data: /var/www/zpush/config-v1.1.xml
 
 	# Cleaning up old files
 	sed -i '/test -d /var/run/fetchmail/d' /etc/rc.local >/dev/null 2>&1
@@ -1162,13 +1240,13 @@ END
 	cat > /etc/nginx/sites-available/autodiscover.${MYDOMAIN}.conf <<END
 server {
 			listen 80;
-			server_name autodiscover.${MYDOMAIN};
+			server_name autodiscover.${MYDOMAIN} autoconfig.${MYDOMAIN};
 			return 301 https://autodiscover.${MYDOMAIN}\$request_uri;
 }
 
 server {
 			listen 443 ssl http2;
-			server_name autodiscover.${MYDOMAIN};
+			server_name autodiscover.${MYDOMAIN} autoconfig.${MYDOMAIN};
 
 			root /var/www/zpush;
 			index index.php;
@@ -1272,9 +1350,9 @@ server {
 				add_header Cache-Control "max-age=2592000, public";
 			}
 
-			if ($http_user_agent ~ "FeedDemon|JikeSpider|Indy Library|Alexa Toolbar|AskTbFXTV|AhrefsBot|CrawlDaddy|CoolpadWebkit|Java|Feedly|UniversalFeedParser|ApacheBench|Microsoft URL Control|Swiftbot|ZmEu|oBot|jaunty|Python-urllib|lightDeckReports Bot|YYSpider|DigExt|YisouSpider|HttpClient|MJ12bot|heritrix|EasouSpider|Ezooms|^$" ) {
-			    return 403;
-			}
+			if ($http_user_agent ~* "FeedDemon|JikeSpider|Indy Library|Alexa Toolbar|AskTbFXTV|AhrefsBot|CrawlDaddy|CoolpadWebkit|Java|Feedly|UniversalFeedParser|ApacheBench|Microsoft URL Control|Swiftbot|ZmEu|oBot|jaunty|Python-urllib|lightDeckReports Bot|YYSpider|DigExt|YisouSpider|HttpClient|MJ12bot|heritrix|EasouSpider|Ezooms|Scrapy") {
+            	return 403;
+            }
 
 }
 END
@@ -1389,9 +1467,9 @@ server {
 				add_header Cache-Control "max-age=2592000, public";
 			}
 
-			if ($http_user_agent ~ "FeedDemon|JikeSpider|Indy Library|Alexa Toolbar|AskTbFXTV|AhrefsBot|CrawlDaddy|CoolpadWebkit|Java|Feedly|UniversalFeedParser|ApacheBench|Microsoft URL Control|Swiftbot|ZmEu|oBot|jaunty|Python-urllib|lightDeckReports Bot|YYSpider|DigExt|YisouSpider|HttpClient|MJ12bot|heritrix|EasouSpider|Ezooms|^$" ) {
-			    return 403;
-			}
+			if ($http_user_agent ~* "FeedDemon|JikeSpider|Indy Library|Alexa Toolbar|AskTbFXTV|AhrefsBot|CrawlDaddy|CoolpadWebkit|Java|Feedly|UniversalFeedParser|ApacheBench|Microsoft URL Control|Swiftbot|ZmEu|oBot|jaunty|Python-urllib|lightDeckReports Bot|YYSpider|DigExt|YisouSpider|HttpClient|MJ12bot|heritrix|EasouSpider|Ezooms|Scrapy") {
+            	return 403;
+            }
 }
 END
 
@@ -1984,7 +2062,7 @@ instructions() {
 		MCAP=$(sed -n '/^mailcow admin$/{n;n;n;p}' ~/credentials.txt | awk '{print $3}')
 		echo "${info} Before the mailserver can be used, the following requirements must be met:" | awk '{ print strftime("[%H:%M:%S] |"), $0 }'
 		echo
-		echo "The subomains mail.${MYDOMAIN}, dav.${MYDOMAIN} and autodiscover.${MYDOMAIN}" | awk '{ print strftime("[%H:%M:%S] |"), $0 }'
+		echo "The subomains mail.${MYDOMAIN}, dav.${MYDOMAIN}, autodiscover.${MYDOMAIN} and autoconfig.${MYDOMAIN}" | awk '{ print strftime("[%H:%M:%S] |"), $0 }'
 		echo "must have an \"A\" record that resolves to your IP adress: ${IPADR}" | awk '{ print strftime("[%H:%M:%S] |"), $0 }'
 		while true; do
 			echo
@@ -2007,6 +2085,12 @@ instructions() {
 				echo "${warn} autodiscover.${MYDOMAIN} does not resolve to the IP address of your server (${IPADR})" | awk '{ print strftime("[%H:%M:%S] |"), $0 }'
 			else	
 				echo "${ok} autodiscover.${MYDOMAIN} resolve to the IP adress of your server (${IPADR})" | awk '{ print strftime("[%H:%M:%S] |"), $0 }'
+			fi
+			sleep 1
+			if [[ $ACIP != $IPADR ]]; then
+				echo "${warn} autoconfig.${MYDOMAIN} does not resolve to the IP address of your server (${IPADR})" | awk '{ print strftime("[%H:%M:%S] |"), $0 }'
+			else	
+				echo "${ok} autoconfig.${MYDOMAIN} resolve to the IP adress of your server (${IPADR})" | awk '{ print strftime("[%H:%M:%S] |"), $0 }'
 			fi
 			sleep 1
 			if [[ $DAVIP != $IPADR ]]; then
@@ -2062,9 +2146,16 @@ instructions() {
 		done
 		echo
 		echo
-		echo "${info} In the next step you have to set two DNS TXT records for your domain." | awk '{ print strftime("[%H:%M:%S] |"), $0 }'
+		echo "${info} In the next step you have to set three DNS TXT records for your domain." | awk '{ print strftime("[%H:%M:%S] |"), $0 }'
 		echo
-		yellow "The first record should look like this:" | awk '{ print strftime("[%H:%M:%S] |"), $0 }'
+		yellow "The first record sould look like this:" | awk '{ print strftime("[%H:%M:%S] |"), $0 }'
+		echo
+		echo "NAME         TYPE      VALUE" | awk '{ print strftime("[%H:%M:%S] |"), $0 }'
+		echo "----------------------------------------------------------" | awk '{ print strftime("[%H:%M:%S] |"), $0 }'
+		echo " @     		 TXT       \"mailconf=https://autoconfig.${MYDOMAIN}/config-v1.1.xml\"" | awk '{ print strftime("[%H:%M:%S] |"), $0 }'
+		echo
+		echo
+		yellow "The second record should look like this:" | awk '{ print strftime("[%H:%M:%S] |"), $0 }'
 		echo
 		echo "NAME       TYPE          VALUE" | awk '{ print strftime("[%H:%M:%S] |"), $0 }'
 		echo "-----------------------------------------" | awk '{ print strftime("[%H:%M:%S] |"), $0 }'
@@ -2075,7 +2166,7 @@ instructions() {
 		fi
 		echo
 		echo
-		yellow "The second record sould look like this:" | awk '{ print strftime("[%H:%M:%S] |"), $0 }'
+		yellow "The third record sould look like this:" | awk '{ print strftime("[%H:%M:%S] |"), $0 }'
 		echo
 		echo "      NAME           TYPE              VALUE" | awk '{ print strftime("[%H:%M:%S] |"), $0 }'
 		echo "----------------------------------------------------------" | awk '{ print strftime("[%H:%M:%S] |"), $0 }'
@@ -2088,6 +2179,12 @@ instructions() {
 		while true; do
 			echo
 			echo
+			if [[ -z $CHECKAC ]]; then
+				echo "${warn} TXT record for autoconfig was not found!" | awk '{ print strftime("[%H:%M:%S] |"), $0 }'
+			else
+				echo "${ok} TXT record for autoconfig was found!" | awk '{ print strftime("[%H:%M:%S] |"), $0 }'	
+			fi
+			sleep 1
 			if [[ -z $CHECKSPF ]]; then
 				echo "${warn} TXT record for SPF was not found!" | awk '{ print strftime("[%H:%M:%S] |"), $0 }'
 			else
@@ -2118,42 +2215,42 @@ instructions() {
 	    echo
 	    echo "      NAME           TYPE              VALUE" | awk '{ print strftime("[%H:%M:%S] |"), $0 }'
 		echo "----------------------------------------------------------" | awk '{ print strftime("[%H:%M:%S] |"), $0 }'
-		echo " _autodiscover._tcp     SRV     \"SRV 1 1 443 autodiscover.${MYDOMAIN}.\"" | awk '{ print strftime("[%H:%M:%S] |"), $0 }'
+		echo " _autodiscover._tcp     SRV     \"SRV 0 0 443 autodiscover.${MYDOMAIN}.\"" | awk '{ print strftime("[%H:%M:%S] |"), $0 }'
 		echo
 		echo
 		echo "      NAME           TYPE              VALUE" | awk '{ print strftime("[%H:%M:%S] |"), $0 }'
 		echo "----------------------------------------------------------" | awk '{ print strftime("[%H:%M:%S] |"), $0 }'
-		echo " _carddavs._tcp     SRV     \"SRV 1 1 443 dav.${MYDOMAIN}.\"" | awk '{ print strftime("[%H:%M:%S] |"), $0 }'
+		echo " _carddavs._tcp     SRV     \"SRV 0 0 443 dav.${MYDOMAIN}.\"" | awk '{ print strftime("[%H:%M:%S] |"), $0 }'
 		echo
 		echo
 		echo "      NAME           TYPE              VALUE" | awk '{ print strftime("[%H:%M:%S] |"), $0 }'
 		echo "----------------------------------------------------------" | awk '{ print strftime("[%H:%M:%S] |"), $0 }'
-		echo " _caldavs._tcp     SRV     \"SRV 1 1 443 dav.${MYDOMAIN}.\"" | awk '{ print strftime("[%H:%M:%S] |"), $0 }'
+		echo " _caldavs._tcp     SRV     \"SRV 0 0 443 dav.${MYDOMAIN}.\"" | awk '{ print strftime("[%H:%M:%S] |"), $0 }'
 		echo
 		echo
 	    echo "      NAME           TYPE              VALUE" | awk '{ print strftime("[%H:%M:%S] |"), $0 }'
 		echo "----------------------------------------------------------" | awk '{ print strftime("[%H:%M:%S] |"), $0 }'
-		echo " _pop3._tcp     SRV     \"SRV 1 1 110 mail.${MYDOMAIN}.\"" | awk '{ print strftime("[%H:%M:%S] |"), $0 }'
+		echo " _pop3._tcp     SRV     \"SRV 0 1 110 mail.${MYDOMAIN}.\"" | awk '{ print strftime("[%H:%M:%S] |"), $0 }'
 		echo
 		echo
 		echo "      NAME           TYPE              VALUE" | awk '{ print strftime("[%H:%M:%S] |"), $0 }'
 		echo "----------------------------------------------------------" | awk '{ print strftime("[%H:%M:%S] |"), $0 }'
-		echo " _imap._tcp     SRV     \"SRV 1 1 143 mail.${MYDOMAIN}.\"" | awk '{ print strftime("[%H:%M:%S] |"), $0 }'
+		echo " _imap._tcp     SRV     \"SRV 0 1 143 mail.${MYDOMAIN}.\"" | awk '{ print strftime("[%H:%M:%S] |"), $0 }'
 		echo
 		echo
 		echo "      NAME           TYPE              VALUE" | awk '{ print strftime("[%H:%M:%S] |"), $0 }'
 		echo "----------------------------------------------------------" | awk '{ print strftime("[%H:%M:%S] |"), $0 }'
-		echo " _submission._tcp     SRV     \"SRV 1 1 587 mail.${MYDOMAIN}.\"" | awk '{ print strftime("[%H:%M:%S] |"), $0 }'
+		echo " _submission._tcp     SRV     \"SRV 0 1 587 mail.${MYDOMAIN}.\"" | awk '{ print strftime("[%H:%M:%S] |"), $0 }'
 		echo
 		echo
 		echo "      NAME           TYPE              VALUE" | awk '{ print strftime("[%H:%M:%S] |"), $0 }'
 		echo "----------------------------------------------------------" | awk '{ print strftime("[%H:%M:%S] |"), $0 }'
-		echo " _imaps._tcp     SRV     \"SRV 1 1 993 mail.${MYDOMAIN}.\"" | awk '{ print strftime("[%H:%M:%S] |"), $0 }'
+		echo " _imaps._tcp     SRV     \"SRV 0 1 993 mail.${MYDOMAIN}.\"" | awk '{ print strftime("[%H:%M:%S] |"), $0 }'
 		echo
 		echo
 		echo "      NAME           TYPE              VALUE" | awk '{ print strftime("[%H:%M:%S] |"), $0 }'
 		echo "----------------------------------------------------------" | awk '{ print strftime("[%H:%M:%S] |"), $0 }'
-		echo " _pop3s._tcp     SRV     \"SRV 1 1 995 mail.${MYDOMAIN}.\"" | awk '{ print strftime("[%H:%M:%S] |"), $0 }'
+		echo " _pop3s._tcp     SRV     \"SRV 0 1 995 mail.${MYDOMAIN}.\"" | awk '{ print strftime("[%H:%M:%S] |"), $0 }'
 		echo
 		echo "${info} Please read http://wki.pe/SRV_record for more information" | awk '{ print strftime("[%H:%M:%S] |"), $0 }'
 		echo "${info} Press $(textb ENTER) to continue.." | awk '{ print strftime("[%H:%M:%S] |"), $0 }'
@@ -2223,9 +2320,11 @@ fi
 IPADR=$(ifconfig eth0 | awk -F ' *|:' '/inet /{print $4}')
 FQDNIP=$(source ~/userconfig.cfg; dig @4.2.2.1 +short ${MYDOMAIN})
 WWWIP=$(source ~/userconfig.cfg; dig @4.2.2.1 +short www.${MYDOMAIN})
+ACIP=$(source ~/userconfig.cfg; dig @4.2.2.1 +short autoconfig.${MYDOMAIN})
 ADIP=$(source ~/userconfig.cfg; dig @4.2.2.1 +short autodiscover.${MYDOMAIN})
 DAVIP=$(source ~/userconfig.cfg; dig @4.2.2.1 +short dav.${MYDOMAIN})
 MAILIP=$(source ~/userconfig.cfg; dig @4.2.2.1 +short mail.${MYDOMAIN})
+CHECKAC=$(source ~/userconfig.cfg; dig ${MYDOMAIN} txt @4.2.2.1 | grep -i mailconf=)
 CHECKMX=$(source ~/userconfig.cfg; dig mx ${MYDOMAIN} @4.2.2.1 +short)
 CHECKSPF=$(source ~/userconfig.cfg; dig ${MYDOMAIN} txt @4.2.2.1 | grep -i spf)
 CHECKDKIM=$(source ~/userconfig.cfg; dig mail._domainkey.${MYDOMAIN} txt @4.2.2.1 | grep -i DKIM1)
