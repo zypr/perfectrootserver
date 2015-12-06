@@ -974,7 +974,7 @@ if [ ${USE_MAILSERVER} == '1' ]; then
 	sed -i "/%www-data/d" /etc/sudoers >/dev/null 2>&1
 	sed -i "/%vmail/d" /etc/sudoers >/dev/null 2>&1
 	echo '%www-data ALL=(ALL) NOPASSWD: /usr/bin/doveadm * sync *, /usr/local/sbin/mc_pfset *, /usr/bin/doveadm quota recalc -A, /usr/sbin/dovecot reload, /usr/sbin/postfix reload, /usr/local/sbin/mc_dkim_ctrl, /usr/local/sbin/mc_msg_size, /usr/local/sbin/mc_pflog_renew, /usr/local/sbin/mc_setup_backup' >> /etc/sudoers
-	[ ${USE_VALID_SSL} == '1' ]; then
+	if [ ${USE_VALID_SSL} == '1' ]; then
 		sed -i 's/smtp_tls_CAfile/# smtp_tls_CAfile/g' /etc/postfix/main.cf
 	fi
 
