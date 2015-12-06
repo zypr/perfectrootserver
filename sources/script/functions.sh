@@ -1819,7 +1819,7 @@ do
 done
 
 sort \$BLACKLIST_TEMP -n | uniq > \$BLACKLIST
-cp $BLACKLIST_TEMP ${BLACKLIST_DIR}/blacklist\_$(date '+%d.%m.%Y_%T' | tr -d :) && rm \$BLACKLIST_TEMP
+cp $BLACKLIST_TEMP ${BLACKLIST_DIR}/blacklist\_\$(date '+%d.%m.%Y_%T' | tr -d :) && rm \$BLACKLIST_TEMP
 systemctl force-reload arno-iptables-firewall.service
 END
 chmod +x /etc/cron.daily/blocked-hosts
