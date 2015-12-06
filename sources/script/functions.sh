@@ -928,7 +928,7 @@ if [ ${USE_MAILSERVER} == '1' ]; then
 	mkdir -p /etc/ssl/mail >/dev/null 2>&1
 	rm /etc/ssl/mail/* >/dev/null 2>&1
 	cp /etc/nginx/ssl/dh.pem /etc/ssl/mail/dhparams.pem
-	[ ${USE_VALID_SSL} == '1' ]; then
+	if [ ${USE_VALID_SSL} == '1' ]; then
 		ln -s /etc/letsencrypt/live/${MYDOMAIN}/fullchain.pem /etc/ssl/mail/mail.crt
 		ln -s /etc/letsencrypt/live/${MYDOMAIN}/privkey.pem /etc/ssl/mail/mail.key
 	else
