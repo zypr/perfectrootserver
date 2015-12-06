@@ -284,7 +284,7 @@ wget -O ~/sources/dotdeb.gpg http://www.dotdeb.org/dotdeb.gpg >/dev/null 2>&1 &&
 apt-get update -y >/dev/null 2>&1 && apt-get -y upgrade >/dev/null 2>&1
 apt-get -y --force-yes install aptitude ssl-cert whiptail apt-utils jq >/dev/null 2>&1
 /usr/sbin/make-ssl-cert generate-default-snakeoil --force-overwrite
-DEBIAN_FRONTEND=noninteractive aptitude -y install apache2-threaded-dev apache2-utils apt-listchanges arj autoconf automake bison bsd-mailx build-essential bzip2 ca-certificates cabextract checkinstall curl dnsutils fcgiwrap file flex gcc git htop libapr1-dev libaprutil1 libaprutil1-dev libauthen-sasl-perl-Daemon libawl-php libcrypt-ssleay-perl libcurl4-openssl-dev libdbi-perl libio-socket-ssl-perl libio-string-perl liblockfile-simple-perl liblogger-syslog-perl libmail-dkim-perl libmail-spf-perl libmime-base64-urlsafe-perl libnet-dns-perl libnet-ident-perl libnet-LDAP-perl libnet1 libnet1-dev libpam-dev libpcre-ocaml-dev libpcre3 libpcre3-dev libreadline6-dev libtest-tempdir-perl libtool libwww-perl libxml2 libxml2-dev libxml2-utils libxslt1-dev libyaml-dev lsb-release lzop mailgraph mariadb-server memcached mlocate nomarch opendkim opendkim-tools php-auth-sasl php-auth-sasl php-http-request php-http-request php-mail php-mail-mime php-mail-mimedecode php-net-dime php-net-smtp php-net-url php-pear php-soap php5 php5-apcu php5-cli php5-common php5-common php5-curl php5-dev php5-fpm php5-gd php5-igbinary php5-imap php5-intl php5-mcrypt php5-mysql php5-sqlite php5-xmlrpc php5-xsl python-setuptools python-software-properties rkhunter rrdtool software-properties-common spawn-fcgi subversion sudo unzip vim-nox zip zlib1g zlib1g-dbg zlib1g-de zoo >/dev/null 2>&1
+DEBIAN_FRONTEND=noninteractive aptitude -y install apache2-threaded-dev apache2-utils apt-listchanges arj autoconf automake bison bsd-mailx build-essential bzip2 ca-certificates cabextract checkinstall curl dnsutils file flex gcc git htop libapr1-dev libaprutil1 libaprutil1-dev libauthen-sasl-perl-Daemon libawl-php libcrypt-ssleay-perl libcurl4-openssl-dev libdbi-perl libio-socket-ssl-perl libio-string-perl liblockfile-simple-perl liblogger-syslog-perl libmail-dkim-perl libmail-spf-perl libmime-base64-urlsafe-perl libnet-dns-perl libnet-ident-perl libnet-LDAP-perl libnet1 libnet1-dev libpam-dev libpcre-ocaml-dev libpcre3 libpcre3-dev libreadline6-dev libtest-tempdir-perl libtool libwww-perl libxml2 libxml2-dev libxml2-utils libxslt1-dev libyaml-dev lsb-release lzop mariadb-server memcached mlocate nomarch opendkim opendkim-tools php-auth-sasl php-auth-sasl php-http-request php-http-request php-mail php-mail-mime php-mail-mimedecode php-net-dime php-net-smtp php-net-url php-pear php-soap php5 php5-apcu php5-cli php5-common php5-common php5-curl php5-dev php5-fpm php5-gd php5-igbinary php5-imap php5-intl php5-mcrypt php5-mysql php5-sqlite php5-xmlrpc php5-xsl python-setuptools python-software-properties rkhunter software-properties-common subversion sudo unzip vim-nox zip zlib1g zlib1g-dbg zlib1g-de zoo >/dev/null 2>&1
 
 if [ "$?" -ne "0" ]; then
 	echo "${error} Package installation failed!" | awk '{ print strftime("[%H:%M:%S] |"), $0 }'
@@ -922,21 +922,21 @@ if [ ${USE_MAILSERVER} == '1' ]; then
 
 	# Prerequisites
 	update-alternatives --set mailx /usr/bin/bsd-mailx --quiet >/dev/null 2>&1
-	DEBIAN_FRONTEND=noninteractive aptitude -y install clamav-daemon dovecot-common dovecot-core dovecot-imapd dovecot-lmtpd dovecot-managesieved dovecot-mysql dovecot-pop3d dovecot-sieve dovecot-solr fetchmail imagemagick mailutils mpack pflogsumm postfix postfix-mysql postfix-pcre postgrey pyzor razor spamassassin spamc wkhtmltopdf >/dev/null 2>&1
+	DEBIAN_FRONTEND=noninteractive aptitude -y install clamav-daemon dovecot-common dovecot-core dovecot-imapd dovecot-lmtpd dovecot-managesieved dovecot-mysql dovecot-pop3d dovecot-sieve dovecot-solr fcgiwrap fetchmail imagemagick mailutils mailgraph/unstable mpack pflogsumm postfix postfix-mysql postfix-pcre postgrey pyzor razor rrdtool spamassassin spamc spawn-fcgi wkhtmltopdf >/dev/null 2>&1
 
 	# Create SSL
 	mkdir -p /etc/ssl/mail >/dev/null 2>&1
 	rm /etc/ssl/mail/* >/dev/null 2>&1
 	cp /etc/nginx/ssl/dh.pem /etc/ssl/mail/dhparams.pem
-	openssl req -new -newkey rsa:4096 -sha256 -days 1095 -nodes -x509 -subj "/C=/ST=/L=/O=/OU=/CN=mail.${MYDOMAIN}" -keyout /etc/ssl/mail/mail.key -out /etc/ssl/mail/mail.crt >/dev/null 2>&1
-	chmod 600 /etc/ssl/mail/mail.key
-	cp /etc/ssl/mail/mail.crt /usr/local/share/ca-certificates/
-	update-ca-certificates >/dev/null 2>&1
-	mkdir -p /etc/dovecot/private/
-	cp /etc/ssl/certs/ssl-cert-snakeoil.pem /etc/dovecot/dovecot.pem
-	cp /etc/ssl/private/ssl-cert-snakeoil.key /etc/dovecot/dovecot.key
-	cp /etc/ssl/certs/ssl-cert-snakeoil.pem /etc/dovecot/private/dovecot.pem
-	cp /etc/ssl/private/ssl-cert-snakeoil.key /etc/dovecot/private/dovecot.key
+	[ ${USE_VALID_SSL} == '1' ]; then
+		ln -s /etc/letsencrypt/live/${MYDOMAIN}/fullchain.pem /etc/ssl/mail/mail.crt
+		ln -s /etc/letsencrypt/live/${MYDOMAIN}/privkey.pem /etc/ssl/mail/mail.key
+	else
+		openssl req -new -newkey rsa:4096 -sha256 -days 1095 -nodes -x509 -subj "/C=/ST=/L=/O=/OU=/CN=mail.${MYDOMAIN}" -keyout /etc/ssl/mail/mail.key -out /etc/ssl/mail/mail.crt >/dev/null 2>&1
+		chmod 600 /etc/ssl/mail/mail.key
+		cp /etc/ssl/mail/mail.crt /usr/local/share/ca-certificates/
+		update-ca-certificates >/dev/null 2>&1
+	fi
 
 	# Create MySQL databases
 	echo "${info} Creating MySQL databases..." | awk '{ print strftime("[%H:%M:%S] |"), $0 }'
@@ -974,6 +974,9 @@ if [ ${USE_MAILSERVER} == '1' ]; then
 	sed -i "/%www-data/d" /etc/sudoers >/dev/null 2>&1
 	sed -i "/%vmail/d" /etc/sudoers >/dev/null 2>&1
 	echo '%www-data ALL=(ALL) NOPASSWD: /usr/bin/doveadm * sync *, /usr/local/sbin/mc_pfset *, /usr/bin/doveadm quota recalc -A, /usr/sbin/dovecot reload, /usr/sbin/postfix reload, /usr/local/sbin/mc_dkim_ctrl, /usr/local/sbin/mc_msg_size, /usr/local/sbin/mc_pflog_renew, /usr/local/sbin/mc_setup_backup' >> /etc/sudoers
+	[ ${USE_VALID_SSL} == '1' ]; then
+		sed -i 's/smtp_tls_CAfile/# smtp_tls_CAfile/g' /etc/postfix/main.cf
+	fi
 
 	# Fuglu
 	if [[ -z $(grep fuglu /etc/passwd) ]]; then
@@ -1240,6 +1243,17 @@ location ~ \.cgi\$ {
 }
 END
 
+	cat > /etc/nginx/sites-available/mailgraph.conf <<END
+server {
+	listen 127.0.0.1:81;
+		location ~ \.cgi\$ {
+		    alias /usr/lib/cgi-bin/\$1;
+		    include /etc/nginx/fastcgi_params;
+		    fastcgi_pass unix:/var/run/fcgiwrap.socket;
+		}
+}
+END
+
 	cat > /etc/nginx/sites-available/autodiscover.${MYDOMAIN}.conf <<END
 server {
 			listen 80;
@@ -1484,6 +1498,7 @@ END
 		sed -i 's/#ssl_ecdh_curve/ssl_ecdh_curve/g' /etc/nginx/sites-available/autodiscover.${MYDOMAIN}.conf /etc/nginx/sites-available/dav.${MYDOMAIN}.conf
 	fi
 
+	ln -s /etc/nginx/sites-available/mailgraph.conf /etc/nginx/sites-enabled/mailgraph.conf
 	ln -s /etc/nginx/sites-available/autodiscover.${MYDOMAIN}.conf /etc/nginx/sites-enabled/autodiscover.${MYDOMAIN}.conf
 	ln -s /etc/nginx/sites-available/dav.${MYDOMAIN}.conf /etc/nginx/sites-enabled/dav.${MYDOMAIN}.conf
 

@@ -79,10 +79,6 @@ smtpd_sender_login_maps =
    proxy:mysql:/etc/postfix/sql/mysql_virtual_sender_acl.cf,
    proxy:mysql:/etc/postfix/sql/mysql_virtual_alias_maps.cf
 
-# Certificates
-smtp_tls_cert_file = /etc/ssl/mail/mail.crt
-smtp_tls_key_file = /etc/ssl/mail/mail.key
-
 # Set a higher timeout for connecting, sending and receiving information from/to a proxy (FuGlu)
 smtpd_proxy_timeout = 600s
 
