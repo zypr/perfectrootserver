@@ -665,7 +665,7 @@ server {
 			ssl_certificate_key ssl/${MYDOMAIN}.key.pem;
 			#ssl_trusted_certificate ssl/${MYDOMAIN}.pem;
 			ssl_dhparam	     	ssl/dh.pem;
-			#ssl_ecdh_curve		secp384r1;
+			ssl_ecdh_curve		secp384r1;
 			ssl_session_cache   shared:SSL:10m;
 			ssl_session_timeout 10m;
 			ssl_session_tickets off;
@@ -681,7 +681,7 @@ server {
 			ssl_ciphers 		"ECDHE-RSA-AES128-GCM-SHA256:ECDHE-ECDSA-AES128-GCM-SHA256:ECDHE-RSA-AES256-GCM-SHA384:ECDHE-ECDSA-AES256-GCM-SHA384:DHE-RSA-AES128-GCM-SHA256:DHE-DSS-AES128-GCM-SHA256:kEDH+AESGCM:ECDHE-RSA-AES128-SHA256:ECDHE-ECDSA-AES128-SHA256:ECDHE-RSA-AES128-SHA:ECDHE-ECDSA-AES128-SHA:ECDHE-RSA-AES256-SHA384:ECDHE-ECDSA-AES256-SHA384:ECDHE-RSA-AES256-SHA:ECDHE-ECDSA-AES256-SHA:DHE-RSA-AES128-SHA256:DHE-RSA-AES128-SHA:DHE-DSS-AES128-SHA256:DHE-RSA-AES256-SHA256:DHE-DSS-AES256-SHA:DHE-RSA-AES256-SHA:!aNULL:!eNULL:!EXPORT:!DES:!RC4:!3DES:!MD5:!PSK";
 
 			#add_header 		Strict-Transport-Security "max-age=63072000; includeSubdomains; preload";
-			#add_header 		Public-Key-Pins 'pin-sha256="${HPKP1}"; pin-sha256="${HPKP2}"; max-age=5184000; includeSubDomains';
+			##add_header 		Public-Key-Pins 'pin-sha256="PIN1"; pin-sha256="PIN2"; max-age=5184000; includeSubDomains';
 			add_header 			Cache-Control "public";
 			add_header 			X-Frame-Options SAMEORIGIN;
 			add_header 			Alternate-Protocol  443:npn-http/2;
@@ -818,8 +818,6 @@ if [ ${CLOUDFLARE} == '0' ] && [ ${USE_VALID_SSL} == '1' ]; then
 	sed -i 's/#ssl/ssl/g' /etc/nginx/sites-available/${MYDOMAIN}.conf
 	sed -i 's/#resolver/resolver/g' /etc/nginx/sites-available/${MYDOMAIN}.conf
 	sed -i 's/#add/add/g' /etc/nginx/sites-available/${MYDOMAIN}.conf
-else
-	sed -i 's/#ssl_ecdh_curve/ssl_ecdh_curve/g' /etc/nginx/sites-available/${MYDOMAIN}.conf
 fi
 
 # Configure PHP
@@ -1291,7 +1289,7 @@ server {
 			ssl_ciphers 		"ECDHE-RSA-AES128-GCM-SHA256:ECDHE-ECDSA-AES128-GCM-SHA256:ECDHE-RSA-AES256-GCM-SHA384:ECDHE-ECDSA-AES256-GCM-SHA384:DHE-RSA-AES128-GCM-SHA256:DHE-DSS-AES128-GCM-SHA256:kEDH+AESGCM:ECDHE-RSA-AES128-SHA256:ECDHE-ECDSA-AES128-SHA256:ECDHE-RSA-AES128-SHA:ECDHE-ECDSA-AES128-SHA:ECDHE-RSA-AES256-SHA384:ECDHE-ECDSA-AES256-SHA384:ECDHE-RSA-AES256-SHA:ECDHE-ECDSA-AES256-SHA:DHE-RSA-AES128-SHA256:DHE-RSA-AES128-SHA:DHE-DSS-AES128-SHA256:DHE-RSA-AES256-SHA256:DHE-DSS-AES256-SHA:DHE-RSA-AES256-SHA:!aNULL:!eNULL:!EXPORT:!DES:!RC4:!3DES:!MD5:!PSK";
 
 			#add_header 		Strict-Transport-Security "max-age=63072000; includeSubdomains; preload";
-			#add_header 		Public-Key-Pins 'pin-sha256="${HPKP1}"; pin-sha256="${HPKP2}"; max-age=5184000; includeSubDomains';
+			##add_header 		Public-Key-Pins 'pin-sha256="PIN1"; pin-sha256="PIN2"; max-age=5184000; includeSubDomains';
 			add_header 			Cache-Control "public";
 			add_header 			X-Frame-Options SAMEORIGIN;
 			add_header 			Alternate-Protocol  443:npn-http/2;
@@ -1411,7 +1409,7 @@ server {
 			ssl_ciphers 		"ECDHE-RSA-AES128-GCM-SHA256:ECDHE-ECDSA-AES128-GCM-SHA256:ECDHE-RSA-AES256-GCM-SHA384:ECDHE-ECDSA-AES256-GCM-SHA384:DHE-RSA-AES128-GCM-SHA256:DHE-DSS-AES128-GCM-SHA256:kEDH+AESGCM:ECDHE-RSA-AES128-SHA256:ECDHE-ECDSA-AES128-SHA256:ECDHE-RSA-AES128-SHA:ECDHE-ECDSA-AES128-SHA:ECDHE-RSA-AES256-SHA384:ECDHE-ECDSA-AES256-SHA384:ECDHE-RSA-AES256-SHA:ECDHE-ECDSA-AES256-SHA:DHE-RSA-AES128-SHA256:DHE-RSA-AES128-SHA:DHE-DSS-AES128-SHA256:DHE-RSA-AES256-SHA256:DHE-DSS-AES256-SHA:DHE-RSA-AES256-SHA:!aNULL:!eNULL:!EXPORT:!DES:!RC4:!3DES:!MD5:!PSK";
 
 			#add_header 		Strict-Transport-Security "max-age=63072000; includeSubdomains; preload";
-			#add_header 		Public-Key-Pins 'pin-sha256="${HPKP1}"; pin-sha256="${HPKP2}"; max-age=5184000; includeSubDomains';
+			##add_header 		Public-Key-Pins 'pin-sha256="PIN1"; pin-sha256="PIN2"; max-age=5184000; includeSubDomains';
 			add_header 			Cache-Control "public";
 			add_header 			X-Frame-Options SAMEORIGIN;
 			add_header 			Alternate-Protocol  443:npn-http/2;
@@ -1494,8 +1492,6 @@ END
 		sed -i 's/#ssl/ssl/g' /etc/nginx/sites-available/autodiscover.${MYDOMAIN}.conf /etc/nginx/sites-available/dav.${MYDOMAIN}.conf
 		sed -i 's/#resolver/resolver/g' /etc/nginx/sites-available/autodiscover.${MYDOMAIN}.conf /etc/nginx/sites-available/dav.${MYDOMAIN}.conf
 		sed -i 's/#add/add/g' /etc/nginx/sites-available/autodiscover.${MYDOMAIN}.conf /etc/nginx/sites-available/dav.${MYDOMAIN}.conf
-	else
-		sed -i 's/#ssl_ecdh_curve/ssl_ecdh_curve/g' /etc/nginx/sites-available/autodiscover.${MYDOMAIN}.conf /etc/nginx/sites-available/dav.${MYDOMAIN}.conf
 	fi
 
 	ln -s /etc/nginx/sites-available/mailgraph.conf /etc/nginx/sites-enabled/mailgraph.conf
