@@ -284,7 +284,7 @@ wget -O ~/sources/dotdeb.gpg http://www.dotdeb.org/dotdeb.gpg >/dev/null 2>&1 &&
 apt-get update -y >/dev/null 2>&1 && apt-get -y upgrade >/dev/null 2>&1
 apt-get -y --force-yes install aptitude ssl-cert whiptail apt-utils jq >/dev/null 2>&1
 /usr/sbin/make-ssl-cert generate-default-snakeoil --force-overwrite
-DEBIAN_FRONTEND=noninteractive aptitude -y install apache2-threaded-dev apache2-utils apt-listchanges arj autoconf automake bison bsd-mailx build-essential bzip2 ca-certificates cabextract checkinstall curl dnsutils file flex gcc git htop libapr1-dev libaprutil1 libaprutil1-dev libauthen-sasl-perl-Daemon libawl-php libcrypt-ssleay-perl libcurl4-openssl-dev libdbi-perl libio-socket-ssl-perl libio-string-perl liblockfile-simple-perl liblogger-syslog-perl libmail-dkim-perl libmail-spf-perl libmime-base64-urlsafe-perl libnet-dns-perl libnet-ident-perl libnet-LDAP-perl libnet1 libnet1-dev libpam-dev libpcre-ocaml-dev libpcre3 libpcre3-dev libreadline6-dev libtest-tempdir-perl libtool libwww-perl libxml2 libxml2-dev libxml2-utils libxslt1-dev libyaml-dev lsb-release lzop mariadb-server memcached mlocate nomarch opendkim opendkim-tools php-auth-sasl php-auth-sasl php-http-request php-http-request php-mail php-mail-mime php-mail-mimedecode php-net-dime php-net-smtp php-net-url php-pear php-soap php5 php5-apcu php5-cli php5-common php5-common php5-curl php5-dev php5-fpm php5-gd php5-igbinary php5-imap php5-intl php5-mcrypt php5-mysql php5-sqlite php5-xmlrpc php5-xsl python-setuptools python-software-properties rkhunter software-properties-common subversion sudo unzip vim-nox zip zlib1g zlib1g-dbg zlib1g-de zoo >/dev/null 2>&1
+DEBIAN_FRONTEND=noninteractive aptitude -y install apache2-threaded-dev apache2-utils apt-listchanges arj autoconf automake bison bsd-mailx build-essential bzip2 ca-certificates cabextract checkinstall curl dnsutils file flex gcc git htop libapr1-dev libaprutil1 libaprutil1-dev libauthen-sasl-perl-Daemon libawl-php libcrypt-ssleay-perl libcurl4-openssl-dev libdbi-perl libio-socket-ssl-perl libio-string-perl liblockfile-simple-perl liblogger-syslog-perl libmail-dkim-perl libmail-spf-perl libmime-base64-urlsafe-perl libnet-dns-perl libnet-ident-perl libnet-LDAP-perl libnet1 libnet1-dev libpam-dev libpcre-ocaml-dev libpcre3 libpcre3-dev libreadline6-dev libtest-tempdir-perl libtool libwww-perl libxml2 libxml2-dev libxml2-utils libxslt1-dev libyaml-dev lsb-release lzop mariadb-server memcached mlocate nomarch php-auth-sasl php-auth-sasl php-http-request php-http-request php-mail php-mail-mime php-mail-mimedecode php-net-dime php-net-smtp php-net-url php-pear php-soap php5 php5-apcu php5-cli php5-common php5-common php5-curl php5-dev php5-fpm php5-gd php5-igbinary php5-imap php5-intl php5-mcrypt php5-mysql php5-sqlite php5-xmlrpc php5-xsl python-setuptools python-software-properties rkhunter software-properties-common subversion sudo unzip vim-nox zip zlib1g zlib1g-dbg zlib1g-de zoo >/dev/null 2>&1
 
 if [ "$?" -ne "0" ]; then
 	echo "${error} Package installation failed!" | awk '{ print strftime("[%H:%M:%S] |"), $0 }'
@@ -736,14 +736,18 @@ server {
 
 			location ~ \.php\$ {
 				fastcgi_split_path_info ^(.+\.php)(/.+)\$;
+				if (!-e \$document_root\$fastcgi_script_name) {
+					return 404;
+			  	}
 				try_files \$fastcgi_script_name =404;
-				set \$path_info \$fastcgi_path_info;
-				fastcgi_param PATH_INFO \$path_info;
+				fastcgi_param PATH_INFO \$fastcgi_path_info;
+				fastcgi_param PATH_TRANSLATED \$document_root\$fastcgi_path_info;
 				fastcgi_param APP_ENV production;
 				fastcgi_pass unix:/var/run/php5-fpm.sock;
 				fastcgi_index index.php;
 				include fastcgi.conf;
-				fastcgi_intercept_errors on;
+				include fastcgi_params;
+				fastcgi_intercept_errors off;
 				fastcgi_ignore_client_abort off;
 				fastcgi_buffers 256 16k;
 				fastcgi_buffer_size 128k;
@@ -827,7 +831,7 @@ sed -i 's/.*ignore_user_abort =.*/ignore_user_abort = Off/' /etc/php5/fpm/php.in
 sed -i 's/.*expose_php =.*/expose_php = Off/' /etc/php5/fpm/php.ini
 sed -i 's/.*post_max_size =.*/post_max_size = 15M/' /etc/php5/fpm/php.ini
 sed -i 's/.*default_charset =.*/default_charset = "UTF-8"/' /etc/php5/fpm/php.ini
-sed -i 's/.*cgi.fix_pathinfo=.*/cgi.fix_pathinfo=0/' /etc/php5/fpm/php.ini
+sed -i 's/.*cgi.fix_pathinfo=.*/cgi.fix_pathinfo=1/' /etc/php5/fpm/php.ini
 sed -i 's/.*upload_max_filesize =.*/upload_max_filesize = 15M/' /etc/php5/fpm/php.ini
 sed -i 's/.*default_socket_timeout =.*/default_socket_timeout = 30/' /etc/php5/fpm/php.ini
 sed -i 's/.*date.timezone =.*/date.timezone = Europe\/Berlin/' /etc/php5/fpm/php.ini
@@ -920,7 +924,7 @@ if [ ${USE_MAILSERVER} == '1' ]; then
 
 	# Prerequisites
 	update-alternatives --set mailx /usr/bin/bsd-mailx --quiet >/dev/null 2>&1
-	DEBIAN_FRONTEND=noninteractive aptitude -y install clamav-daemon dovecot-common dovecot-core dovecot-imapd dovecot-lmtpd dovecot-managesieved dovecot-mysql dovecot-pop3d dovecot-sieve dovecot-solr fcgiwrap fetchmail imagemagick mailutils mailgraph/unstable mpack pflogsumm postfix postfix-mysql postfix-pcre postgrey pyzor razor rrdtool spamassassin spamc spawn-fcgi wkhtmltopdf >/dev/null 2>&1
+	DEBIAN_FRONTEND=noninteractive aptitude -y install clamav-daemon dovecot-common dovecot-core dovecot-imapd dovecot-lmtpd dovecot-managesieved dovecot-mysql dovecot-pop3d dovecot-sieve dovecot-solr fcgiwrap fetchmail imagemagick mailutils mailgraph/unstable mpack opendkim opendkim-tools pflogsumm postfix postfix-mysql postfix-pcre postgrey pyzor razor rrdtool/unstable spamassassin spamc spawn-fcgi wkhtmltopdf >/dev/null 2>&1
 
 	# Create SSL
 	mkdir -p /etc/ssl/mail >/dev/null 2>&1
@@ -1897,7 +1901,7 @@ truncate -s 0 /var/log/syslog
 
 # Restart all services
 if [ ${USE_MAILSERVER} == '1' ]; then
-	systemctl -q restart {fail2ban,rsyslog,nginx,php5-fpm,spamassassin,dovecot,postfix,opendkim,clamav-daemon,fuglu}
+	systemctl -q restart {fail2ban,rsyslog,nginx,php5-fpm,spamassassin,dovecot,postfix,opendkim,clamav-daemon,fuglu,mailgraph}
 else
 	systemctl -q restart {fail2ban,nginx,php5-fpm}
 fi
