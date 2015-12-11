@@ -746,7 +746,6 @@ server {
 				fastcgi_pass unix:/var/run/php5-fpm.sock;
 				fastcgi_index index.php;
 				include fastcgi.conf;
-				include fastcgi_params;
 				fastcgi_intercept_errors off;
 				fastcgi_ignore_client_abort off;
 				fastcgi_buffers 256 16k;
