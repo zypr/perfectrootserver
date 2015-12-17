@@ -17,6 +17,7 @@ generatepw() {
 
 checksystem() {
 	echo "$(date +"[%T]") | ${info} Checking your system..."
+
 	if [ $(dpkg-query -l | grep gawk | wc -l) -ne 1 ]; then
 	apt-get update -y >/dev/null 2>&1 && apt-get -y --force-yes install gawk >/dev/null 2>&1
 	fi
@@ -29,6 +30,10 @@ checksystem() {
 	if [[ -z $(which nc) ]]; then
 		echo "${error} Please install $(textb netcat) before running this script" | awk '{ print strftime("[%H:%M:%S] |"), $0 }'
 		exit 1
+	fi
+
+	if [ $(dpkg-query -l | grep lsb-release | wc -l) -ne 1 ]; then
+	apt-get update -y >/dev/null 2>&1 && apt-get -y --force-yes install lsb-release >/dev/null 2>&1
 	fi
 
 	if [ $(lsb_release -cs) != 'jessie' ] || [ $(lsb_release -is) != 'Debian' ]; then
@@ -68,6 +73,7 @@ checksystem() {
 				fi
 				if [ ${USE_MAILSERVER} == '1' ]; then
 						while true; do
+							unset MAILIP ACIP ADIP DAVIP WWWIP
 							p=0
 							if [[ $MAILIP != $IPADR ]]; then
 								echo "${error} mail.${MYDOMAIN} does not resolve to the IP address of your server (${IPADR})" | awk '{ print strftime("[%H:%M:%S] |"), $0 }'
@@ -210,13 +216,19 @@ cat > /etc/hosts <<END
 ff02::1 ip6-allnodes
 ff02::2 ip6-allrouters
 END
-echo -e "${IPADR} mail.${MYDOMAIN} mail" >> /etc/hosts
-if [ -f /etc/mailname ]; then
+
+if [ ${USE_MAILSERVER} == '1' ]; then
+	echo -e "${IPADR} mail.${MYDOMAIN} mail" >> /etc/hosts
+else
+	echo -e "${IPADR} ${MYDOMAIN} $(echo ${MYDOMAIN} | cut -f 1 -d '.')" >> /etc/hosts
+fi
+
+if [ ${USE_MAILSERVER} == '1' ]; then
 	echo "mail.${MYDOMAIN}" > /etc/mailname
 else
-	touch /etc/mailname
-	echo "mail.${MYDOMAIN}" > /etc/mailname
+	echo "${MYDOMAIN}" > /etc/mailname
 fi
+
 echo "${info} Setting your hostname..." | awk '{ print strftime("[%H:%M:%S] |"), $0 }'
 if [[ -z $(dpkg --get-selections | grep -E "^dbus.*install$") ]]; then
 	apt-get update -y >/dev/null 2>&1 && apt-get -y --force-yes install dbus >/dev/null 2>&1
@@ -237,6 +249,7 @@ if [[ -f /usr/share/zoneinfo/${TIMEZONE} ]] ; then
 fi
 echo "${info} Installing prerequisites..." | awk '{ print strftime("[%H:%M:%S] |"), $0 }'
 echo "${warn} Some of the tasks could take a long time, please be patient!" | awk '{ print strftime("[%H:%M:%S] |"), $0 }'
+
 rm /etc/apt/sources.list
 cat > /etc/apt/sources.list <<END
 # Stable
@@ -284,7 +297,7 @@ wget -O ~/sources/dotdeb.gpg http://www.dotdeb.org/dotdeb.gpg >/dev/null 2>&1 &&
 apt-get update -y >/dev/null 2>&1 && apt-get -y upgrade >/dev/null 2>&1
 apt-get -y --force-yes install aptitude ssl-cert whiptail apt-utils jq >/dev/null 2>&1
 /usr/sbin/make-ssl-cert generate-default-snakeoil --force-overwrite
-DEBIAN_FRONTEND=noninteractive aptitude -y install apache2-threaded-dev apache2-utils apt-listchanges arj autoconf automake bison bsd-mailx build-essential bzip2 ca-certificates cabextract checkinstall curl dnsutils file flex gcc git htop libapr1-dev libaprutil1 libaprutil1-dev libauthen-sasl-perl-Daemon libawl-php libcrypt-ssleay-perl libcurl4-openssl-dev libdbi-perl libio-socket-ssl-perl libio-string-perl liblockfile-simple-perl liblogger-syslog-perl libmail-dkim-perl libmail-spf-perl libmime-base64-urlsafe-perl libnet-dns-perl libnet-ident-perl libnet-LDAP-perl libnet1 libnet1-dev libpam-dev libpcre-ocaml-dev libpcre3 libpcre3-dev libreadline6-dev libtest-tempdir-perl libtool libwww-perl libxml2 libxml2-dev libxml2-utils libxslt1-dev libyaml-dev lsb-release lzop mariadb-server memcached mlocate nomarch php-auth-sasl php-auth-sasl php-http-request php-http-request php-mail php-mail-mime php-mail-mimedecode php-net-dime php-net-smtp php-net-url php-pear php-soap php5 php5-apcu php5-cli php5-common php5-common php5-curl php5-dev php5-fpm php5-gd php5-igbinary php5-imap php5-intl php5-mcrypt php5-mysql php5-sqlite php5-xmlrpc php5-xsl python-setuptools python-software-properties rkhunter software-properties-common subversion sudo unzip vim-nox zip zlib1g zlib1g-dbg zlib1g-de zoo >/dev/null 2>&1
+DEBIAN_FRONTEND=noninteractive aptitude -y install apache2-threaded-dev apache2-utils apt-listchanges arj autoconf automake bison bsd-mailx build-essential bzip2 ca-certificates cabextract checkinstall curl dnsutils file flex gcc git htop libapr1-dev libaprutil1 libaprutil1-dev libauthen-sasl-perl-Daemon libawl-php libcrypt-ssleay-perl libcurl4-openssl-dev libdbi-perl libio-socket-ssl-perl libio-string-perl liblockfile-simple-perl liblogger-syslog-perl libmail-dkim-perl libmail-spf-perl libmime-base64-urlsafe-perl libnet-dns-perl libnet-ident-perl libnet-LDAP-perl libnet1 libnet1-dev libpam-dev libpcre-ocaml-dev libpcre3 libpcre3-dev libreadline6-dev libtest-tempdir-perl libtool libwww-perl libxml2 libxml2-dev libxml2-utils libxslt1-dev libyaml-dev lzop mariadb-server memcached mlocate nomarch php-auth-sasl php-auth-sasl php-http-request php-http-request php-mail php-mail-mime php-mail-mimedecode php-net-dime php-net-smtp php-net-url php-pear php-soap php5 php5-apcu php5-cli php5-common php5-common php5-curl php5-dev php5-fpm php5-gd php5-igbinary php5-imap php5-intl php5-mcrypt php5-mysql php5-sqlite php5-xmlrpc php5-xsl python-setuptools python-software-properties rkhunter software-properties-common subversion sudo unzip vim-nox zip zlib1g zlib1g-dbg zlib1g-de zoo >/dev/null 2>&1
 
 if [ "$?" -ne "0" ]; then
 	echo "${error} Package installation failed!" | awk '{ print strftime("[%H:%M:%S] |"), $0 }'
@@ -308,6 +321,7 @@ sed -i '41s/.*/#innodb_table_locks = 0 #disable table lock, uncomment if you do 
 # Automated mysql_secure_installation
 mysql -u root -p${MYSQL_ROOT_PASS} -e "DELETE FROM mysql.user WHERE User=''; DELETE FROM mysql.user WHERE User='root' AND Host NOT IN ('localhost', '127.0.0.1', '::1'); DROP DATABASE IF EXISTS test; FLUSH PRIVILEGES; DELETE FROM mysql.db WHERE Db='test' OR Db='test\\_%'; FLUSH PRIVILEGES;" >/dev/null 2>&1
 
+# Bash
 cd ~/sources
 mkdir bash && cd $_
 echo "${info} Downloading GNU bash & latest security patches..." | awk '{ print strftime("[%H:%M:%S] |"), $0 }'
@@ -319,6 +333,8 @@ for i in ../bash43-[0-9][0-9][0-9]; do patch -p0 -s < $i; done
 echo "${info} Compiling GNU bash..." | awk '{ print strftime("[%H:%M:%S] |"), $0 }'
 ./configure --prefix=/usr/local >/dev/null 2>&1 && make >/dev/null 2>&1 && make install >/dev/null 2>&1
 cp -f /usr/local/bin/bash /bin/bash
+
+# OpenSSL
 echo "${info} Installing OpenSSL libs & headers..." | awk '{ print strftime("[%H:%M:%S] |"), $0 }'
 DEBIAN_FRONTEND=noninteractive apt-get -y --force-yes install openssl/unstable libssl-dev/unstable >/dev/null 2>&1
 cd ~/sources
@@ -389,6 +405,7 @@ cat > $_ <<END
 END
 systemctl -q restart ssh.service
 
+# Nginx
 cd ~/sources
 echo "${info} Downloading Nginx Pagespeed..." | awk '{ print strftime("[%H:%M:%S] |"), $0 }'
 wget https://github.com/pagespeed/ngx_pagespeed/archive/release-${NPS_VERSION}-beta.zip >/dev/null 2>&1
@@ -1772,7 +1789,7 @@ update-rc.d -f arno-iptables-firewall start 11 S . stop 10 0 6 >/dev/null 2>&1
 # Configure firewall.conf
 bash /usr/local/share/environment >/dev/null 2>&1
 sed -i "s/^Port 22/Port ${SSH}/g" /etc/ssh/sshd_config
-sed -i 's/^EXT_IF=.*/EXT_IF="eth0"/' /etc/arno-iptables-firewall/firewall.conf
+sed -i 's/^EXT_IF=.*/EXT_IF="${INTERFACE}"/' /etc/arno-iptables-firewall/firewall.conf
 sed -i 's/^EXT_IF_DHCP_IP=.*/EXT_IF_DHCP_IP="0"/' /etc/arno-iptables-firewall/firewall.conf
 sed -i 's/^#FIREWALL_LOG=.*/FIREWALL_LOG="\/var\/log\/firewall.log"/' /etc/arno-iptables-firewall/firewall.conf
 sed -i 's/^DRDOS_PROTECT=.*/DRDOS_PROTECT="1"/' /etc/arno-iptables-firewall/firewall.conf
@@ -1873,7 +1890,7 @@ fs.inotify.max_user_instances=2048
 net.ipv6.conf.all.disable_ipv6 = 1
 net.ipv6.conf.default.disable_ipv6 = 1
 net.ipv6.conf.lo.disable_ipv6 = 1
-net.ipv6.conf.eth0.disable_ipv6 = 1
+net.ipv6.conf.${INTERFACE}.disable_ipv6 = 1
 END
 
 # Enable changes
@@ -2084,6 +2101,7 @@ instructions() {
 		echo "The subomains mail.${MYDOMAIN}, dav.${MYDOMAIN}, autodiscover.${MYDOMAIN} and autoconfig.${MYDOMAIN}" | awk '{ print strftime("[%H:%M:%S] |"), $0 }'
 		echo "must have an \"A\" record that resolves to your IP adress: ${IPADR}" | awk '{ print strftime("[%H:%M:%S] |"), $0 }'
 		while true; do
+			unset FQDNIP MAILIP ADIP ACIP DAVIP CHECKRDNS
 			echo
 			echo
 			if [ ${CLOUDFLARE} == '0' ]; then
@@ -2143,6 +2161,7 @@ instructions() {
 		echo "-----------------------------------------" | awk '{ print strftime("[%H:%M:%S] |"), $0 }'
 		echo "${MYDOMAIN}	  MX	  10:mail.${MYDOMAIN}" | awk '{ print strftime("[%H:%M:%S] |"), $0 }'
 		while true; do
+			unset CHECKMX
 			if [[ -z $CHECKMX ]]; then
 				echo
 				echo
@@ -2196,6 +2215,7 @@ instructions() {
 		echo "Domain:   ${MYDOMAIN}" | awk '{ print strftime("[%H:%M:%S] |"), $0 }'
 		echo "Selector: mail" | awk '{ print strftime("[%H:%M:%S] |"), $0 }'
 		while true; do
+			unset CHECKAC CHECKSPF CHECKDKIM
 			echo
 			echo
 			if [[ -z $CHECKAC ]]; then
@@ -2280,7 +2300,7 @@ instructions() {
 			for srv in _autodiscover _carddavs _caldavs _imap _imaps _submission _pop3 _pop3s
 			do
 				sleep 1.5
-				if [[ -z $(dig srv ${srv}._tcp.${MYDOMAIN} @4.2.2.1 +short) ]]; then
+				if [[ -z $(dig srv ${srv}._tcp.${MYDOMAIN} @213.202.215.23 +short) ]]; then
 					echo "${warn} SRV record not found: $(textb ${srv}._tcp.${MYDOMAIN})" | awk '{ print strftime("[%H:%M:%S] |"), $0 }'
 				else
 					echo "${ok} Valid SRV record found: $(textb ${srv}._tcp.${MYDOMAIN})" | awk '{ print strftime("[%H:%M:%S] |"), $0 }'
@@ -2332,19 +2352,24 @@ echo "$(date +"[%T]") | $(textb +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+)"
 echo
 echo "$(date +"[%T]") | ${info} Welcome to the Perfect Rootserver installation!"
 
-if [ $(dpkg-query -l | grep dig | wc -l) -ne 1 ]; then
+if [ $(dpkg-query -l | grep dnsutils | wc -l) -ne 1 ]; then
 	apt-get update -y >/dev/null 2>&1 && apt-get -y --force-yes install dnsutils >/dev/null 2>&1
 fi
 
-IPADR=$(ifconfig eth0 | awk -F ' *|:' '/inet /{print $4}')
-FQDNIP=$(source ~/userconfig.cfg; dig @4.2.2.1 +short ${MYDOMAIN})
-WWWIP=$(source ~/userconfig.cfg; dig @4.2.2.1 +short www.${MYDOMAIN})
-ACIP=$(source ~/userconfig.cfg; dig @4.2.2.1 +short autoconfig.${MYDOMAIN})
-ADIP=$(source ~/userconfig.cfg; dig @4.2.2.1 +short autodiscover.${MYDOMAIN})
-DAVIP=$(source ~/userconfig.cfg; dig @4.2.2.1 +short dav.${MYDOMAIN})
-MAILIP=$(source ~/userconfig.cfg; dig @4.2.2.1 +short mail.${MYDOMAIN})
-CHECKAC=$(source ~/userconfig.cfg; dig ${MYDOMAIN} txt @4.2.2.1 | grep -i mailconf=)
-CHECKMX=$(source ~/userconfig.cfg; dig mx ${MYDOMAIN} @4.2.2.1 +short)
-CHECKSPF=$(source ~/userconfig.cfg; dig ${MYDOMAIN} txt @4.2.2.1 | grep -i spf)
-CHECKDKIM=$(source ~/userconfig.cfg; dig mail._domainkey.${MYDOMAIN} txt @4.2.2.1 | grep -i DKIM1)
-CHECKRDNS=$(dig -x ${IPADR} +short)
+if [ $(dpkg-query -l | grep openssl | wc -l) -ne 1 ]; then
+	apt-get update -y >/dev/null 2>&1 && apt-get -y --force-yes install openssl >/dev/null 2>&1
+fi
+
+IPADR=$(ip route get 213.202.215.23 | head -1 | cut -d' ' -f8)
+INTERFACE=$(ip route get 213.202.215.23 | head -1 | cut -d' ' -f5)
+FQDNIP=$(source ~/userconfig.cfg; dig @213.202.215.23 +short ${MYDOMAIN})
+WWWIP=$(source ~/userconfig.cfg; dig @213.202.215.23 +short www.${MYDOMAIN})
+ACIP=$(source ~/userconfig.cfg; dig @213.202.215.23 +short autoconfig.${MYDOMAIN})
+ADIP=$(source ~/userconfig.cfg; dig @213.202.215.23 +short autodiscover.${MYDOMAIN})
+DAVIP=$(source ~/userconfig.cfg; dig @213.202.215.23 +short dav.${MYDOMAIN})
+MAILIP=$(source ~/userconfig.cfg; dig @213.202.215.23 +short mail.${MYDOMAIN})
+CHECKAC=$(source ~/userconfig.cfg; dig @213.202.215.23 ${MYDOMAIN} txt | grep -i mailconf=)
+CHECKMX=$(source ~/userconfig.cfg; dig @213.202.215.23 mx ${MYDOMAIN} +short)
+CHECKSPF=$(source ~/userconfig.cfg; dig @213.202.215.23 ${MYDOMAIN} txt | grep -i spf)
+CHECKDKIM=$(source ~/userconfig.cfg; dig @213.202.215.23 mail._domainkey.${MYDOMAIN} txt | grep -i DKIM1)
+CHECKRDNS=$(dig @213.202.215.23 -x ${IPADR} +short)
