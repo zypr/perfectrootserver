@@ -54,10 +54,18 @@ checksystem() {
 
 	if [ "$(dmidecode -s system-product-name)" == 'Bochs' ] || [ "$(dmidecode -s system-product-name)" == 'KVM' ] || [ "$(dmidecode -s system-product-name)" == 'All Series' ] || [ "$(dmidecode -s system-product-name)" == 'OpenStack Nova' ] || [ "$(dmidecode -s system-product-name)" == 'Standard' ]; then
 		echo >> /dev/null
-	else	
-        echo "${warn} This script does not support the virtualization technology ($(textb $(dmidecode -s system-product-name)))" | awk '{ print strftime("[%H:%M:%S] |"), $0 }'
-        echo "${info} Press $(textb ENTER) to skip this warning and proceed at your own risk or $(textb CTRL-C) to cancel the process" | awk '{ print strftime("[%H:%M:%S] |"), $0 }'
-        read -s -n 1 i
+	else
+		if [ $(dpkg-query -l | grep facter | wc -l) -ne 1 ]; then
+			apt-get update -y >/dev/null 2>&1 && apt-get -y --force-yes install facter >/dev/null 2>&1
+		fi
+
+		if	[ "$(facter virtual)" == 'physical' ] || [ "$(facter virtual)" == 'kvm' ]; then
+			echo >> /dev/null
+		else
+	        echo "${warn} This script does not support the virtualization technology ($(dmidecode -s system-product-name))" | awk '{ print strftime("[%H:%M:%S] |"), $0 }'
+	        echo "${info} Press $(textb ENTER) to skip this warning and proceed at your own risk or $(textb CTRL-C) to cancel the process" | awk '{ print strftime("[%H:%M:%S] |"), $0 }'
+	        read -s -n 1 i
+        fi
 	fi
 
 	if [ ${CLOUDFLARE} != '1' ]; then
@@ -219,8 +227,10 @@ END
 
 if [ ${USE_MAILSERVER} == '1' ]; then
 	echo -e "${IPADR} mail.${MYDOMAIN} mail" >> /etc/hosts
+	hostnamectl set-hostname mail
 else
 	echo -e "${IPADR} ${MYDOMAIN} $(echo ${MYDOMAIN} | cut -f 1 -d '.')" >> /etc/hosts
+	hostnamectl set-hostname $(echo ${MYDOMAIN} | cut -f 1 -d '.')
 fi
 
 if [ ${USE_MAILSERVER} == '1' ]; then
@@ -233,7 +243,6 @@ echo "${info} Setting your hostname..." | awk '{ print strftime("[%H:%M:%S] |"),
 if [[ -z $(dpkg --get-selections | grep -E "^dbus.*install$") ]]; then
 	apt-get update -y >/dev/null 2>&1 && apt-get -y --force-yes install dbus >/dev/null 2>&1
 fi
-hostnamectl set-hostname mail
 
 echo "${info} Setting your timezone..." | awk '{ print strftime("[%H:%M:%S] |"), $0 }'
 if [[ -f /usr/share/zoneinfo/${TIMEZONE} ]] ; then
@@ -296,7 +305,6 @@ wget -O ~/sources/dovecot.key http://xi.rename-it.nl/debian/archive.key  >/dev/n
 wget -O ~/sources/dotdeb.gpg http://www.dotdeb.org/dotdeb.gpg >/dev/null 2>&1 && apt-key add ~/sources/dotdeb.gpg >/dev/null 2>&1
 apt-get update -y >/dev/null 2>&1 && apt-get -y upgrade >/dev/null 2>&1
 apt-get -y --force-yes install aptitude ssl-cert whiptail apt-utils jq >/dev/null 2>&1
-/usr/sbin/make-ssl-cert generate-default-snakeoil --force-overwrite
 DEBIAN_FRONTEND=noninteractive aptitude -y install apache2-threaded-dev apache2-utils apt-listchanges arj autoconf automake bison bsd-mailx build-essential bzip2 ca-certificates cabextract checkinstall curl dnsutils file flex gcc git htop libapr1-dev libaprutil1 libaprutil1-dev libauthen-sasl-perl-Daemon libawl-php libcrypt-ssleay-perl libcurl4-openssl-dev libdbi-perl libio-socket-ssl-perl libio-string-perl liblockfile-simple-perl liblogger-syslog-perl libmail-dkim-perl libmail-spf-perl libmime-base64-urlsafe-perl libnet-dns-perl libnet-ident-perl libnet-LDAP-perl libnet1 libnet1-dev libpam-dev libpcre-ocaml-dev libpcre3 libpcre3-dev libreadline6-dev libtest-tempdir-perl libtool libwww-perl libxml2 libxml2-dev libxml2-utils libxslt1-dev libyaml-dev lzop mariadb-server memcached mlocate nomarch php-auth-sasl php-auth-sasl php-http-request php-http-request php-mail php-mail-mime php-mail-mimedecode php-net-dime php-net-smtp php-net-url php-pear php-soap php5 php5-apcu php5-cli php5-common php5-common php5-curl php5-dev php5-fpm php5-gd php5-igbinary php5-imap php5-intl php5-mcrypt php5-mysql php5-sqlite php5-xmlrpc php5-xsl python-setuptools python-software-properties rkhunter software-properties-common subversion sudo unzip vim-nox zip zlib1g zlib1g-dbg zlib1g-de zoo >/dev/null 2>&1
 
 if [ "$?" -ne "0" ]; then
@@ -1789,12 +1797,12 @@ update-rc.d -f arno-iptables-firewall start 11 S . stop 10 0 6 >/dev/null 2>&1
 # Configure firewall.conf
 bash /usr/local/share/environment >/dev/null 2>&1
 sed -i "s/^Port 22/Port ${SSH}/g" /etc/ssh/sshd_config
-sed -i 's/^EXT_IF=.*/EXT_IF="${INTERFACE}"/' /etc/arno-iptables-firewall/firewall.conf
-sed -i 's/^EXT_IF_DHCP_IP=.*/EXT_IF_DHCP_IP="0"/' /etc/arno-iptables-firewall/firewall.conf
-sed -i 's/^#FIREWALL_LOG=.*/FIREWALL_LOG="\/var\/log\/firewall.log"/' /etc/arno-iptables-firewall/firewall.conf
-sed -i 's/^DRDOS_PROTECT=.*/DRDOS_PROTECT="1"/' /etc/arno-iptables-firewall/firewall.conf
-sed -i 's/^OPEN_ICMP=.*/OPEN_ICMP="1"/' /etc/arno-iptables-firewall/firewall.conf
-sed -i 's/^#BLOCK_HOSTS_FILE=.*/BLOCK_HOSTS_FILE="\/etc\/arno-iptables-firewall\/blocked-hosts"/' /etc/arno-iptables-firewall/firewall.conf
+sed -i "s/^EXT_IF=.*/EXT_IF="${INTERFACE}"/g" /etc/arno-iptables-firewall/firewall.conf
+sed -i 's/^EXT_IF_DHCP_IP=.*/EXT_IF_DHCP_IP="0"/g' /etc/arno-iptables-firewall/firewall.conf
+sed -i 's/^#FIREWALL_LOG=.*/FIREWALL_LOG="\/var\/log\/firewall.log"/g' /etc/arno-iptables-firewall/firewall.conf
+sed -i 's/^DRDOS_PROTECT=.*/DRDOS_PROTECT="1"/g' /etc/arno-iptables-firewall/firewall.conf
+sed -i 's/^OPEN_ICMP=.*/OPEN_ICMP="1"/g' /etc/arno-iptables-firewall/firewall.conf
+sed -i 's/^#BLOCK_HOSTS_FILE=.*/BLOCK_HOSTS_FILE="\/etc\/arno-iptables-firewall\/blocked-hosts"/g' /etc/arno-iptables-firewall/firewall.conf
 if [ ${USE_MAILSERVER} == '1' ]; then
 	sed -i "s/^OPEN_TCP=.*/OPEN_TCP=\"${SSH}, 25, 80, 110, 143, 443, 465, 587, 993, 995\"/" /etc/arno-iptables-firewall/firewall.conf
 else
