@@ -225,6 +225,10 @@ ff02::1 ip6-allnodes
 ff02::2 ip6-allrouters
 END
 
+if [[ -z $(dpkg --get-selections | grep -E "^dbus.*install$") ]]; then
+	apt-get update -y >/dev/null 2>&1 && apt-get -y --force-yes install dbus >/dev/null 2>&1
+fi
+
 if [ ${USE_MAILSERVER} == '1' ]; then
 	echo -e "${IPADR} mail.${MYDOMAIN} mail" >> /etc/hosts
 	hostnamectl set-hostname mail
@@ -240,9 +244,6 @@ else
 fi
 
 echo "${info} Setting your hostname..." | awk '{ print strftime("[%H:%M:%S] |"), $0 }'
-if [[ -z $(dpkg --get-selections | grep -E "^dbus.*install$") ]]; then
-	apt-get update -y >/dev/null 2>&1 && apt-get -y --force-yes install dbus >/dev/null 2>&1
-fi
 
 echo "${info} Setting your timezone..." | awk '{ print strftime("[%H:%M:%S] |"), $0 }'
 if [[ -f /usr/share/zoneinfo/${TIMEZONE} ]] ; then
