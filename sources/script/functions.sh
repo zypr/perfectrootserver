@@ -124,6 +124,7 @@ checksystem() {
 				else
 					while true; do
 						if [[ $WWWIP != $IPADR ]]; then
+							unset WWWIP
 							echo "${error} www.${MYDOMAIN} does not resolve to the IP address of your server (${IPADR})" | awk '{ print strftime("[%H:%M:%S] |"), $0 }'
 							echo
 							echo "${warn} Please check your DNS-Records." | awk '{ print strftime("[%H:%M:%S] |"), $0 }'
@@ -306,7 +307,7 @@ wget -O ~/sources/dovecot.key http://xi.rename-it.nl/debian/archive.key  >/dev/n
 wget -O ~/sources/dotdeb.gpg http://www.dotdeb.org/dotdeb.gpg >/dev/null 2>&1 && apt-key add ~/sources/dotdeb.gpg >/dev/null 2>&1
 apt-get update -y >/dev/null 2>&1 && apt-get -y upgrade >/dev/null 2>&1
 apt-get -y --force-yes install aptitude ssl-cert whiptail apt-utils jq >/dev/null 2>&1
-DEBIAN_FRONTEND=noninteractive aptitude -y install apache2-threaded-dev apache2-utils apt-listchanges arj autoconf automake bison bsd-mailx build-essential bzip2 ca-certificates cabextract checkinstall curl dnsutils file flex gcc git htop libapr1-dev libaprutil1 libaprutil1-dev libauthen-sasl-perl-Daemon libawl-php libcrypt-ssleay-perl libcurl4-openssl-dev libdbi-perl libio-socket-ssl-perl libio-string-perl liblockfile-simple-perl liblogger-syslog-perl libmail-dkim-perl libmail-spf-perl libmime-base64-urlsafe-perl libnet-dns-perl libnet-ident-perl libnet-LDAP-perl libnet1 libnet1-dev libpam-dev libpcre-ocaml-dev libpcre3 libpcre3-dev libreadline6-dev libtest-tempdir-perl libtool libwww-perl libxml2 libxml2-dev libxml2-utils libxslt1-dev libyaml-dev lzop mariadb-server memcached mlocate nomarch php-auth-sasl php-auth-sasl php-http-request php-http-request php-mail php-mail-mime php-mail-mimedecode php-net-dime php-net-smtp php-net-url php-pear php-soap php5 php5-apcu php5-cli php5-common php5-common php5-curl php5-dev php5-fpm php5-gd php5-igbinary php5-imap php5-intl php5-mcrypt php5-mysql php5-sqlite php5-xmlrpc php5-xsl python-setuptools python-software-properties rkhunter software-properties-common subversion sudo unzip vim-nox zip zlib1g zlib1g-dbg zlib1g-de zoo >/dev/null 2>&1
+DEBIAN_FRONTEND=noninteractive aptitude -y install apache2-threaded-dev apache2-utils apt-listchanges arj autoconf automake bison bsd-mailx build-essential bzip2 ca-certificates cabextract checkinstall curl dnsutils file flex gcc git htop libapr1-dev libaprutil1 libaprutil1-dev libauthen-sasl-perl-Daemon libawl-php libcrypt-ssleay-perl libcurl4-openssl-dev libdbi-perl libgeoip-dev libio-socket-ssl-perl libio-string-perl liblockfile-simple-perl liblogger-syslog-perl libmail-dkim-perl libmail-spf-perl libmime-base64-urlsafe-perl libnet-dns-perl libnet-ident-perl libnet-LDAP-perl libnet1 libnet1-dev libpam-dev libpcre-ocaml-dev libpcre3 libpcre3-dev libreadline6-dev libtest-tempdir-perl libtool libwww-perl libxml2 libxml2-dev libxml2-utils libxslt1-dev libyaml-dev lzop mariadb-server memcached mlocate nomarch php-auth-sasl php-auth-sasl php-http-request php-http-request php-mail php-mail-mime php-mail-mimedecode php-net-dime php-net-smtp php-net-url php-pear php-soap php5 php5-apcu php5-cli php5-common php5-common php5-curl php5-dev php5-fpm php5-geoip php5-gd php5-igbinary php5-imap php5-intl php5-mcrypt php5-mysql php5-sqlite php5-xmlrpc php5-xsl python-setuptools python-software-properties rkhunter software-properties-common subversion sudo unzip vim-nox zip zlib1g zlib1g-dbg zlib1g-de zoo >/dev/null 2>&1
 
 if [ "$?" -ne "0" ]; then
 	echo "${error} Package installation failed!" | awk '{ print strftime("[%H:%M:%S] |"), $0 }'
@@ -350,9 +351,9 @@ cd ~/sources
 wget http://www.openssl.org/source/openssl-${OPENSSL_VERSION}.tar.gz >/dev/null 2>&1
 tar -xzf openssl-${OPENSSL_VERSION}.tar.gz >/dev/null 2>&1
 echo "${info} Downloading OpenSSH..." | awk '{ print strftime("[%H:%M:%S] |"), $0 }'
-wget http://ftp.hostserver.de/pub/OpenBSD/OpenSSH/portable/openssh-${OPENSSH_VERSION}p1.tar.gz >/dev/null 2>&1
-tar -xzf openssh-${OPENSSH_VERSION}p1.tar.gz >/dev/null 2>&1
-cd openssh-${OPENSSH_VERSION}p1
+wget http://ftp.hostserver.de/pub/OpenBSD/OpenSSH/portable/openssh-${OPENSSH_VERSION}.tar.gz >/dev/null 2>&1
+tar -xzf openssh-${OPENSSH_VERSION}.tar.gz >/dev/null 2>&1
+cd openssh-${OPENSSH_VERSION}
 echo "${info} Compiling OpenSSH..." | awk '{ print strftime("[%H:%M:%S] |"), $0 }'
 ./configure --prefix=/usr --with-pam --with-zlib --with-ssl-engine --with-ssl-dir=/etc/ssl --sysconfdir=/etc/ssh >/dev/null 2>&1
 make >/dev/null 2>&1 && mv /etc/ssh{,.bak} && make install >/dev/null 2>&1
@@ -437,10 +438,8 @@ sed -i '49s/.*/static char ngx_http_server_string[] = "";/' src/http/ngx_http_he
 sed -i '50s/.*/static char ngx_http_server_full_string[] = "";/' src/http/ngx_http_header_filter_module.c
 sed -i '281s/.*/        len += clcf->server_tokens ? sizeof(ngx_http_server_full_string) - 0:/' src/http/ngx_http_header_filter_module.c
 sed -i '282s/.*/                                     sizeof(ngx_http_server_string) - 0;/' src/http/ngx_http_header_filter_module.c
-sed -i '217s/.*/\/*    if (r->headers_out.server == NULL) {/' src/http/v2/ngx_http_v2_filter_module.c
-sed -i '220s/.*/    } *\//' src/http/v2/ngx_http_v2_filter_module.c
-sed -i '407s/.*/\/*    if (r->headers_out.server == NULL) {/' src/http/v2/ngx_http_v2_filter_module.c
-sed -i '418s/.*/    } *\//' src/http/v2/ngx_http_v2_filter_module.c
+sed -i '232s/.*/\/*    if (r->headers_out.server == NULL) {/' src/http/v2/ngx_http_v2_filter_module.c
+sed -i '235s/.*/    } *\//' src/http/v2/ngx_http_v2_filter_module.c
 
 sed -i '20,298d' src/http/ngx_http_special_response.c
 sed -i '20s/.*/static char ngx_http_error_507_page[] ="";\n&/' src/http/ngx_http_special_response.c
@@ -504,6 +503,7 @@ sed -i '732s/.*/                (void) BIO_set_write_buffer_size(wbio, 16384);/'
 --with-http_ssl_module \
 --with-http_v2_module \
 --with-http_realip_module \
+--with-http_geoip_module \
 --with-http_addition_module \
 --with-http_sub_module \
 --with-http_dav_module \
@@ -2309,7 +2309,7 @@ instructions() {
 			for srv in _autodiscover _carddavs _caldavs _imap _imaps _submission _pop3 _pop3s
 			do
 				sleep 1.5
-				if [[ -z $(dig srv ${srv}._tcp.${MYDOMAIN} @213.202.215.23 +short) ]]; then
+				if [[ -z $(dig srv ${srv}._tcp.${MYDOMAIN} @64.6.64.6 +short) ]]; then
 					echo "${warn} SRV record not found: $(textb ${srv}._tcp.${MYDOMAIN})" | awk '{ print strftime("[%H:%M:%S] |"), $0 }'
 				else
 					echo "${ok} Valid SRV record found: $(textb ${srv}._tcp.${MYDOMAIN})" | awk '{ print strftime("[%H:%M:%S] |"), $0 }'
@@ -2369,16 +2369,16 @@ if [ $(dpkg-query -l | grep openssl | wc -l) -ne 1 ]; then
 	apt-get update -y >/dev/null 2>&1 && apt-get -y --force-yes install openssl >/dev/null 2>&1
 fi
 
-IPADR=$(ip route get 213.202.215.23 | head -1 | cut -d' ' -f8)
-INTERFACE=$(ip route get 213.202.215.23 | head -1 | cut -d' ' -f5)
-FQDNIP=$(source ~/userconfig.cfg; dig @213.202.215.23 +short ${MYDOMAIN})
-WWWIP=$(source ~/userconfig.cfg; dig @213.202.215.23 +short www.${MYDOMAIN})
-ACIP=$(source ~/userconfig.cfg; dig @213.202.215.23 +short autoconfig.${MYDOMAIN})
-ADIP=$(source ~/userconfig.cfg; dig @213.202.215.23 +short autodiscover.${MYDOMAIN})
-DAVIP=$(source ~/userconfig.cfg; dig @213.202.215.23 +short dav.${MYDOMAIN})
-MAILIP=$(source ~/userconfig.cfg; dig @213.202.215.23 +short mail.${MYDOMAIN})
-CHECKAC=$(source ~/userconfig.cfg; dig @213.202.215.23 ${MYDOMAIN} txt | grep -i mailconf=)
-CHECKMX=$(source ~/userconfig.cfg; dig @213.202.215.23 mx ${MYDOMAIN} +short)
-CHECKSPF=$(source ~/userconfig.cfg; dig @213.202.215.23 ${MYDOMAIN} txt | grep -i spf)
-CHECKDKIM=$(source ~/userconfig.cfg; dig @213.202.215.23 mail._domainkey.${MYDOMAIN} txt | grep -i DKIM1)
-CHECKRDNS=$(dig @213.202.215.23 -x ${IPADR} +short)
+IPADR=$(ip route get 64.6.64.6 | head -1 | cut -d' ' -f8)
+INTERFACE=$(ip route get 64.6.64.6 | head -1 | cut -d' ' -f5)
+FQDNIP=$(source ~/userconfig.cfg; dig @64.6.64.6 +short ${MYDOMAIN})
+WWWIP=$(source ~/userconfig.cfg; dig @64.6.64.6 +short www.${MYDOMAIN})
+ACIP=$(source ~/userconfig.cfg; dig @64.6.64.6 +short autoconfig.${MYDOMAIN})
+ADIP=$(source ~/userconfig.cfg; dig @64.6.64.6 +short autodiscover.${MYDOMAIN})
+DAVIP=$(source ~/userconfig.cfg; dig @64.6.64.6 +short dav.${MYDOMAIN})
+MAILIP=$(source ~/userconfig.cfg; dig @64.6.64.6 +short mail.${MYDOMAIN})
+CHECKAC=$(source ~/userconfig.cfg; dig @64.6.64.6 ${MYDOMAIN} txt | grep -i mailconf=)
+CHECKMX=$(source ~/userconfig.cfg; dig @64.6.64.6 mx ${MYDOMAIN} +short)
+CHECKSPF=$(source ~/userconfig.cfg; dig @64.6.64.6 ${MYDOMAIN} txt | grep -i spf)
+CHECKDKIM=$(source ~/userconfig.cfg; dig @64.6.64.6 mail._domainkey.${MYDOMAIN} txt | grep -i DKIM1)
+CHECKRDNS=$(dig @64.6.64.6 -x ${IPADR} +short)
