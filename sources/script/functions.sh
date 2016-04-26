@@ -432,50 +432,6 @@ cd nginx-${NGINX_VERSION}
 
 echo "${info} Compiling Nginx..." | awk '{ print strftime("[%H:%M:%S] |"), $0 }'
 
-sed -i '49s/.*/static char ngx_http_server_string[] = "";/' src/http/ngx_http_header_filter_module.c
-sed -i '50s/.*/static char ngx_http_server_full_string[] = "";/' src/http/ngx_http_header_filter_module.c
-sed -i '281s/.*/        len += clcf->server_tokens ? sizeof(ngx_http_server_full_string) - 0:/' src/http/ngx_http_header_filter_module.c
-sed -i '282s/.*/                                     sizeof(ngx_http_server_string) - 0;/' src/http/ngx_http_header_filter_module.c
-sed -i '232s/.*/\/*    if (r->headers_out.server == NULL) {/' src/http/v2/ngx_http_v2_filter_module.c
-sed -i '235s/.*/    } *\//' src/http/v2/ngx_http_v2_filter_module.c
-
-sed -i '20,298d' src/http/ngx_http_special_response.c
-sed -i '20s/.*/static char ngx_http_error_507_page[] ="";\n&/' src/http/ngx_http_special_response.c
-sed -i '20s/.*/static char ngx_http_error_504_page[] ="";\n&/' src/http/ngx_http_special_response.c
-sed -i '20s/.*/static char ngx_http_error_503_page[] ="";\n&/' src/http/ngx_http_special_response.c
-sed -i '20s/.*/static char ngx_http_error_502_page[] ="";\n&/' src/http/ngx_http_special_response.c
-sed -i '20s/.*/static char ngx_http_error_501_page[] ="";\n&/' src/http/ngx_http_special_response.c
-sed -i '20s/.*/static char ngx_http_error_500_page[] ="";\n&/' src/http/ngx_http_special_response.c
-sed -i '20s/.*/static char ngx_http_error_497_page[] ="";\n&/' src/http/ngx_http_special_response.c
-sed -i '20s/.*/static char ngx_http_error_496_page[] ="";\n&/' src/http/ngx_http_special_response.c
-sed -i '20s/.*/static char ngx_http_error_495_page[] ="";\n&/' src/http/ngx_http_special_response.c
-sed -i '20s/.*/static char ngx_http_error_494_page[] ="";\n&/' src/http/ngx_http_special_response.c
-sed -i '20s/.*/static char ngx_http_error_416_page[] ="";\n&/' src/http/ngx_http_special_response.c
-sed -i '20s/.*/static char ngx_http_error_415_page[] ="";\n&/' src/http/ngx_http_special_response.c
-sed -i '20s/.*/static char ngx_http_error_414_page[] ="";\n&/' src/http/ngx_http_special_response.c
-sed -i '20s/.*/static char ngx_http_error_413_page[] ="";\n&/' src/http/ngx_http_special_response.c
-sed -i '20s/.*/static char ngx_http_error_412_page[] ="";\n&/' src/http/ngx_http_special_response.c
-sed -i '20s/.*/static char ngx_http_error_411_page[] ="";\n&/' src/http/ngx_http_special_response.c
-sed -i '20s/.*/static char ngx_http_error_410_page[] ="";\n&/' src/http/ngx_http_special_response.c
-sed -i '20s/.*/static char ngx_http_error_409_page[] ="";\n&/' src/http/ngx_http_special_response.c
-sed -i '20s/.*/static char ngx_http_error_408_page[] ="";\n&/' src/http/ngx_http_special_response.c
-sed -i '20s/.*/static char ngx_http_error_406_page[] ="";\n&/' src/http/ngx_http_special_response.c
-sed -i '20s/.*/static char ngx_http_error_405_page[] ="";\n&/' src/http/ngx_http_special_response.c
-sed -i '20s/.*/static char ngx_http_error_404_page[] ="";\n&/' src/http/ngx_http_special_response.c
-sed -i '20s/.*/static char ngx_http_error_403_page[] ="";\n&/' src/http/ngx_http_special_response.c
-sed -i '20s/.*/static char ngx_http_error_402_page[] ="";\n&/' src/http/ngx_http_special_response.c
-sed -i '20s/.*/static char ngx_http_error_401_page[] ="";\n&/' src/http/ngx_http_special_response.c
-sed -i '20s/.*/static char ngx_http_error_400_page[] ="";\n&/' src/http/ngx_http_special_response.c
-sed -i '20s/.*/static char ngx_http_error_307_page[] ="";\n&/' src/http/ngx_http_special_response.c
-sed -i '20s/.*/static char ngx_http_error_303_page[] ="";\n&/' src/http/ngx_http_special_response.c
-sed -i '20s/.*/static char ngx_http_error_302_page[] ="";\n&/' src/http/ngx_http_special_response.c
-sed -i '20s/.*/static char ngx_http_error_301_page[] ="";\n&/' src/http/ngx_http_special_response.c
-sed -i '20s/.*/static u_char ngx_http_msie_refresh_tail[] ="";\n&/' src/http/ngx_http_special_response.c
-sed -i '20s/.*/static u_char ngx_http_msie_refresh_head[] ="";\n&/' src/http/ngx_http_special_response.c
-sed -i '20s/.*/static u_char ngx_http_msie_padding[] ="";\n&/' src/http/ngx_http_special_response.c
-sed -i '20s/.*/static u_char ngx_http_error_tail[] =""CRLF;\n&/' src/http/ngx_http_special_response.c
-sed -i '20s/.*/static u_char ngx_http_error_full_tail[] =""CRLF;\n&/' src/http/ngx_http_special_response.c
-
 sed -i '121s/.*/#define NGX_SSL_BUFSIZE  1400/' src/event/ngx_event_openssl.h
 sed -i '732s/.*/                (void) BIO_set_write_buffer_size(wbio, 16384);/' src/event/ngx_event_openssl.c
 
@@ -560,6 +516,7 @@ update-rc.d nginx defaults
 
 # Edit/create Nginx config files
 echo "${info} Configuring Nginx..." | awk '{ print strftime("[%H:%M:%S] |"), $0 }'
+
 rm -rf /etc/nginx/nginx.conf
 cat > /etc/nginx/nginx.conf <<END
 user www-data;
