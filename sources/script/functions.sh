@@ -81,7 +81,6 @@ checksystem() {
 				fi
 				if [ ${USE_MAILSERVER} == '1' ]; then
 						while true; do
-							unset MAILIP ACIP ADIP DAVIP WWWIP
 							p=0
 							if [[ $MAILIP != $IPADR ]]; then
 								echo "${error} mail.${MYDOMAIN} does not resolve to the IP address of your server (${IPADR})" | awk '{ print strftime("[%H:%M:%S] |"), $0 }'
@@ -124,7 +123,6 @@ checksystem() {
 				else
 					while true; do
 						if [[ $WWWIP != $IPADR ]]; then
-							unset WWWIP
 							echo "${error} www.${MYDOMAIN} does not resolve to the IP address of your server (${IPADR})" | awk '{ print strftime("[%H:%M:%S] |"), $0 }'
 							echo
 							echo "${warn} Please check your DNS-Records." | awk '{ print strftime("[%H:%M:%S] |"), $0 }'
@@ -2110,7 +2108,6 @@ instructions() {
 		echo "The subomains mail.${MYDOMAIN}, dav.${MYDOMAIN}, autodiscover.${MYDOMAIN} and autoconfig.${MYDOMAIN}" | awk '{ print strftime("[%H:%M:%S] |"), $0 }'
 		echo "must have an \"A\" record that resolves to your IP adress: ${IPADR}" | awk '{ print strftime("[%H:%M:%S] |"), $0 }'
 		while true; do
-			unset FQDNIP MAILIP ADIP ACIP DAVIP CHECKRDNS
 			echo
 			echo
 			if [ ${CLOUDFLARE} == '0' ]; then
@@ -2170,7 +2167,6 @@ instructions() {
 		echo "-----------------------------------------" | awk '{ print strftime("[%H:%M:%S] |"), $0 }'
 		echo "${MYDOMAIN}	  MX	  10:mail.${MYDOMAIN}" | awk '{ print strftime("[%H:%M:%S] |"), $0 }'
 		while true; do
-			unset CHECKMX
 			if [[ -z $CHECKMX ]]; then
 				echo
 				echo
@@ -2224,7 +2220,6 @@ instructions() {
 		echo "Domain:   ${MYDOMAIN}" | awk '{ print strftime("[%H:%M:%S] |"), $0 }'
 		echo "Selector: mail" | awk '{ print strftime("[%H:%M:%S] |"), $0 }'
 		while true; do
-			unset CHECKAC CHECKSPF CHECKDKIM
 			echo
 			echo
 			if [[ -z $CHECKAC ]]; then
