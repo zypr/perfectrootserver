@@ -294,31 +294,31 @@ deb	http://ftp.debian.org/debian/ experimental main contrib non-free
 deb-src http://ftp.debian.org/debian/ experimental main contrib non-free
 END
 
-/etc/apt/preferences.d/security.pref <<END
+cat > /etc/apt/preferences.d/security.pref <<END
 Package: *
 Pin: release l=Debian-Security
 Pin-Priority: 1000
 END
 
-/etc/apt/preferences.d/stable.pref <<END
+cat > /etc/apt/preferences.d/stable.pref <<END
 Package: *
 Pin: release a=stable
 Pin-Priority: 900
 END
 
-/etc/apt/preferences.d/testing.pref <<END
+cat > /etc/apt/preferences.d/testing.pref <<END
 Package: *
 Pin: release a=testing
 Pin-Priority: 750
 END
 
-/etc/apt/preferences.d/unstable.pref <<END
+cat > /etc/apt/preferences.d/unstable.pref <<END
 Package: *
 Pin: release a=unstable
 Pin-Priority: 50
 END
 
-/etc/apt/preferences.d/experimental.pref <<END
+cat > /etc/apt/preferences.d/experimental.pref <<END
 Package: *
 Pin: release a=experimental
 Pin-Priority: 1
