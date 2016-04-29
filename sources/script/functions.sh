@@ -261,44 +261,67 @@ echo "${warn} Some of the tasks could take a long time, please be patient!" | aw
 
 rm /etc/apt/sources.list
 cat > /etc/apt/sources.list <<END
-# Stable
-deb http://ftp.debian.org/debian stable main contrib non-free
-deb-src http://ftp.debian.org/debian stable main contrib non-free
-
-# Security updates
-deb http://security.debian.org/ stable/updates main contrib non-free
-deb http://security.debian.org/ testing/updates main contrib non-free
-deb-src http://security.debian.org/ stable/updates main contrib non-free
-deb-src http://security.debian.org/ testing/updates main contrib non-free
-
-# Testing
-deb http://ftp.debian.org/debian testing main contrib non-free
-deb-src http://ftp.debian.org/debian testing main contrib non-free
-
-# Unstable
-deb http://ftp.debian.org/debian unstable main contrib non-free
-deb-src http://ftp.debian.org/debian unstable main contrib non-free
-
 # Dotdeb
 deb http://packages.dotdeb.org jessie all
 deb-src http://packages.dotdeb.org jessie all
 
 # Doveocot
-deb http://xi.rename-it.nl/debian/ stable-auto/dovecot-2.2 main
+deb http://xi.rename-it.nl/debian/ stable-auto/dovecot-2.3 main
 END
 
-cat > /etc/apt/preferences.d/preferences <<END
+cat > /etc/apt/sources.list.d/security.list <<END
+deb http://security.debian.org/ stable/updates main contrib non-free
+deb http://security.debian.org/ testing/updates main contrib non-free
+END
+
+cat > /etc/apt/sources.list.d/stable.list <<END
+deb	http://ftp.debian.org/debian/ stable main contrib non-free
+deb-src http://ftp.debian.org/debian/ stable main contrib non-free
+END
+
+cat > /etc/apt/sources.list.d/testing.list <<END
+deb	http://ftp.debian.org/debian/ testing main contrib non-free
+deb-src http://ftp.debian.org/debian/ testing main contrib non-free
+END
+
+cat > /etc/apt/sources.list.d/unstable.list <<END
+deb	http://ftp.debian.org/debian/ unstable main contrib non-free
+deb-src http://ftp.debian.org/debian/ unstable main contrib non-free
+END
+
+cat > /etc/apt/sources.list.d/experimental.list <<END
+deb	http://ftp.debian.org/debian/ experimental main contrib non-free
+deb-src http://ftp.debian.org/debian/ experimental main contrib non-free
+END
+
+/etc/apt/preferences.d/security.pref <<END
+Package: *
+Pin: release l=Debian-Security
+Pin-Priority: 1000
+END
+
+/etc/apt/preferences.d/stable.pref <<END
 Package: *
 Pin: release a=stable
-Pin-Priority: 700
+Pin-Priority: 900
+END
 
+/etc/apt/preferences.d/testing.pref <<END
 Package: *
 Pin: release a=testing
-Pin-Priority: 650
+Pin-Priority: 750
+END
 
+/etc/apt/preferences.d/unstable.pref <<END
 Package: *
 Pin: release a=unstable
-Pin-Priority: 600
+Pin-Priority: 50
+END
+
+/etc/apt/preferences.d/experimental.pref <<END
+Package: *
+Pin: release a=experimental
+Pin-Priority: 1
 END
 
 wget -O ~/sources/dovecot.key http://xi.rename-it.nl/debian/archive.key  >/dev/null 2>&1 && apt-key add ~/sources/dovecot.key >/dev/null 2>&1
@@ -2312,6 +2335,7 @@ echo "$(date +"[%T]") |  $(textb P) $(textb e) $(textb r) $(textb f) $(textb e) 
 echo "$(date +"[%T]") | $(textb +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+)"
 echo
 echo "$(date +"[%T]") | ${info} Welcome to the Perfect Rootserver installation!"
+echo "$(date +"[%T]") | ${info} Please wait while the installer is preparing for the first use..."
 
 if [ $(dpkg-query -l | grep dnsutils | wc -l) -ne 1 ]; then
 	apt-get update -y >/dev/null 2>&1 && apt-get -y --force-yes install dnsutils >/dev/null 2>&1
