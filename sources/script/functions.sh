@@ -448,7 +448,8 @@ git clone https://github.com/google/ngx_brotli -q
 echo "${info} Setting up libbrotli..." | awk '{ print strftime("[%H:%M:%S] |"), $0 }'
 git clone https://github.com/bagder/libbrotli -q
 cd libbrotli/
-bash autogen.sh >/dev/null
+mkdir m4
+autoreconf --install --force --symlink >/dev/null 2>&1
 ./configure >/dev/null 2>&1
 make >/dev/null 2>&1
 make install >/dev/null 2>&1
