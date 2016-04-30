@@ -545,7 +545,6 @@ events {
 }
 
 http {
-		include 			/etc/nginx/naxsi_core.rules;
 		include       		/etc/nginx/mime.types;
 		default_type  		application/octet-stream;
 		server_tokens       off;
@@ -756,8 +755,6 @@ server {
 			include /etc/nginx/sites-custom/*.conf;
 
 			location / {
-			   	include /etc/nginx/naxsi.rules;
-
 			   	# Uncomment, if you need to remove index.php from the
 				# URL. Usefull if you use Codeigniter, Zendframework, etc.
 				# or just need to remove the index.php
