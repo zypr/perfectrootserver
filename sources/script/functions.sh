@@ -492,7 +492,6 @@ echo "${info} Compiling Nginx..." | awk '{ print strftime("[%H:%M:%S] |"), $0 }'
 --with-pcre \
 --with-cc-opt='-O2 -g -pipe -Wall -Wformat -Werror=format-security -Wp,-D_FORTIFY_SOURCE=2 -fexceptions -fstack-protector --param=ssp-buffer-size=4 -m64 -mtune=generic' \
 --with-openssl=$HOME/sources/openssl-${OPENSSL_VERSION} \
---add-module=$HOME/sources/ngx_brotli \
 --add-module=$HOME/sources/ngx_pagespeed-release-${NPS_VERSION}-beta >/dev/null 2>&1
 
 # make the package
