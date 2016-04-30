@@ -141,7 +141,7 @@ checksystem() {
 
 checkconfig() {
 	echo "${info} Checking your configuration..." | awk '{ print strftime("[%H:%M:%S] |"), $0 }'
-	for var in NGINX_VERSION OPENSSL_VERSION OPENSSH_VERSION NPS_VERSION NAXSI_VERSION TIMEZONE MYDOMAIN SSH USE_MAILSERVER MAILCOW_ADMIN_USER USE_WEBMAIL USE_PMA PMA_HTTPAUTH_USER PMA_RESTRICT MYSQL_MCDB_NAME MYSQL_MCDB_USER MYSQL_RCDB_NAME MYSQL_RCDB_USER MYSQL_PMADB_NAME MYSQL_PMADB_USER MYSQL_HOSTNAME CLOUDFLARE
+	for var in NGINX_VERSION OPENSSL_VERSION OPENSSH_VERSION NPS_VERSION TIMEZONE MYDOMAIN SSH USE_MAILSERVER MAILCOW_ADMIN_USER USE_WEBMAIL USE_PMA PMA_HTTPAUTH_USER PMA_RESTRICT MYSQL_MCDB_NAME MYSQL_MCDB_USER MYSQL_RCDB_NAME MYSQL_RCDB_USER MYSQL_PMADB_NAME MYSQL_PMADB_USER MYSQL_HOSTNAME CLOUDFLARE
 	do
 		if [[ -z ${!var} ]]; then
 			echo "${error} Parameter $(textb ${var}) must not be empty." | awk '{ print strftime("[%H:%M:%S] |"), $0 }'
@@ -242,9 +242,7 @@ else
 	echo "${MYDOMAIN}" > /etc/mailname
 fi
 
-echo "${info} Setting your hostname..." | awk '{ print strftime("[%H:%M:%S] |"), $0 }'
-
-echo "${info} Setting your timezone..." | awk '{ print strftime("[%H:%M:%S] |"), $0 }'
+echo "${info} Setting your hostname & timezone..." | awk '{ print strftime("[%H:%M:%S] |"), $0 }'
 if [[ -f /usr/share/zoneinfo/${TIMEZONE} ]] ; then
 	echo ${TIMEZONE} > /etc/timezone
 	dpkg-reconfigure -f noninteractive tzdata >/dev/null 2>&1
@@ -328,7 +326,7 @@ wget -O ~/sources/dovecot.key http://xi.rename-it.nl/debian/archive.key  >/dev/n
 wget -O ~/sources/dotdeb.gpg http://www.dotdeb.org/dotdeb.gpg >/dev/null 2>&1 && apt-key add ~/sources/dotdeb.gpg >/dev/null 2>&1
 apt-get update -y >/dev/null 2>&1 && apt-get -y upgrade >/dev/null 2>&1
 apt-get -y --force-yes install aptitude ssl-cert whiptail apt-utils jq >/dev/null 2>&1
-DEBIAN_FRONTEND=noninteractive aptitude -y install apache2-threaded-dev apache2-utils apt-listchanges arj autoconf automake bison bsd-mailx build-essential bzip2 ca-certificates cabextract checkinstall curl dnsutils file flex gcc git htop libapr1-dev libaprutil1 libaprutil1-dev libauthen-sasl-perl-Daemon libawl-php libcrypt-ssleay-perl libcurl4-openssl-dev libdbi-perl libgeoip-dev libio-socket-ssl-perl libio-string-perl liblockfile-simple-perl liblogger-syslog-perl libmail-dkim-perl libmail-spf-perl libmime-base64-urlsafe-perl libnet-dns-perl libnet-ident-perl libnet-LDAP-perl libnet1 libnet1-dev libpam-dev libpcre-ocaml-dev libpcre3 libpcre3-dev libreadline6-dev libtest-tempdir-perl libtool libwww-perl libxml2 libxml2-dev libxml2-utils libxslt1-dev libyaml-dev lzop mariadb-server memcached mlocate nomarch php-auth-sasl php-auth-sasl php-http-request php-http-request php-mail php-mail-mime php-mail-mimedecode php-net-dime php-net-smtp php-net-url php-pear php-soap php5 php5-apcu php5-cli php5-common php5-common php5-curl php5-dev php5-fpm php5-geoip php5-gd php5-igbinary php5-imap php5-intl php5-mcrypt php5-mysql php5-sqlite php5-xmlrpc php5-xsl python-setuptools python-software-properties rkhunter software-properties-common subversion sudo unzip vim-nox zip zlib1g zlib1g-dbg zlib1g-de zoo >/dev/null 2>&1
+DEBIAN_FRONTEND=noninteractive aptitude -y install apache2-threaded-dev apache2-utils apt-listchanges arj autoconf automake bison bsd-mailx build-essential bzip2 ca-certificates cabextract checkinstall curl dnsutils file flex git htop libapr1-dev libaprutil1 libaprutil1-dev libauthen-sasl-perl-Daemon libawl-php libcrypt-ssleay-perl libcurl4-openssl-dev libdbi-perl libgeoip-dev libio-socket-ssl-perl libio-string-perl liblockfile-simple-perl liblogger-syslog-perl libmail-dkim-perl libmail-spf-perl libmime-base64-urlsafe-perl libnet-dns-perl libnet-ident-perl libnet-LDAP-perl libnet1 libnet1-dev libpam-dev libpcre-ocaml-dev libpcre3 libpcre3-dev libreadline6-dev libtest-tempdir-perl libtool libwww-perl libxml2 libxml2-dev libxml2-utils libxslt1-dev libyaml-dev lzop mariadb-server memcached mlocate nomarch php-auth-sasl php-auth-sasl php-http-request php-http-request php-mail php-mail-mime php-mail-mimedecode php-net-dime php-net-smtp php-net-url php-pear php-soap php5 php5-apcu php5-cli php5-common php5-common php5-curl php5-dev php5-fpm php5-geoip php5-gd php5-igbinary php5-imap php5-intl php5-mcrypt php5-mysql php5-sqlite php5-xmlrpc php5-xsl python-setuptools python-software-properties rkhunter software-properties-common subversion sudo unzip vim-nox zip zlib1g zlib1g-dbg zlib1g-de zoo >/dev/null 2>&1
 
 if [ "$?" -ne "0" ]; then
 	echo "${error} Package installation failed!" | awk '{ print strftime("[%H:%M:%S] |"), $0 }'
@@ -445,18 +443,12 @@ cd ngx_pagespeed-release-${NPS_VERSION}-beta/
 wget https://dl.google.com/dl/page-speed/psol/${NPS_VERSION}.tar.gz >/dev/null 2>&1
 tar -xzf ${NPS_VERSION}.tar.gz
 cd ~/sources
-echo "${info} Downloading Naxsi..." | awk '{ print strftime("[%H:%M:%S] |"), $0 }'
-wget --no-check-certificate https://github.com/nbs-system/naxsi/archive/${NAXSI_VERSION}.tar.gz >/dev/null 2>&1
-tar -xzf ${NAXSI_VERSION}.tar.gz
 echo "${info} Downloading Nginx..." | awk '{ print strftime("[%H:%M:%S] |"), $0 }'
 wget http://nginx.org/download/nginx-${NGINX_VERSION}.tar.gz >/dev/null 2>&1
 tar -xzf nginx-${NGINX_VERSION}.tar.gz
 cd nginx-${NGINX_VERSION}
 
 echo "${info} Compiling Nginx..." | awk '{ print strftime("[%H:%M:%S] |"), $0 }'
-
-sed -i '121s/.*/#define NGX_SSL_BUFSIZE  1400/' src/event/ngx_event_openssl.h
-sed -i '732s/.*/                (void) BIO_set_write_buffer_size(wbio, 16384);/' src/event/ngx_event_openssl.c
 
 ./configure --prefix=/etc/nginx \
 --sbin-path=/usr/sbin/nginx \
@@ -497,10 +489,10 @@ sed -i '732s/.*/                (void) BIO_set_write_buffer_size(wbio, 16384);/'
 --with-file-aio \
 --with-ipv6 \
 --with-debug \
+--with-pcre \
 --with-cc-opt='-O2 -g -pipe -Wall -Wformat -Werror=format-security -Wp,-D_FORTIFY_SOURCE=2 -fexceptions -fstack-protector --param=ssp-buffer-size=4 -m64 -mtune=generic' \
 --with-openssl=$HOME/sources/openssl-${OPENSSL_VERSION} \
---add-module=$HOME/sources/ngx_pagespeed-release-${NPS_VERSION}-beta \
---add-module=$HOME/sources/naxsi-${NAXSI_VERSION}/naxsi_src >/dev/null 2>&1
+--add-module=$HOME/sources/ngx_pagespeed-release-${NPS_VERSION}-beta >/dev/null 2>&1
 
 # make the package
 make >/dev/null 2>&1
@@ -893,21 +885,6 @@ END
 
 ln -s /etc/php5/mods-available/apcu.ini /etc/php5/mods-available/20-apcu.ini
 
-# Configure Naxsi
-echo "${info} Configuring Naxsi..." | awk '{ print strftime("[%H:%M:%S] |"), $0 }'
-cp -f ~/sources/naxsi-${NAXSI_VERSION}/naxsi_config/naxsi_core.rules /etc/nginx/
-cat > /etc/nginx/naxsi.rules <<END
-LearningMode;
-SecRulesEnabled;
-DeniedUrl "/RequestDenied";
-
-# Rules
-CheckRule "\$SQL >= 8" BLOCK;
-CheckRule "\$RFI >= 8" BLOCK;
-CheckRule "\$TRAVERSAL >= 4" BLOCK;
-CheckRule "\$EVADE >= 4" BLOCK;
-CheckRule "\$XSS >= 8" BLOCK;
-END
 
 # Restart FPM & Nginx
 systemctl -q start nginx.service
