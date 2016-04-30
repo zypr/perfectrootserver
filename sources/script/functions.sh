@@ -443,6 +443,14 @@ cd ngx_pagespeed-release-${NPS_VERSION}-beta/
 wget https://dl.google.com/dl/page-speed/psol/${NPS_VERSION}.tar.gz >/dev/null 2>&1
 tar -xzf ${NPS_VERSION}.tar.gz
 cd ~/sources
+echo "${info} Downloading Nginx Brotli..." | awk '{ print strftime("[%H:%M:%S] |"), $0 }'
+wget https://github.com/google/ngx_brotli >/dev/null 2>&1
+echo "${info} Setting up libbrotli..." | awk '{ print strftime("[%H:%M:%S] |"), $0 }'
+git clone https://github.com/bagder/libbrotli -q
+cd libbrotli/
+./autogen.sh >/dev/null 2>&1 && ./configure >/dev/null 2>&1 &&
+make >/dev/null 2>&1 && make install >/dev/null 2>&1
+cd ~/sources
 echo "${info} Downloading Nginx..." | awk '{ print strftime("[%H:%M:%S] |"), $0 }'
 wget http://nginx.org/download/nginx-${NGINX_VERSION}.tar.gz >/dev/null 2>&1
 tar -xzf nginx-${NGINX_VERSION}.tar.gz
@@ -492,6 +500,7 @@ echo "${info} Compiling Nginx..." | awk '{ print strftime("[%H:%M:%S] |"), $0 }'
 --with-pcre \
 --with-cc-opt='-O2 -g -pipe -Wall -Wformat -Werror=format-security -Wp,-D_FORTIFY_SOURCE=2 -fexceptions -fstack-protector --param=ssp-buffer-size=4 -m64 -mtune=generic' \
 --with-openssl=$HOME/sources/openssl-${OPENSSL_VERSION} \
+--add-module=$HOME/sources/ngx_brotli \
 --add-module=$HOME/sources/ngx_pagespeed-release-${NPS_VERSION}-beta >/dev/null 2>&1
 
 # make the package
