@@ -443,17 +443,6 @@ cd ngx_pagespeed-release-${NPS_VERSION}-beta/
 wget https://dl.google.com/dl/page-speed/psol/${NPS_VERSION}.tar.gz >/dev/null 2>&1
 tar -xzf ${NPS_VERSION}.tar.gz
 cd ~/sources
-echo "${info} Downloading Nginx Brotli..." | awk '{ print strftime("[%H:%M:%S] |"), $0 }'
-git clone https://github.com/google/ngx_brotli -q
-echo "${info} Setting up libbrotli..." | awk '{ print strftime("[%H:%M:%S] |"), $0 }'
-git clone https://github.com/bagder/libbrotli -q
-cd libbrotli/
-mkdir m4
-autoreconf --install --force --symlink >/dev/null 2>&1
-./configure >/dev/null 2>&1
-make >/dev/null 2>&1
-make install >/dev/null 2>&1
-cd ~/sources
 echo "${info} Downloading Nginx..." | awk '{ print strftime("[%H:%M:%S] |"), $0 }'
 wget http://nginx.org/download/nginx-${NGINX_VERSION}.tar.gz >/dev/null 2>&1
 tar -xzf nginx-${NGINX_VERSION}.tar.gz
