@@ -141,7 +141,7 @@ checksystem() {
 
 checkconfig() {
 	echo "${info} Checking your configuration..." | awk '{ print strftime("[%H:%M:%S] |"), $0 }'
-	for var in NGINX_VERSION OPENSSL_VERSION OPENSSH_VERSION NPS_VERSION TIMEZONE MYDOMAIN SSH USE_MAILSERVER MAILCOW_ADMIN_USER USE_WEBMAIL USE_PMA PMA_HTTPAUTH_USER PMA_RESTRICT MYSQL_MCDB_NAME MYSQL_MCDB_USER MYSQL_RCDB_NAME MYSQL_RCDB_USER MYSQL_PMADB_NAME MYSQL_PMADB_USER MYSQL_HOSTNAME CLOUDFLARE
+	for var in NGINX_VERSION OPENSSL_VERSION OPENSSH_VERSION NPS_VERSION TIMEZONE MYDOMAIN SSH USE_MAILSERVER MAILCOW_ADMIN_USER USE_WEBMAIL USE_TEAMSPEAK USE_AJENTI USE_PMA PMA_HTTPAUTH_USER PMA_RESTRICT MYSQL_MCDB_NAME MYSQL_MCDB_USER MYSQL_RCDB_NAME MYSQL_RCDB_USER MYSQL_PMADB_NAME MYSQL_PMADB_USER MYSQL_HOSTNAME CLOUDFLARE
 	do
 		if [[ -z ${!var} ]]; then
 			echo "${error} Parameter $(textb ${var}) must not be empty." | awk '{ print strftime("[%H:%M:%S] |"), $0 }'
@@ -326,7 +326,7 @@ wget -O ~/sources/dovecot.key http://xi.rename-it.nl/debian/archive.key >/dev/nu
 wget -O ~/sources/dotdeb.gpg http://www.dotdeb.org/dotdeb.gpg >/dev/null 2>&1 && apt-key add ~/sources/dotdeb.gpg >/dev/null 2>&1
 apt-get update -y >/dev/null 2>&1 && apt-get -y upgrade >/dev/null 2>&1
 apt-get -y --force-yes install aptitude ssl-cert whiptail apt-utils jq libc6-dev/stable >/dev/null 2>&1
-DEBIAN_FRONTEND=noninteractive aptitude -y install apache2-threaded-dev apache2-utils apt-listchanges arj autoconf automake bison bsd-mailx build-essential bzip2 ca-certificates cabextract checkinstall curl dnsutils file flex git htop libapr1-dev libaprutil1 libaprutil1-dev libauthen-sasl-perl-Daemon libawl-php libcunit1-dev libcrypt-ssleay-perl libcurl4-openssl-dev libdbi-perl libgeoip-dev libio-socket-ssl-perl libio-string-perl liblockfile-simple-perl liblogger-syslog-perl libmail-dkim-perl libmail-spf-perl libmime-base64-urlsafe-perl libnet-dns-perl libnet-ident-perl libnet-LDAP-perl libnet1 libnet1-dev libpam-dev libpcre-ocaml-dev libpcre3 libpcre3-dev libreadline6-dev libtest-tempdir-perl libtool libuv-dev libwww-perl libxml2 libxml2-dev libxml2-utils libxslt1-dev libyaml-dev lzop mariadb-server memcached mlocate nettle-dev nomarch php-auth-sasl php-auth-sasl php-http-request php-http-request php-mail php-mail-mime php-mail-mimedecode php-net-dime php-net-smtp php-net-url php-pear php-soap php5 php5-apcu php5-cli php5-common php5-common php5-curl php5-dev php5-fpm php5-geoip php5-gd php5-igbinary php5-imap php5-intl php5-mcrypt php5-mysql php5-sqlite php5-xmlrpc php5-xsl pkg-config python-setuptools python-software-properties rkhunter software-properties-common subversion sudo unzip vim-nox zip zlib1g zlib1g-dbg zlib1g-de zoo >/dev/null 2>&1
+DEBIAN_FRONTEND=noninteractive aptitude -y install apache2-threaded-dev apache2-utils apt-listchanges arj autoconf automake bison bsd-mailx build-essential bzip2 ca-certificates cabextract checkinstall curl dnsutils file flex git htop libapr1-dev libaprutil1 libaprutil1-dev libauthen-sasl-perl-Daemon libawl-php libcunit1-dev libcrypt-ssleay-perl libcurl4-openssl-dev libdbi-perl libgeoip-dev libio-socket-ssl-perl libio-string-perl liblockfile-simple-perl liblogger-syslog-perl libmail-dkim-perl libmail-spf-perl libmime-base64-urlsafe-perl libnet-dns-perl libnet-ident-perl libnet-LDAP-perl libnet1 libnet1-dev libpam-dev libpcre-ocaml-dev libpcre3 libpcre3-dev libreadline6-dev libtest-tempdir-perl libtool libuv-dev libwww-perl libxml2 libxml2-dev libxml2-utils libxslt1-dev libyaml-dev lzop mariadb-server mc memcached mlocate nettle-dev nomarch php-auth-sasl php-auth-sasl php-http-request php-http-request php-mail php-mail-mime php-mail-mimedecode php-net-dime php-net-smtp php-net-url php-pear php-soap php5 php5-apcu php5-cli php5-common php5-common php5-curl php5-dev php5-fpm php5-geoip php5-gd php5-igbinary php5-imap php5-intl php5-mcrypt php5-mysql php5-sqlite php5-xmlrpc php5-xsl pkg-config python-setuptools python-software-properties rkhunter software-properties-common subversion sudo unzip vim-nox zip zlib1g zlib1g-dbg zlib1g-de zoo >/dev/null 2>&1
 
 if [ "$?" -ne "0" ]; then
 	echo "${error} Package installation failed!" | awk '{ print strftime("[%H:%M:%S] |"), $0 }'
@@ -1757,16 +1757,105 @@ sed -i 's/^DRDOS_PROTECT=.*/DRDOS_PROTECT="1"/g' /etc/arno-iptables-firewall/fir
 sed -i 's/^OPEN_ICMP=.*/OPEN_ICMP="1"/g' /etc/arno-iptables-firewall/firewall.conf
 sed -i 's/^#BLOCK_HOSTS_FILE=.*/BLOCK_HOSTS_FILE="\/etc\/arno-iptables-firewall\/blocked-hosts"/g' /etc/arno-iptables-firewall/firewall.conf
 if [ ${USE_MAILSERVER} == '1' ]; then
-	sed -i "s/^OPEN_TCP=.*/OPEN_TCP=\"${SSH}, 25, 80, 110, 143, 443, 465, 587, 993, 995\"/" /etc/arno-iptables-firewall/firewall.conf
+	if [ ${USE_TEAMSPEAK} == '1' ]; then
+		if [ ${USE_AJENTI} == '1' ]; then
+			sed -i "s/^OPEN_TCP=.*/OPEN_TCP=\"${SSH}, 25, 80, 110, 143, 443, 465, 587, 993, 995, 2008, 10011, 30033, 41144, 8000\"/" /etc/arno-iptables-firewall/firewall.conf
+		else
+			sed -i "s/^OPEN_TCP=.*/OPEN_TCP=\"${SSH}, 25, 80, 110, 143, 443, 465, 587, 993, 995, 2008, 10011, 30033, 41144\"/" /etc/arno-iptables-firewall/firewall.conf
+		fi
+	else 
+		if [ ${USE_AJENTI} == '1' ]; then
+			sed -i "s/^OPEN_TCP=.*/OPEN_TCP=\"${SSH}, 25, 80, 110, 143, 443, 465, 587, 993, 995, 8000\"/" /etc/arno-iptables-firewall/firewall.conf
+		else
+			sed -i "s/^OPEN_TCP=.*/OPEN_TCP=\"${SSH}, 25, 80, 110, 143, 443, 465, 587, 993, 995\"/" /etc/arno-iptables-firewall/firewall.conf
+		fi
+	fi
 else
-	sed -i "s/^OPEN_TCP=.*/OPEN_TCP=\"${SSH}, 80, 443\"/" /etc/arno-iptables-firewall/firewall.conf
+	if [ ${USE_TEAMSPEAK} == '1' ]; then
+		if [ ${USE_AJENTI} == '1' ]; then
+			sed -i "s/^OPEN_TCP=.*/OPEN_TCP=\"${SSH}, 80, 443, 2008, 10011, 30033, 41144, 8000\"/" /etc/arno-iptables-firewall/firewall.conf
+		else
+			sed -i "s/^OPEN_TCP=.*/OPEN_TCP=\"${SSH}, 80, 443, 2008, 10011, 30033, 41144\"/" /etc/arno-iptables-firewall/firewall.conf
+		fi
+	else
+		if [ ${USE_AJENTI} == '1' ]; then
+			sed -i "s/^OPEN_TCP=.*/OPEN_TCP=\"${SSH}, 80, 443, 8000\"/" /etc/arno-iptables-firewall/firewall.conf
+		else
+			sed -i "s/^OPEN_TCP=.*/OPEN_TCP=\"${SSH}, 80, 443\"/" /etc/arno-iptables-firewall/firewall.conf
+		fi
+	fi
 fi
-sed -i 's/^OPEN_UDP=.*/OPEN_UDP=""/' /etc/arno-iptables-firewall/firewall.conf
+
+if [ ${USE_TEAMSPEAK} == '1' ]; then
+	sed -i 's/^OPEN_UDP=.*/OPEN_UDP="2010, 9987"/' /etc/arno-iptables-firewall/firewall.conf
+else 
+	sed -i 's/^OPEN_UDP=.*/OPEN_UDP=""/' /etc/arno-iptables-firewall/firewall.conf
+fi
+
 sed -i 's/^VERBOSE=.*/VERBOSE=1/' /etc/init.d/arno-iptables-firewall
 
 # Start the firewall
 systemctl -q daemon-reload
 systemctl -q start arno-iptables-firewall.service
+
+# Ajenti
+#not working yet: Security missing:ssl cert + hsts, changed login data + output, gevent problem https://github.com/ajenti/ajenti/issues/702 ,  
+if [ ${USE_AJENTI} == '1' ]; then
+echo "${info} Installing Ajenti..." | awk '{ print strftime("[%H:%M:%S] |"), $0 }'
+wget -q http://repo.ajenti.org/debian/key -O- | apt-key add -
+echo "deb http://repo.ajenti.org/debian main main debian" >> /etc/apt/sources.list
+apt-get -qq update && apt-get -y --force-yes install ajenti 
+service ajenti restart
+fi
+
+# Teamspeak 3
+if [ ${USE_TEAMSPEAK} == '1' ]; then
+echo "${info} Installing Teamspeak 3..." | awk '{ print strftime("[%H:%M:%S] |"), $0 }'
+adduser ts3user --gecos "" --no-create-home
+mkdir /usr/local/ts3user
+chown ts3user /usr/local/ts3user
+cd /usr/local/ts3user
+wget -q http://dl.4players.de/ts/releases/${TEAMSPEAK_VERSION}/teamspeak3-server_linux_amd64-${TEAMSPEAK_VERSION}.tar.bz2
+tar -xjf teamspeak3-server_linux*.tar.bz2
+mkdir -p /usr/local/ts3user/ts3server/ && cp -r -u /usr/local/ts3user/teamspeak3-server_linux_amd64/* /usr/local/ts3user/ts3server/
+rm -r /usr/local/ts3user/teamspeak3-server_linux_amd64/
+chown -R ts3user /usr/local/ts3user/ts3server
+timeout 10 sudo -u  ts3user /usr/local/ts3user/ts3server/ts3server_minimal_runscript.sh > ts3serverdata.txt
+
+echo "#! /bin/sh
+### BEGIN INIT INFO
+# Provides:         ts3server
+# Required-Start: 	"'$local_fs $network'"
+# Required-Stop:	"'$local_fs $network'"
+# Default-Start: 	2 3 4 5
+# Default-Stop: 	0 1 6
+# Description:      TS 3 Server
+### END INIT INFO
+
+case "'"$1"'" in
+start)
+echo "'"Starte Teamspeak 3 Server ... "'"
+su ts3user -c "'"/usr/local/ts3user/ts3server/ts3server_startscript.sh start"'"
+;;
+stop)
+echo "'"Beende Teamspeak 3 Server ..."'"
+su ts3user -c "'"/usr/local/ts3user/ts3server/ts3server_startscript.sh stop"'"
+;;
+*)
+echo "'"Sie können folgende Befehle nutzen: TS3 starten: /etc/init.d/ts3server start TS3 stoppen: /etc/init.d/ts3server stop"'" > /usr/local/ts3user/ts3server/ts3befehle.txt
+exit 1
+;;
+esac
+exit 0" >> /etc/init.d/ts3server 
+
+
+chmod 755 /etc/init.d/ts3server
+update-rc.d ts3server defaults
+/etc/init.d/ts3server start
+fi
+
+#Fix error with /etc/rc.local
+touch /etc/rc.local
 
 # Blacklist some bad guys
 mkdir ~/sources/blacklist
@@ -2000,6 +2089,15 @@ if [ ${USE_PMA} == '1' ]; then
 	echo "" >> ~/credentials.txt
 	echo "" >> ~/credentials.txt
 fi
+if [ ${USE_AJENTI} == '1' ]; then
+	echo "--------------------------------------------" >> ~/credentials.txt
+	echo "Ajenti" >> ~/credentials.txt
+	echo "--------------------------------------------" >> ~/credentials.txt
+	echo "https://${MYDOMAIN}:8000" >> ~/credentials.txt
+	echo "login: root - password: admin" >> ~/credentials.txt
+	echo "" >> ~/credentials.txt
+	echo "" >> ~/credentials.txt
+fi
 echo "_______________________________________________________________________________________" >> ~/credentials.txt
 echo "## SYSTEM INFORMATION" >> ~/credentials.txt
 echo "" >> ~/credentials.txt
@@ -2007,16 +2105,31 @@ echo "--------------------------------------------" >> ~/credentials.txt
 echo "open ports" >> ~/credentials.txt
 echo "--------------------------------------------" >> ~/credentials.txt
 if [ ${USE_MAILSERVER} == '1' ]; then
-	echo "TCP = 25 (SMTP), 80 (HTTP), 110 (POP3), 143(IMAP), 443 (HTTPS), 465 (SMPTS)" >> ~/credentials.txt 
-	echo "TCP = 587 (Submission), 993 (IMAPS), 995 (POP3S), ${SSH} (SSH)" >> ~/credentials.txt
-	echo "UDP = All ports are closed" >> ~/credentials.txt
-	echo "" >> ~/credentials.txt
-	echo "" >> ~/credentials.txt
+	if [ ${USE_TEAMSPEAK} == '1' ]; then
+		echo "TCP = 25 (SMTP), 80 (HTTP), 110 (POP3), 143(IMAP), 443 (HTTPS), 465 (SMPTS), 2008 (TS3), 10011 (TS3), 30033 (TS3), 41144 (TS3)" >> ~/credentials.txt 
+		echo "TCP = 587 (Submission), 993 (IMAPS), 995 (POP3S), ${SSH} (SSH)" >> ~/credentials.txt
+		echo "UDP = 2010 (TS3), 9987 (TS3)" >> ~/credentials.txt
+		echo "" >> ~/credentials.txt
+		echo "" >> ~/credentials.txt
+	else
+		echo "TCP = 25 (SMTP), 80 (HTTP), 110 (POP3), 143(IMAP), 443 (HTTPS), 465 (SMPTS)" >> ~/credentials.txt 
+		echo "TCP = 587 (Submission), 993 (IMAPS), 995 (POP3S), ${SSH} (SSH)" >> ~/credentials.txt
+		echo "UDP = All ports are closed" >> ~/credentials.txt
+		echo "" >> ~/credentials.txt
+		echo "" >> ~/credentials.txt
+	fi
 else
-	echo "TCP = 80 (HTTP), 443 (HTTPS), ${SSH} (SSH)" >> ~/credentials.txt
-	echo "UDP = All ports are closed" >> ~/credentials.txt
-	echo "" >> ~/credentials.txt
-	echo "" >> ~/credentials.txt
+	if [ ${USE_TEAMSPEAK} == '1' ]; then
+		echo "TCP = 80 (HTTP), 443 (HTTPS), ${SSH} (SSH)" >> ~/credentials.txt
+		echo "UDP = 2010 (TS3), 9987 (TS3)" >> ~/credentials.txt
+		echo "" >> ~/credentials.txt
+		echo "" >> ~/credentials.txt
+	else
+		echo "TCP = 80 (HTTP), 443 (HTTPS), ${SSH} (SSH)" >> ~/credentials.txt
+		echo "UDP = All ports are closed" >> ~/credentials.txt
+		echo "" >> ~/credentials.txt
+		echo "" >> ~/credentials.txt
+	fi
 fi
 echo "You can add additional ports, just edit \"/etc/arno-iptables-firewall/firewall.conf\" (lines 1164 & 1165)" >> ~/credentials.txt
 echo "and restart your firewall -> \"systemctl force-reload arno-iptables-firewall\"" >> ~/credentials.txt
@@ -2258,7 +2371,7 @@ instructions() {
 			for srv in _autodiscover _carddavs _caldavs _imap _imaps _submission _pop3 _pop3s
 			do
 				sleep 1.5
-				if [[ -z $(dig srv ${srv}._tcp.${MYDOMAIN} @64.6.64.6 +short) ]]; then
+				if [[ -z $(dig srv ${srv}._tcp.${MYDOMAIN} @8.8.8.8 +short) ]]; then
 					echo "${warn} SRV record not found: $(textb ${srv}._tcp.${MYDOMAIN})" | awk '{ print strftime("[%H:%M:%S] |"), $0 }'
 				else
 					echo "${ok} Valid SRV record found: $(textb ${srv}._tcp.${MYDOMAIN})" | awk '{ print strftime("[%H:%M:%S] |"), $0 }'
@@ -2319,16 +2432,16 @@ if [ $(dpkg-query -l | grep openssl | wc -l) -ne 1 ]; then
 	apt-get update -y >/dev/null 2>&1 && apt-get -y --force-yes install openssl >/dev/null 2>&1
 fi
 
-IPADR=$(ip route get 64.6.64.6 | head -1 | cut -d' ' -f8)
-INTERFACE=$(ip route get 64.6.64.6 | head -1 | cut -d' ' -f5)
-FQDNIP=$(source ~/userconfig.cfg; dig @64.6.64.6 +short ${MYDOMAIN})
-WWWIP=$(source ~/userconfig.cfg; dig @64.6.64.6 +short www.${MYDOMAIN})
-ACIP=$(source ~/userconfig.cfg; dig @64.6.64.6 +short autoconfig.${MYDOMAIN})
-ADIP=$(source ~/userconfig.cfg; dig @64.6.64.6 +short autodiscover.${MYDOMAIN})
-DAVIP=$(source ~/userconfig.cfg; dig @64.6.64.6 +short dav.${MYDOMAIN})
-MAILIP=$(source ~/userconfig.cfg; dig @64.6.64.6 +short mail.${MYDOMAIN})
-CHECKAC=$(source ~/userconfig.cfg; dig @64.6.64.6 ${MYDOMAIN} txt | grep -i mailconf=)
-CHECKMX=$(source ~/userconfig.cfg; dig @64.6.64.6 mx ${MYDOMAIN} +short)
-CHECKSPF=$(source ~/userconfig.cfg; dig @64.6.64.6 ${MYDOMAIN} txt | grep -i spf)
-CHECKDKIM=$(source ~/userconfig.cfg; dig @64.6.64.6 mail._domainkey.${MYDOMAIN} txt | grep -i DKIM1)
-CHECKRDNS=$(dig @64.6.64.6 -x ${IPADR} +short)
+IPADR=$(ip route get 8.8.8.8 | head -1 | cut -d' ' -f8)
+INTERFACE=$(ip route get 8.8.8.8 | head -1 | cut -d' ' -f5)
+FQDNIP=$(source ~/userconfig.cfg; dig @8.8.8.8 +short ${MYDOMAIN})
+WWWIP=$(source ~/userconfig.cfg; dig @8.8.8.8 +short www.${MYDOMAIN})
+ACIP=$(source ~/userconfig.cfg; dig @8.8.8.8 +short autoconfig.${MYDOMAIN})
+ADIP=$(source ~/userconfig.cfg; dig @8.8.8.8 +short autodiscover.${MYDOMAIN})
+DAVIP=$(source ~/userconfig.cfg; dig @8.8.8.8 +short dav.${MYDOMAIN})
+MAILIP=$(source ~/userconfig.cfg; dig @8.8.8.8 +short mail.${MYDOMAIN})
+CHECKAC=$(source ~/userconfig.cfg; dig @8.8.8.8 ${MYDOMAIN} txt | grep -i mailconf=)
+CHECKMX=$(source ~/userconfig.cfg; dig @8.8.8.8 mx ${MYDOMAIN} +short)
+CHECKSPF=$(source ~/userconfig.cfg; dig @8.8.8.8 ${MYDOMAIN} txt | grep -i spf)
+CHECKDKIM=$(source ~/userconfig.cfg; dig @8.8.8.8 mail._domainkey.${MYDOMAIN} txt | grep -i DKIM1)
+CHECKRDNS=$(dig @8.8.8.8 -x ${IPADR} +short)
