@@ -1799,13 +1799,18 @@ systemctl -q daemon-reload
 systemctl -q start arno-iptables-firewall.service
 
 # Ajenti
-#not working yet: Security missing:ssl cert + hsts, changed login data + output, gevent problem https://github.com/ajenti/ajenti/issues/702 ,  
+#not working yet: Security missing:ssl cert + hsts, changed login data + output 
 if [ ${USE_AJENTI} == '1' ]; then
 echo "${info} Installing Ajenti..." | awk '{ print strftime("[%H:%M:%S] |"), $0 }'
 wget -q http://repo.ajenti.org/debian/key -O- | apt-key add -
 echo "deb http://repo.ajenti.org/debian main main debian" >> /etc/apt/sources.list
-apt-get -qq update && apt-get -y --force-yes install ajenti 
+apt-get -qq update && apt-get -q -y --force-yes install ajenti 
 service ajenti restart
+
+#gevent workaround -> https://github.com/ajenti/ajenti/issues/702
+apt-get -q -y --force-yes install python-setuptools python-dev
+easy_install -U -q gevent==1.1b3
+sed -i -e s/ssl_version=PROTOCOL_SSLv3/ssl_version=PROTOCOL_SSLv23/ /usr/local/lib/python2.7/dist-packages/gevent-1.1b3-py2.7-linux-x86_64.egg/gevent/ssl.py
 fi
 
 # Teamspeak 3
