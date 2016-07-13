@@ -1807,10 +1807,10 @@ echo "deb http://repo.ajenti.org/debian main main debian" >> /etc/apt/sources.li
 apt-get -qq update && apt-get -q -y --force-yes install ajenti 
 service ajenti restart
 
-#gevent workaround -> https://github.com/ajenti/ajenti/issues/702
-apt-get -q -y --force-yes install python-setuptools python-dev
-easy_install -U -q gevent==1.1b3
-sed -i -e s/ssl_version=PROTOCOL_SSLv3/ssl_version=PROTOCOL_SSLv23/ /usr/local/lib/python2.7/dist-packages/gevent-1.1b3-py2.7-linux-x86_64.egg/gevent/ssl.py
+#gevent workaround -> https://github.com/ajenti/ajenti/issues/702 https://github.com/ajenti/ajenti/issues/870
+apt-get -q -y --force-yes install python-setuptools python-dev build-essential
+sudo easy_install -U gevent==1.1b4
+service ajenti restart
 fi
 
 # Teamspeak 3
