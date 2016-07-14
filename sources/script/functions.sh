@@ -1800,17 +1800,23 @@ systemctl -q start arno-iptables-firewall.service
 
 # Ajenti
 #not working yet: Security missing:ssl cert + hsts, changed login data + output 
-if [ ${USE_AJENTI} == '1' ]; then
-echo "${info} Installing Ajenti..." | awk '{ print strftime("[%H:%M:%S] |"), $0 }'
-wget -q http://repo.ajenti.org/debian/key -O- | apt-key add -
-echo "deb http://repo.ajenti.org/debian main main debian" >> /etc/apt/sources.list
-apt-get -qq update && apt-get -q -y --force-yes install ajenti 
-service ajenti restart
-
+if [ ${USE_AJENTI} == '1' ] && [ ${USE_VALID_SSL} == '1' ]; then
+	echo "${info} Installing Ajenti..." | awk '{ print strftime("[%H:%M:%S] |"), $0 }'
+	wget -q http://repo.ajenti.org/debian/key -O- | apt-key add -
+	echo "deb http://repo.ajenti.org/debian main main debian" >> /etc/apt/sources.list
+	apt-get -qq update && apt-get -q -y --force-yes install ajenti 
+	service ajenti restart
+	
 #gevent workaround -> https://github.com/ajenti/ajenti/issues/702 https://github.com/ajenti/ajenti/issues/870
-apt-get -q -y --force-yes install python-setuptools python-dev build-essential
-sudo easy_install -U gevent==1.1b4
-service ajenti restart
+	apt-get -q -y --force-yes install python-setuptools python-dev build-essential
+	sudo easy_install -U gevent==1.1b4
+	service ajenti restart
+	
+#Use Lets Encrypt Cert for Ajenti
+	cat /etc/letsencrypt/live/${MYDOMAIN}/fullchain.pem /etc/letsencrypt/live/${MYDOMAIN}/privkey.pem > ${MYDOMAIN}-combined.pem	
+	ln -s /etc/letsencrypt/live/${MYDOMAIN}/${MYDOMAIN}-combined.pem /etc/nginx/ssl/${MYDOMAIN}-combined.pem
+	sed -i '26s/.*/"certificate_path": "/etc/nginx/ssl/${MYDOMAIN}-combined.pem"/' /etc/ajenti/config.json	
+	service ajenti restart
 fi
 
 # Teamspeak 3
