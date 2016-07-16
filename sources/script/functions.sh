@@ -1815,14 +1815,16 @@ if [ ${USE_AJENTI} == '1' ] && [ ${USE_VALID_SSL} == '1' ]; then
 #Use Lets Encrypt Cert for Ajenti
 	cat /etc/letsencrypt/live/${MYDOMAIN}/fullchain.pem /etc/letsencrypt/live/${MYDOMAIN}/privkey.pem > ${MYDOMAIN}-combined.pem	
 	ln -s /etc/letsencrypt/live/${MYDOMAIN}/${MYDOMAIN}-combined.pem /etc/nginx/ssl/${MYDOMAIN}-combined.pem
-	sed -i '26s/.*/"certificate_path": "/etc/nginx/ssl/${MYDOMAIN}-combined.pem"/' /etc/ajenti/config.json	
+	sed -i 's~\("certificate_path": "/etc/\)ajenti/ajenti.pem"~\1ssl/'${MYDOMAIN}'-combined.pem"~' /etc/ajenti/config.json
 	service ajenti restart
+else 
+	echo "${warn} USE_VALID_SSL is disabled, skipping Ajenti installation!" | awk '{ print strftime("[%H:%M:%S] |"), $0 }'	
 fi
 
 # Teamspeak 3
 if [ ${USE_TEAMSPEAK} == '1' ]; then
 echo "${info} Installing Teamspeak 3..." | awk '{ print strftime("[%H:%M:%S] |"), $0 }'
-adduser ts3user --gecos "" --no-create-home
+adduser ts3user --gecos "" --no-create-home --disabled-password
 mkdir /usr/local/ts3user
 chown ts3user /usr/local/ts3user
 cd /usr/local/ts3user
@@ -2131,7 +2133,7 @@ if [ ${USE_MAILSERVER} == '1' ]; then
 	fi
 else
 	if [ ${USE_TEAMSPEAK} == '1' ]; then
-		echo "TCP = 80 (HTTP), 443 (HTTPS), ${SSH} (SSH)" >> ~/credentials.txt
+		echo "TCP = 80 (HTTP), 443 (HTTPS), ${SSH} (SSH), 2008 (TS3), 10011 (TS3), 30033 (TS3), 41144 (TS3)" >> ~/credentials.txt
 		echo "UDP = 2010 (TS3), 9987 (TS3)" >> ~/credentials.txt
 		echo "" >> ~/credentials.txt
 		echo "" >> ~/credentials.txt
