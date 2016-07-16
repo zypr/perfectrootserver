@@ -5,7 +5,7 @@ Description follows..
 
 [Get the latest release](https://github.com/shoujii/perfectrootserver/releases/latest "Latest Release"):
 ```
-wget -O ~/perfectrootserver.tar.gz https://github.com/shoujii/perfectrootserver/archive/0.1.0.tar.gz
+wget -O ~/perfectrootserver.tar.gz https://github.com/shoujii/perfectrootserver/archive/0.1.1.tar.gz
 ```
 
 Extract:
