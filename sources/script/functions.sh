@@ -1813,7 +1813,7 @@ if [ ${USE_AJENTI} == '1' ] && [ ${USE_VALID_SSL} == '1' ]; then
 #Use Lets Encrypt Cert for Ajenti
 	cat /etc/letsencrypt/live/${MYDOMAIN}/fullchain.pem /etc/letsencrypt/live/${MYDOMAIN}/privkey.pem > /etc/letsencrypt/live/${MYDOMAIN}/${MYDOMAIN}-combined.pem
 	ln -s /etc/letsencrypt/live/${MYDOMAIN}/${MYDOMAIN}-combined.pem /etc/nginx/ssl/${MYDOMAIN}-combined.pem
-	sed -i 's~\("certificate_path": "/etc/\)ajenti/ajenti.pem"~\1ssl/'${MYDOMAIN}'-combined.pem"~' /etc/ajenti/config.json
+	sed -i 's~\("certificate_path": "/etc/\)ajenti/ajenti.pem"~\1nginx/ssl/'${MYDOMAIN}'-combined.pem"~' /etc/ajenti/config.json
 	service ajenti restart
 else 
 	echo "${warn} USE_VALID_SSL is disabled, skipping Ajenti installation!" | awk '{ print strftime("[%H:%M:%S] |"), $0 }'	
@@ -2110,7 +2110,7 @@ if [ ${USE_AJENTI} == '1' ]; then
 	echo "" >> ~/credentials.txt
 fi
 if [ ${USE_TEAMSPEAK} == '1' ]; then
-	cat /usr/local/ts3user/ts3server/ts3serverdata.txt >> ~/credentials.txt
+	cat /usr/local/ts3user/ts3serverdata.txt >> ~/credentials.txt
 	echo "" >> ~/credentials.txt
 	echo "" >> ~/credentials.txt
 fi
