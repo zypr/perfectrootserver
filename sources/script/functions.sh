@@ -141,7 +141,7 @@ checksystem() {
 
 checkconfig() {
 	echo "${info} Checking your configuration..." | awk '{ print strftime("[%H:%M:%S] |"), $0 }'
-	for var in NGINX_VERSION OPENSSL_VERSION OPENSSH_VERSION NPS_VERSION TIMEZONE MYDOMAIN SSH USE_MAILSERVER MAILCOW_ADMIN_USER USE_WEBMAIL USE_TEAMSPEAK USE_AJENTI USE_PMA PMA_HTTPAUTH_USER PMA_RESTRICT MYSQL_MCDB_NAME MYSQL_MCDB_USER MYSQL_RCDB_NAME MYSQL_RCDB_USER MYSQL_PMADB_NAME MYSQL_PMADB_USER MYSQL_HOSTNAME CLOUDFLARE
+	for var in NGINX_VERSION OPENSSL_VERSION OPENSSH_VERSION NPS_VERSION TIMEZONE MYDOMAIN SSH USE_MAILSERVER MAILCOW_ADMIN_USER USE_WEBMAIL USE_TEAMSPEAK USE_AJENTI USE_OPENVPN USE_PMA PMA_HTTPAUTH_USER PMA_RESTRICT MYSQL_MCDB_NAME MYSQL_MCDB_USER MYSQL_RCDB_NAME MYSQL_RCDB_USER MYSQL_PMADB_NAME MYSQL_PMADB_USER MYSQL_HOSTNAME CLOUDFLARE KEY_COUNTRY KEY_PROVINCE KEY_CITY KEY_EMAIL   
 	do
 		if [[ -z ${!var} ]]; then
 			echo "${error} Parameter $(textb ${var}) must not be empty." | awk '{ print strftime("[%H:%M:%S] |"), $0 }'
@@ -1788,8 +1788,17 @@ fi
 
 if [ ${USE_TEAMSPEAK} == '1' ]; then
 	sed -i 's/^OPEN_UDP=.*/OPEN_UDP="2010, 9987"/' /etc/arno-iptables-firewall/firewall.conf
+		if [ ${USE_OPENVPN} == '1' ]; then
+			sed -i 's/^OPEN_UDP=.*/OPEN_UDP="2010, 9987, 1194"/' /etc/arno-iptables-firewall/firewall.conf
+		else
+			sed -i 's/^OPEN_UDP=.*/OPEN_UDP="2010, 9987"/' /etc/arno-iptables-firewall/firewall.conf
+		fi
 else 
-	sed -i 's/^OPEN_UDP=.*/OPEN_UDP=""/' /etc/arno-iptables-firewall/firewall.conf
+	if [ ${USE_OPENVPN} == '1' ]; then
+		sed -i 's/^OPEN_UDP=.*/OPEN_UDP="1194"/' /etc/arno-iptables-firewall/firewall.conf
+	else
+			sed -i 's/^OPEN_UDP=.*/OPEN_UDP=""/' /etc/arno-iptables-firewall/firewall.conf
+	fi
 fi
 
 sed -i 's/^VERBOSE=.*/VERBOSE=1/' /etc/init.d/arno-iptables-firewall
@@ -1808,7 +1817,7 @@ if [ ${USE_AJENTI} == '1' ] && [ ${USE_VALID_SSL} == '1' ]; then
 	
 #gevent workaround -> https://github.com/ajenti/ajenti/issues/702 https://github.com/ajenti/ajenti/issues/870
 	apt-get -q -y --force-yes install python-setuptools python-dev build-essential
-	sudo easy_install -U gevent==1.1b4
+	sudo easy_install -U gevent==1.1b4 >/dev/null 2>&1
 	
 #Use Lets Encrypt Cert for Ajenti
 	cat /etc/letsencrypt/live/${MYDOMAIN}/fullchain.pem /etc/letsencrypt/live/${MYDOMAIN}/privkey.pem > /etc/letsencrypt/live/${MYDOMAIN}/${MYDOMAIN}-combined.pem
@@ -1827,7 +1836,7 @@ mkdir /usr/local/ts3user
 chown ts3user /usr/local/ts3user
 cd /usr/local/ts3user
 wget -q http://dl.4players.de/ts/releases/${TEAMSPEAK_VERSION}/teamspeak3-server_linux_amd64-${TEAMSPEAK_VERSION}.tar.bz2
-tar -xjf teamspeak3-server_linux*.tar.bz2
+tar -xjf teamspeak3-server_linux*.tar.bz2 >/dev/null 2>&1
 mkdir -p /usr/local/ts3user/ts3server/ && cp -r -u /usr/local/ts3user/teamspeak3-server_linux_amd64/* /usr/local/ts3user/ts3server/
 rm -r /usr/local/ts3user/teamspeak3-server_linux_amd64/
 chown -R ts3user /usr/local/ts3user/ts3server
@@ -1859,11 +1868,46 @@ exit 1
 esac
 exit 0" >> /etc/init.d/ts3server 
 
-
 chmod 755 /etc/init.d/ts3server
 update-rc.d ts3server defaults
 /etc/init.d/ts3server start
 fi
+
+
+# OpenVPN
+#if [ ${USE_OPENVPN} == '1' ]; then
+#	echo "${info} Installing OPENVPN..." | awk '{ print strftime("[%H:%M:%S] |"), $0 }'
+#	apt-get -q -y --force-yes install openvpn
+#	gunzip -c /usr/share/doc/openvpn/examples/sample-config-files/server.conf.gz > /etc/openvpn/server.conf
+#	sed -i 's|dh dh1024.pem|dh dh2048.pem|' /etc/openvpn/server.conf
+#	sed -i 's|;push "redirect-gateway def1 bypass-dhcp"|push "redirect-gateway def1 bypass-dhcp"|' /etc/openvpn/server.conf
+#	sed -i 's|;push "dhcp-option DNS 208.67.222.222"|push "dhcp-option DNS 208.67.222.222"|' /etc/openvpn/server.conf
+#	sed -i 's|;push "dhcp-option DNS 208.67.220.220"|push "dhcp-option DNS 208.67.220.220"|' /etc/openvpn/server.conf
+#	sed -i 's|;user nobody|user nobody|' /etc/openvpn/server.conf
+#	sed -i 's|;group nogroup|group nogroup|' /etc/openvpn/server.conf
+#	
+#	echo 1 > /proc/sys/net/ipv4/ip_forward
+#	echo net.ipv4.ip_forward=1 >> /etc/sysctl.conf
+#	cp -r /usr/share/easy-rsa/ /etc/openvpn
+#	mkdir /etc/openvpn/easy-rsa/keys
+#	
+#	sed -i 's|export KEY_COUNTRY="US"|export KEY_COUNTRY="'${KEY_COUNTRY}'"|' /etc/openvpn/easy-rsa/vars
+#	sed -i 's|export KEY_PROVINCE="CA"|export KEY_PROVINCE="'${KEY_PROVINCE}'"|' /etc/openvpn/easy-rsa/vars
+#	sed -i 's|export KEY_CITY="SanFrancisco"|export KEY_CITY="'${KEY_CITY}'"|' /etc/openvpn/easy-rsa/vars
+#	sed -i 's|export KEY_ORG="Fort-Funston"|export KEY_ORG="Private"|' /etc/openvpn/easy-rsa/vars
+#	sed -i 's|export KEY_EMAIL="me@myhost.mydomain"|export KEY_EMAIL="'${KEY_EMAIL}'"|' /etc/openvpn/easy-rsa/vars
+#	sed -i 's|export KEY_OU="MyOrganizationalUnit"|export KEY_OU="Private"|' /etc/openvpn/easy-rsa/vars
+#	sed -i 's|export KEY_NAME="EasyRSA"|export KEY_NAME="server"|' /etc/openvpn/easy-rsa/vars
+#	
+#	openssl dhparam -out /etc/openvpn/dh2048.pem 2048 >/dev/null 2>&1
+#	cd /etc/openvpn/easy-rsa
+#	. ./vars
+#	./clean-all
+#	./build-ca
+#	./build-key-server server
+#	cp /etc/openvpn/easy-rsa/keys/{server.crt,server.key,ca.crt} /etc/openvpn
+#	service openvpn start		
+#fi
 
 #Fix error with /etc/rc.local
 touch /etc/rc.local
