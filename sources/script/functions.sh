@@ -1811,12 +1811,12 @@ systemctl -q start arno-iptables-firewall.service
 #not working yet: Security missing: changed login data + output 
 if [ ${USE_AJENTI} == '1' ] && [ ${USE_VALID_SSL} == '1' ]; then
 	echo "${info} Installing Ajenti..." | awk '{ print strftime("[%H:%M:%S] |"), $0 }'
-	wget -q http://repo.ajenti.org/debian/key -O- | apt-key add -
+	wget -q http://repo.ajenti.org/debian/key -O- | apt-key add - >/dev/null 2>&1
 	echo "deb http://repo.ajenti.org/debian main main debian" >> /etc/apt/sources.list
-	apt-get -qq update && apt-get -q -y --force-yes install ajenti 
+	apt-get -qq update && apt-get -q -y --force-yes install ajenti >/dev/null 2>&1
 	
 #gevent workaround -> https://github.com/ajenti/ajenti/issues/702 https://github.com/ajenti/ajenti/issues/870
-	apt-get -q -y --force-yes install python-setuptools python-dev build-essential
+	apt-get -q -y --force-yes install python-setuptools python-dev build-essential >/dev/null 2>&1
 	sudo easy_install -U gevent==1.1b4 >/dev/null 2>&1
 	
 #Use Lets Encrypt Cert for Ajenti
@@ -1831,7 +1831,7 @@ fi
 # Teamspeak 3
 if [ ${USE_TEAMSPEAK} == '1' ]; then
 echo "${info} Installing Teamspeak 3..." | awk '{ print strftime("[%H:%M:%S] |"), $0 }'
-adduser ts3user --gecos "" --no-create-home --disabled-password
+adduser ts3user --gecos "" --no-create-home --disabled-password >/dev/null 2>&1
 mkdir /usr/local/ts3user
 chown ts3user /usr/local/ts3user
 cd /usr/local/ts3user
@@ -1841,6 +1841,7 @@ mkdir -p /usr/local/ts3user/ts3server/ && cp -r -u /usr/local/ts3user/teamspeak3
 rm -r /usr/local/ts3user/teamspeak3-server_linux_amd64/
 chown -R ts3user /usr/local/ts3user/ts3server
 timeout 10 sudo -u  ts3user /usr/local/ts3user/ts3server/ts3server_minimal_runscript.sh > ts3serverdata.txt
+
 
 echo "#! /bin/sh
 ### BEGIN INIT INFO
@@ -1870,7 +1871,7 @@ exit 0" >> /etc/init.d/ts3server
 
 chmod 755 /etc/init.d/ts3server
 update-rc.d ts3server defaults
-/etc/init.d/ts3server start
+/etc/init.d/ts3server start >/dev/null 2>&1
 fi
 
 
