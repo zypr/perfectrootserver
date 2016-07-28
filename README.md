@@ -1,11 +1,12 @@
-Description follows..
+This is a Fork from Zypr's perfectrootserver
+It's for my personal use and sometimes there can appear bugs!
 
 
 #Short instructions:
 
 [Get the latest release](https://github.com/shoujii/perfectrootserver/releases/latest "Latest Release"):
 ```
-wget -O ~/perfectrootserver.tar.gz https://github.com/shoujii/perfectrootserver/archive/0.1.1.tar.gz
+wget -O ~/perfectrootserver.tar.gz https://github.com/shoujii/perfectrootserver/archive/0.1.2.tar.gz
 ```
 
 Extract:
