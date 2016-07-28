@@ -1808,7 +1808,6 @@ systemctl -q daemon-reload
 systemctl -q start arno-iptables-firewall.service
 
 # Ajenti
-#not working yet: Security missing: changed login data + output 
 if [ ${USE_AJENTI} == '1' ] && [ ${USE_VALID_SSL} == '1' ]; then
 	echo "${info} Installing Ajenti..." | awk '{ print strftime("[%H:%M:%S] |"), $0 }'
 	wget -q http://repo.ajenti.org/debian/key -O- | apt-key add - >/dev/null 2>&1
@@ -1823,6 +1822,8 @@ if [ ${USE_AJENTI} == '1' ] && [ ${USE_VALID_SSL} == '1' ]; then
 	cat /etc/letsencrypt/live/${MYDOMAIN}/fullchain.pem /etc/letsencrypt/live/${MYDOMAIN}/privkey.pem > /etc/letsencrypt/live/${MYDOMAIN}/${MYDOMAIN}-combined.pem
 	ln -s /etc/letsencrypt/live/${MYDOMAIN}/${MYDOMAIN}-combined.pem /etc/nginx/ssl/${MYDOMAIN}-combined.pem
 	sed -i 's~\("certificate_path": "/etc/\)ajenti/ajenti.pem"~\1nginx/ssl/'${MYDOMAIN}'-combined.pem"~' /etc/ajenti/config.json
+	test=$(python -c "from passlib.hash import sha512_crypt; print sha512_crypt.encrypt('${AJENTI_PASS}')")
+	sed -i.bak 's/^[[:space:]]*"password.*$/"password" : "sha512|'"${test//\//\\/}"'",/' /etc/ajenti/config.json
 	service ajenti restart
 else 
 	echo "${warn} USE_VALID_SSL is disabled, skipping Ajenti installation!" | awk '{ print strftime("[%H:%M:%S] |"), $0 }'	
@@ -2150,7 +2151,8 @@ if [ ${USE_AJENTI} == '1' ]; then
 	echo "Ajenti" >> ~/credentials.txt
 	echo "--------------------------------------------" >> ~/credentials.txt
 	echo "https://${MYDOMAIN}:8000" >> ~/credentials.txt
-	echo "login: root - password: admin" >> ~/credentials.txt
+	echo "login: root" >> ~/credentials.txt
+	echo "password = ${AJENTI_PASS}" >> ~/credentials.txt
 	echo "" >> ~/credentials.txt
 	echo "" >> ~/credentials.txt
 fi
