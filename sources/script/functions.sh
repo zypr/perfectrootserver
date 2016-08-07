@@ -1822,9 +1822,15 @@ if [ ${USE_AJENTI} == '1' ] && [ ${USE_VALID_SSL} == '1' ]; then
 	cat /etc/letsencrypt/live/${MYDOMAIN}/fullchain.pem /etc/letsencrypt/live/${MYDOMAIN}/privkey.pem > /etc/letsencrypt/live/${MYDOMAIN}/${MYDOMAIN}-combined.pem
 	ln -s /etc/letsencrypt/live/${MYDOMAIN}/${MYDOMAIN}-combined.pem /etc/nginx/ssl/${MYDOMAIN}-combined.pem
 	sed -i 's~\("certificate_path": "/etc/\)ajenti/ajenti.pem"~\1nginx/ssl/'${MYDOMAIN}'-combined.pem"~' /etc/ajenti/config.json
-	test=$(python -c "from passlib.hash import sha512_crypt; print sha512_crypt.encrypt('${AJENTI_PASS}')")
-	sed -i.bak 's/^[[:space:]]*"password.*$/"password" : "sha512|'"${test//\//\\/}"'",/' /etc/ajenti/config.json
+	ajentihash=$(python -c "from passlib.hash import sha512_crypt; print sha512_crypt.encrypt('${AJENTI_PASS}')")
+	sed -i.bak 's/^[[:space:]]*"password.*$/"password" : "sha512|'"${ajentihash//\//\\/}"'",/' /etc/ajenti/config.json
 	service ajenti restart
+	
+	
+	
+	#AJENTI UDP credentials.txt All Ports are open output is wrong
+	
+	
 else 
 	echo "${warn} USE_VALID_SSL is disabled, skipping Ajenti installation!" | awk '{ print strftime("[%H:%M:%S] |"), $0 }'	
 fi
@@ -1877,39 +1883,49 @@ fi
 
 
 # OpenVPN
-#if [ ${USE_OPENVPN} == '1' ]; then
-#	echo "${info} Installing OPENVPN..." | awk '{ print strftime("[%H:%M:%S] |"), $0 }'
-#	apt-get -q -y --force-yes install openvpn
-#	gunzip -c /usr/share/doc/openvpn/examples/sample-config-files/server.conf.gz > /etc/openvpn/server.conf
-#	sed -i 's|dh dh1024.pem|dh dh2048.pem|' /etc/openvpn/server.conf
-#	sed -i 's|;push "redirect-gateway def1 bypass-dhcp"|push "redirect-gateway def1 bypass-dhcp"|' /etc/openvpn/server.conf
-#	sed -i 's|;push "dhcp-option DNS 208.67.222.222"|push "dhcp-option DNS 208.67.222.222"|' /etc/openvpn/server.conf
-#	sed -i 's|;push "dhcp-option DNS 208.67.220.220"|push "dhcp-option DNS 208.67.220.220"|' /etc/openvpn/server.conf
-#	sed -i 's|;user nobody|user nobody|' /etc/openvpn/server.conf
-#	sed -i 's|;group nogroup|group nogroup|' /etc/openvpn/server.conf
-#	
-#	echo 1 > /proc/sys/net/ipv4/ip_forward
-#	echo net.ipv4.ip_forward=1 >> /etc/sysctl.conf
-#	cp -r /usr/share/easy-rsa/ /etc/openvpn
-#	mkdir /etc/openvpn/easy-rsa/keys
-#	
-#	sed -i 's|export KEY_COUNTRY="US"|export KEY_COUNTRY="'${KEY_COUNTRY}'"|' /etc/openvpn/easy-rsa/vars
-#	sed -i 's|export KEY_PROVINCE="CA"|export KEY_PROVINCE="'${KEY_PROVINCE}'"|' /etc/openvpn/easy-rsa/vars
-#	sed -i 's|export KEY_CITY="SanFrancisco"|export KEY_CITY="'${KEY_CITY}'"|' /etc/openvpn/easy-rsa/vars
-#	sed -i 's|export KEY_ORG="Fort-Funston"|export KEY_ORG="Private"|' /etc/openvpn/easy-rsa/vars
-#	sed -i 's|export KEY_EMAIL="me@myhost.mydomain"|export KEY_EMAIL="'${KEY_EMAIL}'"|' /etc/openvpn/easy-rsa/vars
-#	sed -i 's|export KEY_OU="MyOrganizationalUnit"|export KEY_OU="Private"|' /etc/openvpn/easy-rsa/vars
-#	sed -i 's|export KEY_NAME="EasyRSA"|export KEY_NAME="server"|' /etc/openvpn/easy-rsa/vars
-#	
-#	openssl dhparam -out /etc/openvpn/dh2048.pem 2048 >/dev/null 2>&1
-#	cd /etc/openvpn/easy-rsa
-#	. ./vars
-#	./clean-all
-#	./build-ca
-#	./build-key-server server
-#	cp /etc/openvpn/easy-rsa/keys/{server.crt,server.key,ca.crt} /etc/openvpn
-#	service openvpn start		
-#fi
+if [ ${USE_OPENVPN} == '1' ]; then
+	echo "${info} Installing OPENVPN..." | awk '{ print strftime("[%H:%M:%S] |"), $0 }'
+	apt-get -qq update && apt-get -q -y --force-yes install openvpn easy-rsa >/dev/null 2>&1
+	gunzip -c /usr/share/doc/openvpn/examples/sample-config-files/server.conf.gz > /etc/openvpn/server.conf
+	
+	sed -i 's|dh dh1024.pem|dh dh2048.pem|' /etc/openvpn/server.conf
+	sed -i 's|;push "redirect-gateway def1 bypass-dhcp"|push "redirect-gateway def1 bypass-dhcp"|' /etc/openvpn/server.conf
+	sed -i 's|;push "dhcp-option DNS 208.67.222.222"|push "dhcp-option DNS 208.67.222.222"|' /etc/openvpn/server.conf
+	sed -i 's|;push "dhcp-option DNS 208.67.220.220"|push "dhcp-option DNS 208.67.220.220"|' /etc/openvpn/server.conf
+	sed -i 's|;user nobody|user nobody|' /etc/openvpn/server.conf
+	sed -i 's|;group nogroup|group nogroup|' /etc/openvpn/server.conf
+	
+	echo 1 > /proc/sys/net/ipv4/ip_forward
+	sed -i 's|#net.ipv4.ip_forward=1|net.ipv4.ip_forward=1|' /etc/sysctl.conf
+	
+	#firewall port needs to be opened + forward
+	
+	
+	cp -r /usr/share/easy-rsa/ /etc/openvpn
+	mkdir /etc/openvpn/easy-rsa/keys
+	
+	sed -i 's|export KEY_COUNTRY="US"|export KEY_COUNTRY="'${KEY_COUNTRY}'"|' /etc/openvpn/easy-rsa/vars
+	sed -i 's|export KEY_PROVINCE="CA"|export KEY_PROVINCE="'${KEY_PROVINCE}'"|' /etc/openvpn/easy-rsa/vars
+	sed -i 's|export KEY_CITY="SanFrancisco"|export KEY_CITY="'${KEY_CITY}'"|' /etc/openvpn/easy-rsa/vars
+	sed -i 's|export KEY_ORG="Fort-Funston"|export KEY_ORG="Private"|' /etc/openvpn/easy-rsa/vars
+	sed -i 's|export KEY_EMAIL="me@myhost.mydomain"|export KEY_EMAIL="'${KEY_EMAIL}'"|' /etc/openvpn/easy-rsa/vars
+	sed -i 's|export KEY_OU="MyOrganizationalUnit"|export KEY_OU="Private"|' /etc/openvpn/easy-rsa/vars
+	sed -i 's|export KEY_NAME="EasyRSA"|export KEY_NAME="server"|' /etc/openvpn/easy-rsa/vars
+	
+	openssl dhparam -out /etc/openvpn/dh2048.pem 2048 >/dev/null 2>&1
+	cd /etc/openvpn/easy-rsa
+	. ./vars
+	./clean-all >/dev/null 2>&1
+	./build-ca
+	./build-key-server server
+	cp /etc/openvpn/easy-rsa/keys/{server.crt,server.key,ca.crt} /etc/openvpn
+	service openvpn start	
+
+	#Cert + key for Client
+	./build-key client1
+	cp /usr/share/doc/openvpn/examples/sample-config-files/client.conf /etc/openvpn/easy-rsa/keys/client.ovpn
+	sed -i 's|remote my-server-1 1194|remote '${SERVER_IP}' 1194|' /etc/openvpn/easy-rsa/keys/client.ovpn
+fi
 
 #Fix error with /etc/rc.local
 touch /etc/rc.local
@@ -2200,8 +2216,6 @@ echo "" >> ~/credentials.txt
 echo "" >> ~/credentials.txt
 echo "_______________________________________________________________________________________" >> ~/credentials.txt
 echo "${ok} Done! The credentials are located in the file $(textb /root/credentials.txt)!" | awk '{ print strftime("[%H:%M:%S] |"), $0 }'
-if [ ${USE_AJENTI} == '1' ]; then
-	echo "${warn} Please login to https://${MYDOMAIN}:8000 with login: root - password: admin and change the Ajenti standard password!" | awk '{ print strftime("[%H:%M:%S] |"), $0 }'
 fi
 }
 
