@@ -1757,50 +1757,11 @@ sed -i 's/^DRDOS_PROTECT=.*/DRDOS_PROTECT="1"/g' /etc/arno-iptables-firewall/fir
 sed -i 's/^OPEN_ICMP=.*/OPEN_ICMP="1"/g' /etc/arno-iptables-firewall/firewall.conf
 sed -i 's/^#BLOCK_HOSTS_FILE=.*/BLOCK_HOSTS_FILE="\/etc\/arno-iptables-firewall\/blocked-hosts"/g' /etc/arno-iptables-firewall/firewall.conf
 if [ ${USE_MAILSERVER} == '1' ]; then
-	if [ ${USE_TEAMSPEAK} == '1' ]; then
-		if [ ${USE_AJENTI} == '1' ]; then
-			sed -i "s/^OPEN_TCP=.*/OPEN_TCP=\"${SSH}, 25, 80, 110, 143, 443, 465, 587, 993, 995, 2008, 10011, 30033, 41144, 8000\"/" /etc/arno-iptables-firewall/firewall.conf
-		else
-			sed -i "s/^OPEN_TCP=.*/OPEN_TCP=\"${SSH}, 25, 80, 110, 143, 443, 465, 587, 993, 995, 2008, 10011, 30033, 41144\"/" /etc/arno-iptables-firewall/firewall.conf
-		fi
-	else 
-		if [ ${USE_AJENTI} == '1' ]; then
-			sed -i "s/^OPEN_TCP=.*/OPEN_TCP=\"${SSH}, 25, 80, 110, 143, 443, 465, 587, 993, 995, 8000\"/" /etc/arno-iptables-firewall/firewall.conf
-		else
-			sed -i "s/^OPEN_TCP=.*/OPEN_TCP=\"${SSH}, 25, 80, 110, 143, 443, 465, 587, 993, 995\"/" /etc/arno-iptables-firewall/firewall.conf
-		fi
-	fi
+	sed -i "s/^OPEN_TCP=.*/OPEN_TCP=\"${SSH}, 25, 80, 110, 143, 443, 465, 587, 993, 995\"/" /etc/arno-iptables-firewall/firewall.conf
 else
-	if [ ${USE_TEAMSPEAK} == '1' ]; then
-		if [ ${USE_AJENTI} == '1' ]; then
-			sed -i "s/^OPEN_TCP=.*/OPEN_TCP=\"${SSH}, 80, 443, 2008, 10011, 30033, 41144, 8000\"/" /etc/arno-iptables-firewall/firewall.conf
-		else
-			sed -i "s/^OPEN_TCP=.*/OPEN_TCP=\"${SSH}, 80, 443, 2008, 10011, 30033, 41144\"/" /etc/arno-iptables-firewall/firewall.conf
-		fi
-	else
-		if [ ${USE_AJENTI} == '1' ]; then
-			sed -i "s/^OPEN_TCP=.*/OPEN_TCP=\"${SSH}, 80, 443, 8000\"/" /etc/arno-iptables-firewall/firewall.conf
-		else
-			sed -i "s/^OPEN_TCP=.*/OPEN_TCP=\"${SSH}, 80, 443\"/" /etc/arno-iptables-firewall/firewall.conf
-		fi
-	fi
+	sed -i "s/^OPEN_TCP=.*/OPEN_TCP=\"${SSH}, 80, 443\"/" /etc/arno-iptables-firewall/firewall.conf
 fi
-
-if [ ${USE_TEAMSPEAK} == '1' ]; then
-	sed -i 's/^OPEN_UDP=.*/OPEN_UDP="2010, 9987"/' /etc/arno-iptables-firewall/firewall.conf
-		if [ ${USE_OPENVPN} == '1' ]; then
-			sed -i 's/^OPEN_UDP=.*/OPEN_UDP="2010, 9987, 1194"/' /etc/arno-iptables-firewall/firewall.conf
-		else
-			sed -i 's/^OPEN_UDP=.*/OPEN_UDP="2010, 9987"/' /etc/arno-iptables-firewall/firewall.conf
-		fi
-else 
-	if [ ${USE_OPENVPN} == '1' ]; then
-		sed -i 's/^OPEN_UDP=.*/OPEN_UDP="1194"/' /etc/arno-iptables-firewall/firewall.conf
-	else
-			sed -i 's/^OPEN_UDP=.*/OPEN_UDP=""/' /etc/arno-iptables-firewall/firewall.conf
-	fi
-fi
-
+sed -i 's/^OPEN_UDP=.*/OPEN_UDP=""/' /etc/arno-iptables-firewall/firewall.conf
 sed -i 's/^VERBOSE=.*/VERBOSE=1/' /etc/init.d/arno-iptables-firewall
 
 # Start the firewall
@@ -1826,7 +1787,8 @@ if [ ${USE_AJENTI} == '1' ] && [ ${USE_VALID_SSL} == '1' ]; then
 	sed -i.bak 's/^[[:space:]]*"password.*$/"password" : "sha512|'"${ajentihash//\//\\/}"'",/' /etc/ajenti/config.json
 	service ajenti restart
 	
-	
+	$AJENTI_PORTS="8000"
+	sed -i "/^OPEN_TCP=\"/ s//&$AJENTI_PORTS,/" /etc/arno-iptables-firewall/firewall.conf >/dev/null 2>&1
 	
 	#AJENTI UDP credentials.txt All Ports are open output is wrong
 	
@@ -1881,6 +1843,11 @@ if [ ${USE_TEAMSPEAK} == '1' ]; then
 	chmod 755 /etc/init.d/ts3server
 	update-rc.d ts3server defaults
 	/etc/init.d/ts3server start >/dev/null 2>&1
+	
+	$TS3_PORTS_TCP="2010, 9987, "
+	$TS3_PORTS_UDP="2008, 10011, 30033, 41144, "
+	sed -i "/^OPEN_TCP=\"/ s//&$TS3_PORTS_TCP,/" /etc/arno-iptables-firewall/firewall.conf >/dev/null 2>&1
+	sed -i "/^OPEN_UDP=\"/ s//&$TS3_PORTS_UDP,/" /etc/arno-iptables-firewall/firewall.conf >/dev/null 2>&1
 fi
 
 # VSFTPD
@@ -2029,12 +1996,9 @@ auth	required	pam_listfile.so item=user sense=deny file=/etc/ftpusers onerr=succ
 
 END
 
-	sed -i "/^OPEN_TCP=\"/ s//&$FTP_PORT,/" /etc/arno-iptables-firewall/firewall.conf >/dev/null 2>&1
-
 	#restart some services
 	systemctl -q restart vsftpd >/dev/null 2>&1
 	systemctl -q restart sshd >/dev/null 2>&1
-	systemctl force-reload arno-iptables-firewall >/dev/null 2>&1
 
 	# Save the Login to a nice file
 cat > /root/VSFTP_LOGINDATA.txt <<END
@@ -2047,6 +2011,7 @@ Your password: $userpass
 
 END
 
+sed -i "/^OPEN_TCP=\"/ s//&$FTP_PORT,/" /etc/arno-iptables-firewall/firewall.conf >/dev/null 2>&1
 fi
 
 # OpenVPN
@@ -2093,6 +2058,9 @@ fi
 #	cp /usr/share/doc/openvpn/examples/sample-config-files/client.conf /etc/openvpn/easy-rsa/keys/client.ovpn
 #	sed -i 's|remote my-server-1 1194|remote '${SERVER_IP}' 1194|' /etc/openvpn/easy-rsa/keys/client.ovpn
 #fi
+
+#Restart firewall
+systemctl force-reload arno-iptables-firewall >/dev/null 2>&1
 
 #Fix error with /etc/rc.local
 touch /etc/rc.local
