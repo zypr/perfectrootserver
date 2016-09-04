@@ -141,7 +141,7 @@ checksystem() {
 
 checkconfig() {
 	echo "${info} Checking your configuration..." | awk '{ print strftime("[%H:%M:%S] |"), $0 }'
-	for var in NGINX_VERSION OPENSSL_VERSION OPENSSH_VERSION NPS_VERSION TIMEZONE MYDOMAIN SSH USE_MAILSERVER MAILCOW_ADMIN_USER USE_WEBMAIL USE_TEAMSPEAK USE_AJENTI USE_OPENVPN USE_PMA PMA_HTTPAUTH_USER PMA_RESTRICT MYSQL_MCDB_NAME MYSQL_MCDB_USER MYSQL_RCDB_NAME MYSQL_RCDB_USER MYSQL_PMADB_NAME MYSQL_PMADB_USER MYSQL_HOSTNAME CLOUDFLARE KEY_COUNTRY KEY_PROVINCE KEY_CITY KEY_EMAIL   
+	for var in NGINX_VERSION OPENSSL_VERSION OPENSSH_VERSION NPS_VERSION TIMEZONE MYDOMAIN SSH USE_MAILSERVER MAILCOW_ADMIN_USER USE_WEBMAIL USE_TEAMSPEAK USE_AJENTI USE_VSFTPD USE_PMA PMA_HTTPAUTH_USER PMA_RESTRICT MYSQL_MCDB_NAME MYSQL_MCDB_USER MYSQL_RCDB_NAME MYSQL_RCDB_USER MYSQL_PMADB_NAME MYSQL_PMADB_USER MYSQL_HOSTNAME CLOUDFLARE
 	do
 		if [[ -z ${!var} ]]; then
 			echo "${error} Parameter $(textb ${var}) must not be empty." | awk '{ print strftime("[%H:%M:%S] |"), $0 }'
@@ -1757,50 +1757,11 @@ sed -i 's/^DRDOS_PROTECT=.*/DRDOS_PROTECT="1"/g' /etc/arno-iptables-firewall/fir
 sed -i 's/^OPEN_ICMP=.*/OPEN_ICMP="1"/g' /etc/arno-iptables-firewall/firewall.conf
 sed -i 's/^#BLOCK_HOSTS_FILE=.*/BLOCK_HOSTS_FILE="\/etc\/arno-iptables-firewall\/blocked-hosts"/g' /etc/arno-iptables-firewall/firewall.conf
 if [ ${USE_MAILSERVER} == '1' ]; then
-	if [ ${USE_TEAMSPEAK} == '1' ]; then
-		if [ ${USE_AJENTI} == '1' ]; then
-			sed -i "s/^OPEN_TCP=.*/OPEN_TCP=\"${SSH}, 25, 80, 110, 143, 443, 465, 587, 993, 995, 2008, 10011, 30033, 41144, 8000\"/" /etc/arno-iptables-firewall/firewall.conf
-		else
-			sed -i "s/^OPEN_TCP=.*/OPEN_TCP=\"${SSH}, 25, 80, 110, 143, 443, 465, 587, 993, 995, 2008, 10011, 30033, 41144\"/" /etc/arno-iptables-firewall/firewall.conf
-		fi
-	else 
-		if [ ${USE_AJENTI} == '1' ]; then
-			sed -i "s/^OPEN_TCP=.*/OPEN_TCP=\"${SSH}, 25, 80, 110, 143, 443, 465, 587, 993, 995, 8000\"/" /etc/arno-iptables-firewall/firewall.conf
-		else
-			sed -i "s/^OPEN_TCP=.*/OPEN_TCP=\"${SSH}, 25, 80, 110, 143, 443, 465, 587, 993, 995\"/" /etc/arno-iptables-firewall/firewall.conf
-		fi
-	fi
+	sed -i "s/^OPEN_TCP=.*/OPEN_TCP=\"${SSH}, 25, 80, 110, 143, 443, 465, 587, 993, 995\"/" /etc/arno-iptables-firewall/firewall.conf
 else
-	if [ ${USE_TEAMSPEAK} == '1' ]; then
-		if [ ${USE_AJENTI} == '1' ]; then
-			sed -i "s/^OPEN_TCP=.*/OPEN_TCP=\"${SSH}, 80, 443, 2008, 10011, 30033, 41144, 8000\"/" /etc/arno-iptables-firewall/firewall.conf
-		else
-			sed -i "s/^OPEN_TCP=.*/OPEN_TCP=\"${SSH}, 80, 443, 2008, 10011, 30033, 41144\"/" /etc/arno-iptables-firewall/firewall.conf
-		fi
-	else
-		if [ ${USE_AJENTI} == '1' ]; then
-			sed -i "s/^OPEN_TCP=.*/OPEN_TCP=\"${SSH}, 80, 443, 8000\"/" /etc/arno-iptables-firewall/firewall.conf
-		else
-			sed -i "s/^OPEN_TCP=.*/OPEN_TCP=\"${SSH}, 80, 443\"/" /etc/arno-iptables-firewall/firewall.conf
-		fi
-	fi
+	sed -i "s/^OPEN_TCP=.*/OPEN_TCP=\"${SSH}, 80, 443\"/" /etc/arno-iptables-firewall/firewall.conf
 fi
-
-if [ ${USE_TEAMSPEAK} == '1' ]; then
-	sed -i 's/^OPEN_UDP=.*/OPEN_UDP="2010, 9987"/' /etc/arno-iptables-firewall/firewall.conf
-		if [ ${USE_OPENVPN} == '1' ]; then
-			sed -i 's/^OPEN_UDP=.*/OPEN_UDP="2010, 9987, 1194"/' /etc/arno-iptables-firewall/firewall.conf
-		else
-			sed -i 's/^OPEN_UDP=.*/OPEN_UDP="2010, 9987"/' /etc/arno-iptables-firewall/firewall.conf
-		fi
-else 
-	if [ ${USE_OPENVPN} == '1' ]; then
-		sed -i 's/^OPEN_UDP=.*/OPEN_UDP="1194"/' /etc/arno-iptables-firewall/firewall.conf
-	else
-			sed -i 's/^OPEN_UDP=.*/OPEN_UDP=""/' /etc/arno-iptables-firewall/firewall.conf
-	fi
-fi
-
+sed -i 's/^OPEN_UDP=.*/OPEN_UDP=""/' /etc/arno-iptables-firewall/firewall.conf
 sed -i 's/^VERBOSE=.*/VERBOSE=1/' /etc/init.d/arno-iptables-firewall
 
 # Start the firewall
@@ -1826,28 +1787,31 @@ if [ ${USE_AJENTI} == '1' ] && [ ${USE_VALID_SSL} == '1' ]; then
 	sed -i.bak 's/^[[:space:]]*"password.*$/"password" : "sha512|'"${ajentihash//\//\\/}"'",/' /etc/ajenti/config.json
 	service ajenti restart
 	
-	
+	AJENTI_PORTS="8000"
+	sed -i "/^OPEN_TCP=\"/ s//&$AJENTI_PORTS,/" /etc/arno-iptables-firewall/firewall.conf >/dev/null 2>&1
 	
 	#AJENTI UDP credentials.txt All Ports are open output is wrong
 	
 	
 else 
-	echo "${warn} USE_VALID_SSL is disabled, skipping Ajenti installation!" | awk '{ print strftime("[%H:%M:%S] |"), $0 }'	
+	if [ ${USE_AJENTI} == '1' ] && [ ${USE_VALID_SSL} == '0' ]; then
+		echo "${warn} USE_VALID_SSL is disabled, skipping Ajenti installation!" | awk '{ print strftime("[%H:%M:%S] |"), $0 }'	
+	fi	
 fi
 
 # Teamspeak 3
 if [ ${USE_TEAMSPEAK} == '1' ]; then
-echo "${info} Installing Teamspeak 3..." | awk '{ print strftime("[%H:%M:%S] |"), $0 }'
-adduser ts3user --gecos "" --no-create-home --disabled-password >/dev/null 2>&1
-mkdir /usr/local/ts3user
-chown ts3user /usr/local/ts3user
-cd /usr/local/ts3user
-wget -q http://dl.4players.de/ts/releases/${TEAMSPEAK_VERSION}/teamspeak3-server_linux_amd64-${TEAMSPEAK_VERSION}.tar.bz2
-tar -xjf teamspeak3-server_linux*.tar.bz2 >/dev/null 2>&1
-mkdir -p /usr/local/ts3user/ts3server/ && cp -r -u /usr/local/ts3user/teamspeak3-server_linux_amd64/* /usr/local/ts3user/ts3server/
-rm -r /usr/local/ts3user/teamspeak3-server_linux_amd64/
-chown -R ts3user /usr/local/ts3user/ts3server
-timeout 10 sudo -u  ts3user /usr/local/ts3user/ts3server/ts3server_minimal_runscript.sh > ts3serverdata.txt
+	echo "${info} Installing Teamspeak 3..." | awk '{ print strftime("[%H:%M:%S] |"), $0 }'
+	adduser ts3user --gecos "" --no-create-home --disabled-password >/dev/null 2>&1
+	mkdir /usr/local/ts3user
+	chown ts3user /usr/local/ts3user
+	cd /usr/local/ts3user
+	wget -q http://dl.4players.de/ts/releases/${TEAMSPEAK_VERSION}/teamspeak3-server_linux_amd64-${TEAMSPEAK_VERSION}.tar.bz2
+	tar -xjf teamspeak3-server_linux*.tar.bz2 >/dev/null 2>&1
+	mkdir -p /usr/local/ts3user/ts3server/ && cp -r -u /usr/local/ts3user/teamspeak3-server_linux_amd64/* /usr/local/ts3user/ts3server/
+	rm -r /usr/local/ts3user/teamspeak3-server_linux_amd64/
+	chown -R ts3user /usr/local/ts3user/ts3server
+	timeout 10 sudo -u  ts3user /usr/local/ts3user/ts3server/ts3server_minimal_runscript.sh > ts3serverdata.txt
 
 
 echo "#! /bin/sh
@@ -1876,11 +1840,179 @@ exit 1
 esac
 exit 0" >> /etc/init.d/ts3server 
 
-chmod 755 /etc/init.d/ts3server
-update-rc.d ts3server defaults
-/etc/init.d/ts3server start >/dev/null 2>&1
+	chmod 755 /etc/init.d/ts3server
+	update-rc.d ts3server defaults
+	/etc/init.d/ts3server start >/dev/null 2>&1
+	
+	TS3_PORTS_TCP="2010, 9987, "
+	TS3_PORTS_UDP="2008, 10011, 30033, 41144, "
+	sed -i "/^OPEN_TCP=\"/ s//&$TS3_PORTS_TCP,/" /etc/arno-iptables-firewall/firewall.conf >/dev/null 2>&1
+	sed -i "/^OPEN_UDP=\"/ s//&$TS3_PORTS_UDP,/" /etc/arno-iptables-firewall/firewall.conf >/dev/null 2>&1
 fi
 
+# VSFTPD
+if [ ${USE_VSFTPD} == '1' ]; then
+	echo "${info} VSFTPD..." | awk '{ print strftime("[%H:%M:%S] |"), $0 }'
+	#Host IP check
+	ip=$(hostname -I)
+
+	#creating a strong password!
+	userpass=$(openssl rand -base64 30  |  sed 's|/|_|')
+
+	cd >/dev/null 2>&1
+	apt-get -y install vsftpd >/dev/null 2>&1
+	openssl req -x509 -nodes -days 365 -newkey rsa:1024 -keyout /etc/ssl/private/vsftpd.pem -out /etc/ssl/private/vsftpd.pem -subj "/C=/ST=/L=/O=/OU=/CN=*.$MYDOMAIN" >/dev/null 2>&1
+	rm -rf /etc/vsftpd.conf >/dev/null 2>&1
+				
+	cat > /etc/vsftpd.conf <<END
+# Run standalone vs. from an inetd – start daemon from an initscript
+listen=YES
+#
+# Disallow anonymous FTP. 
+anonymous_enable=NO
+#
+# Allow local users to log in.
+local_enable=YES
+#
+# Allow per-user configuration for local users.
+user_config_dir=/etc/vsftpd_user_conf
+#
+# Enable FTP write commands – controlled with cmds_allowed list.
+write_enable=YES
+#
+# Don’t allow recursive listing – prevents excessive I/O usage.
+ls_recurse_enable=NO
+#
+# Activate directory messages - messages given to remote users when they
+# go into a certain directory.
+dirmessage_enable=YES
+#
+# Display directory listings with the time in  your  local  time  zone.
+# Default is to display GMT.
+use_localtime=YES
+#
+# Activate logging of uploads/downloads, but not in xferlog format
+xferlog_enable=YES
+xferlog_std_format=NO
+log_ftp_protocol=YES
+#
+# Make sure PORT transfer connections originate from port 20 (ftp-data).
+connect_from_port_20=YES
+#
+# Uploaded files are owned by the uploader.
+chown_uploads=NO
+#
+# Default log – enable and change for custom location/name
+xferlog_file=/var/log/vsftpd.log
+#
+# You may change the default value for timing out an idle session.
+idle_session_timeout=600
+#
+# You may change the default value for timing out a data connection.
+data_connection_timeout=120
+#
+# Don’t allow ASCII mangling on files when in ASCII mode.
+# ASCII mangling is a horrible feature of the protocol.
+ascii_upload_enable=NO
+ascii_download_enable=NO
+#
+# Customize the login banner string:
+ftpd_banner=Welcome to our FTP service.
+#
+# Customization
+#
+# Some of vsftpd's default settings don't fit the filesystem layout.
+#
+# Empty directory which isn’t writable by the ftp user. This directory is used
+# as a secure chroot() jail when vsftpd does not require filesystem access.
+secure_chroot_dir=/var/run/vsftpd/empty
+#
+# This string is the name of the PAM service vsftpd will use.
+pam_service_name=vsftpd
+#
+# Location of the RSA certificate to use for SSL encrypted connections.
+rsa_cert_file=/etc/ssl/private/vsftpd.pem
+#
+# Allow PASV (passive ftp)
+pasv_enable=YES
+pasv_min_port=12000
+pasv_max_port=12500
+port_enable=YES
+# enter your IP address on the line below – example: 184.37.445.210
+pasv_address=$IP
+pasv_addr_resolve=NO
+#####################################################
+listen_ipv6=NO
+nopriv_user=www-data
+chroot_local_user=YES
+allow_writeable_chroot=YES
+rsa_private_key_file=/etc/ssl/private/vsftpd.pem
+ssl_enable=YES
+utf8_filesystem=YES
+# Disable SSL session reuse (required by WinSCP)
+require_ssl_reuse=NO
+
+# Select which SSL ciphers vsftpd will allow for encrypted SSL connections (required by FileZilla)
+ssl_ciphers=HIGH
+######################################################
+#
+# set chmod correctly for apache, see
+# http://en.gentoowiki.com/wiki/Vsftpd
+file_open_mode=0666
+# Default umask for local users is 077 – replace with 022
+local_umask=0022
+#
+END
+
+	groupadd wwwftp >/dev/null 2>&1
+	adduser $FTP_USERNAME --gecos "" --no-create-home --disabled-password --home /etc/nginx/html --ingroup wwwftp >/dev/null 2>&1
+	echo $FTP_USERNAME:$userpass | chpasswd >/dev/null 2>&1
+
+	#edit file for user
+	#-----------------------------------
+	#delete the last line 
+	sed '$d' /etc/passwd >/dev/null 2>&1
+
+	#and paste the new content
+	echo "${FTP_USERNAME}:x:1001:1001:My Website,,,:/etc/nginx/html:/bin/false/" >> /etc/passwd >/dev/null 2>&1
+
+	# set chown for both groups
+	chown -R www-data:wwwftp /etc/nginx/html >/dev/null 2>&1
+	chmod -R 775 /etc/nginx/html >/dev/null 2>&1
+
+	#disable pam_shell
+	rm -rf /etc/pam.d/vsftpd >/dev/null 2>&1
+	cat > /etc/pam.d/vsftpd <<END
+# Standard behaviour for ftpd(8).
+auth	required	pam_listfile.so item=user sense=deny file=/etc/ftpusers onerr=succeed
+
+# Note: vsftpd handles anonymous logins on its own. Do not enable pam_ftp.so.
+
+# Standard pam includes
+@include common-account
+@include common-session
+@include common-auth
+#auth	required	pam_shells.so
+
+END
+
+	#restart some services
+	systemctl -q restart vsftpd >/dev/null 2>&1
+	systemctl -q restart sshd >/dev/null 2>&1
+
+	# Save the Login to a nice file
+cat > /root/VSFTP_LOGINDATA.txt <<END
+-------------------------------------------------------
+Your Serverip: $ip
+Your Port: $FTP_PORT
+Your username: $FTP_USERNAME
+Your password: $userpass
+-------------------------------------------------------
+
+END
+
+sed -i "/^OPEN_TCP=\"/ s//&$FTP_PORT,/" /etc/arno-iptables-firewall/firewall.conf >/dev/null 2>&1
+fi
 
 # OpenVPN
 #if [ ${USE_OPENVPN} == '1' ]; then
@@ -1926,6 +2058,9 @@ fi
 #	cp /usr/share/doc/openvpn/examples/sample-config-files/client.conf /etc/openvpn/easy-rsa/keys/client.ovpn
 #	sed -i 's|remote my-server-1 1194|remote '${SERVER_IP}' 1194|' /etc/openvpn/easy-rsa/keys/client.ovpn
 #fi
+
+#Restart firewall
+systemctl force-reload arno-iptables-firewall >/dev/null 2>&1
 
 #Fix error with /etc/rc.local
 touch /etc/rc.local
@@ -2174,6 +2309,11 @@ if [ ${USE_AJENTI} == '1' ]; then
 fi
 if [ ${USE_TEAMSPEAK} == '1' ]; then
 	cat /usr/local/ts3user/ts3serverdata.txt >> ~/credentials.txt
+	echo "" >> ~/credentials.txt
+	echo "" >> ~/credentials.txt
+fi
+if [ ${USE_VSFTPD} == '1' ]; then
+	cat /root/VSFTP_LOGINDATA.txt >> ~/credentials.txt
 	echo "" >> ~/credentials.txt
 	echo "" >> ~/credentials.txt
 fi
