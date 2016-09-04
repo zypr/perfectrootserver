@@ -145,4 +145,8 @@ Your password: $userpass
 -------------------------------------------------------
 END
 sed -i "/^OPEN_TCP=\"/ s//&$FTP_PORT,/" /etc/arno-iptables-firewall/firewall.conf >/dev/null 2>&1
+
+	cat /root/VSFTP_LOGINDATA.txt >> ~/credentials.txt
+	echo "" >> ~/credentials.txt
+	echo "" >> ~/credentials.txt
 fi
