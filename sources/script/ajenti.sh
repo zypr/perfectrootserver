@@ -27,4 +27,13 @@ else
 	if [ ${USE_AJENTI} == '1' ] && [ ${USE_VALID_SSL} == '0' ]; then
 		echo "${warn} USE_VALID_SSL is disabled, skipping Ajenti installation!" | awk '{ print strftime("[%H:%M:%S] |"), $0 }'	
 	fi	
+	
+echo "--------------------------------------------" >> ~/credentials.txt
+	echo "Ajenti" >> ~/credentials.txt
+	echo "--------------------------------------------" >> ~/credentials.txt
+	echo "https://${MYDOMAIN}:8000" >> ~/credentials.txt
+	echo "login: root" >> ~/credentials.txt
+	echo "password = ${AJENTI_PASS}" >> ~/credentials.txt
+	echo "" >> ~/credentials.txt
+	echo "" >> ~/credentials.txt	
 fi
