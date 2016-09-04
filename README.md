@@ -1,12 +1,15 @@
 This is a Fork from Zypr's perfectrootserver
-It's for my personal use and sometimes there can appear bugs!
+
+
+Please download only verions tagged with Latest release!
+Downloading the zip from this branch will fail!
 
 
 #Short instructions:
 
 [Get the latest release](https://github.com/shoujii/perfectrootserver/releases/latest "Latest Release"):
 ```
-wget -O ~/perfectrootserver.tar.gz https://github.com/shoujii/perfectrootserver/archive/0.1.3.tar.gz
+wget -O ~/perfectrootserver.tar.gz https://github.com/shoujii/perfectrootserver/archive/0.1.5.tar.gz
 ```
 
 Extract:
