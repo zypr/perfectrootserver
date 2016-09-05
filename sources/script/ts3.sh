@@ -1,3 +1,7 @@
+ts3() {
+
+source ~/userconfig.cfg
+
 # Teamspeak 3
 if [ ${USE_TEAMSPEAK} == '1' ]; then
 	echo "${info} Installing Teamspeak 3..." | awk '{ print strftime("[%H:%M:%S] |"), $0 }'
@@ -48,3 +52,4 @@ exit 0" >> /etc/init.d/ts3server
 	echo "" >> ~/credentials.txt
 	echo "" >> ~/credentials.txt
 fi
+}
