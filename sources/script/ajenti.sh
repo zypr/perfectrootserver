@@ -1,3 +1,7 @@
+ajenti() {
+
+source ~/userconfig.cfg
+
 # Ajenti
 if [ ${USE_AJENTI} == '1' ] && [ ${USE_VALID_SSL} == '1' ]; then
 	echo "${info} Installing Ajenti..." | awk '{ print strftime("[%H:%M:%S] |"), $0 }'
@@ -37,3 +41,4 @@ echo "--------------------------------------------" >> ~/credentials.txt
 	echo "" >> ~/credentials.txt
 	echo "" >> ~/credentials.txt	
 fi
+}
