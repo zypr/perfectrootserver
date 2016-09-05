@@ -1,3 +1,7 @@
+openvpn() {
+
+source ~/userconfig.cfg
+
 OpenVPN
 if [ ${USE_OPENVPN} == '1' ]; then
 echo "${info} Installing OPENVPN..." | awk '{ print strftime("[%H:%M:%S] |"), $0 }'
@@ -42,3 +46,4 @@ Cert + key for Client
 cp /usr/share/doc/openvpn/examples/sample-config-files/client.conf /etc/openvpn/easy-rsa/keys/client.ovpn
 sed -i 's|remote my-server-1 1194|remote '${SERVER_IP}' 1194|' /etc/openvpn/easy-rsa/keys/client.ovpn
 fi
+}
