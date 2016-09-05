@@ -1,10 +1,10 @@
 #New Domain
 MYOTHERDOMAIN="OTHERDOMAIN.tld"
 SSLMAIL="YOUREMAILADDRESS"
-USE_MAILSERVER ="1"
+USE_MAILSERVER="1"
 CLOUDFLARE="0"
 USE_VALID_SSL="1"
-
+ 
 #----------------------------------------------------------------------#
 #-------------------DO NOT EDIT SOMETHING BELOW THIS-------------------#
 #----------------------------------------------------------------------#
@@ -306,9 +306,6 @@ if [ ${USE_MAILSERVER} == '1' ]; then
 	sed -i "s/MAILCOW_HOST.MAILCOW_DOMAIN/mail.${MYOTHERDOMAIN}/g" /var/www/zpush/backend/imap/config.php
 	sed -i "s/MAILCOW_DAV_HOST.MAILCOW_DOMAIN/dav.${MYOTHERDOMAIN}/g" /var/www/zpush/backend/caldav/config.php
 	sed -i "s/MAILCOW_DAV_HOST.MAILCOW_DOMAIN/dav.${MYOTHERDOMAIN}/g" /var/www/zpush/backend/carddav/config.php
-	mkdir /var/{lib,log}/z-push 2>/dev/null
-	chown -R www-data: /var/{lib,log}/z-push
-	mkdir /var/www/zpush/mail
 	cat > /var/www/zpush/mail/config-v1.1.xml <<END
 <?xml version="1.0" encoding="UTF-8"?>
 
@@ -364,7 +361,7 @@ if [ ${USE_MAILSERVER} == '1' ]; then
 </clientConfig>
 END
 	chown -R www-data: /var/www/zpush/mail/
-	
+fi	
 	
 	
 if [[ -z $(dpkg --get-selections | grep -E "^dbus.*install$") ]]; then
@@ -641,4 +638,4 @@ END
 	if [ ${USE_WEBMAIL} == '1' ]; then
 		sed -i "s/MAILCOW_HOST.MAILCOW_DOMAIN/mail.${MYOTHERDOMAIN}/g" /var/www/mail/rc/config/config.inc.php
 	fi
-		
+	
