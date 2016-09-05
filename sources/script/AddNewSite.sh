@@ -9,17 +9,39 @@ USE_VALID_SSL="1"
 #-------------------DO NOT EDIT SOMETHING BELOW THIS-------------------#
 #----------------------------------------------------------------------#
 
+# Some nice colors
+red() { echo "$(tput setaf 1)$*$(tput setaf 9)"; }
+green() { echo "$(tput setaf 2)$*$(tput setaf 9)"; }
+yellow() { echo "$(tput setaf 3)$*$(tput setaf 9)"; }
+magenta() { echo "$(tput setaf 5)$*$(tput setaf 9)"; }
+cyan() { echo "$(tput setaf 6)$*$(tput setaf 9)"; }
+textb() { echo $(tput bold)${1}$(tput sgr0); }
+greenb() { echo $(tput bold)$(tput setaf 2)${1}$(tput sgr0); }
+redb() { echo $(tput bold)$(tput setaf 1)${1}$(tput sgr0); }
+yellowb() { echo $(tput bold)$(tput setaf 3)${1}$(tput sgr0); }
+pinkb() { echo $(tput bold)$(tput setaf 5)${1}$(tput sgr0); }
+
+# Some nice variables
+info="$(textb [INFO] -)"
+warn="$(yellowb [WARN] -)"
+error="$(redb [ERROR] -)"
+fyi="$(pinkb [INFO] -)"
+ok="$(greenb [OKAY] -)"
+
+echo
+echo
+echo "$(date +"[%T]") | $(textb +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+)"
+echo "$(date +"[%T]") |  $(textb Add new Site to Perfect RootServer-Script) "
+echo "$(date +"[%T]") | $(textb +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+)"
+echo
+echo "$(date +"[%T]") | ${info} Welcome to the Perfect Rootserver Addon installation!"
+echo "$(date +"[%T]") | ${info} Please wait while the installer is preparing for the first use..."
+
 #Host IP check
 IPADR=$(hostname -I)
-
-
-
-
 # SSL certificate
 if [ ${CLOUDFLARE} == '0' ] && [ ${USE_VALID_SSL} == '1' ]; then
 	echo "${info} Creating valid SSL certificates..." | awk '{ print strftime("[%H:%M:%S] |"), $0 }'
-	git clone https://github.com/letsencrypt/letsencrypt ~/sources/letsencrypt -q
-	cd ~/sources/letsencrypt
 	if [ ${USE_MAILSERVER} == '1' ]; then
 		./letsencrypt-auto --agree-tos --renew-by-default --non-interactive --standalone --email ${SSLMAIL} --rsa-key-size 2048 -d ${MYOTHERDOMAIN} -d www.${MYOTHERDOMAIN} -d mail.${MYOTHERDOMAIN} -d autodiscover.${MYOTHERDOMAIN} -d autoconfig.${MYOTHERDOMAIN} -d dav.${MYOTHERDOMAIN} certonly >/dev/null 2>&1
 	else
