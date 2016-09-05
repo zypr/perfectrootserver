@@ -1,3 +1,7 @@
+vsftpd() {
+
+source ~/userconfig.cfg
+
 # VSFTPD
 if [ ${USE_VSFTPD} == '1' ]; then
 	echo "${info} VSFTPD..." | awk '{ print strftime("[%H:%M:%S] |"), $0 }'
@@ -150,3 +154,4 @@ sed -i "/^OPEN_TCP=\"/ s//&$FTP_PORT,/" /etc/arno-iptables-firewall/firewall.con
 	echo "" >> ~/credentials.txt
 	echo "" >> ~/credentials.txt
 fi
+}
