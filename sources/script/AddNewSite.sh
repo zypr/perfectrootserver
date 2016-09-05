@@ -1,3 +1,7 @@
+addnewsite() {
+
+source ~/userconfig.cfg
+
 #New Domain
 MYOTHERDOMAIN="OTHERDOMAIN.tld"
 SSLMAIL="YOUREMAILADDRESS"
@@ -638,4 +642,4 @@ END
 	if [ ${USE_WEBMAIL} == '1' ]; then
 		sed -i "s/MAILCOW_HOST.MAILCOW_DOMAIN/mail.${MYOTHERDOMAIN}/g" /var/www/mail/rc/config/config.inc.php
 	fi
-	
+}	
