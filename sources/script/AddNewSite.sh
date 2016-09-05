@@ -6,6 +6,9 @@ SSLMAIL="YOUREMAILADDRESS"
 #-------------------DO NOT EDIT SOMETHING BELOW THIS-------------------#
 #----------------------------------------------------------------------#
 
+#Host IP check
+IPADR=$(hostname -I)
+
 #Make some folders
 mkdir -p /etc/nginx/html/${MYOTHERDOMAIN} 
 mkdir -p /etc/nginx/html/${MYOTHERDOMAIN}/logs/
