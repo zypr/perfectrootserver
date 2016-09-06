@@ -1,13 +1,12 @@
 addnewsite() {
-
 source ~/userconfig.cfg
 
 #New Domain
-MYOTHERDOMAIN="perfectrootserver.de"
-SSLMAIL="rene.wurch@gmail.com"
-USE_MAILSERVER="0"
+MYOTHERDOMAIN="YourDomain.tld"
+SSLMAIL="YourEmail@domain.de"
+USE_MAILSERVER="1"
 CLOUDFLARE="0"
-USE_VALID_SSL="0"
+USE_VALID_SSL="1"
 
 #----------------------------------------------------------------------#
 #-------------------DO NOT EDIT SOMETHING BELOW THIS-------------------#
@@ -55,34 +54,74 @@ chmod 755 /etc/nginx/html/
 
 
 
+if [ ${USE_MAILSERVER} == '1' ]; then
+	echo -e "${IPADR} mail.${MYDOMAIN} mail" >> /etc/hosts
+	hostnamectl set-hostname mail
+else
+	echo -e "${IPADR} ${MYDOMAIN} $(echo ${MYDOMAIN} | cut -f 1 -d '.')" >> /etc/hosts
+	hostnamectl set-hostname $(echo ${MYDOMAIN} | cut -f 1 -d '.')
+fi
+
+if [ ${USE_MAILSERVER} == '1' ]; then
+	echo "mail.${MYDOMAIN}" > /etc/mailname
+else
+	echo "${MYDOMAIN}" > /etc/mailname
+fi
+
+# SSL certificate
+if [ ${CLOUDFLARE} == '0' ] && [ ${USE_VALID_SSL} == '1' ]; then
+	echo "${info} Creating valid SSL certificates..." | awk '{ print strftime("[%H:%M:%S] |"), $0 }'
+	git clone https://github.com/letsencrypt/letsencrypt ~/sources/letsencrypt -q
+	cd ~/sources/letsencrypt
+	if [ ${USE_MAILSERVER} == '1' ]; then
+		./letsencrypt-auto --agree-tos --renew-by-default --non-interactive --standalone --email ${SSLMAIL} --rsa-key-size 2048 -d ${MYDOMAIN} -d www.${MYDOMAIN} -d mail.${MYDOMAIN} -d autodiscover.${MYDOMAIN} -d autoconfig.${MYDOMAIN} -d dav.${MYDOMAIN} certonly >/dev/null 2>&1
+	else
+		./letsencrypt-auto --agree-tos --renew-by-default --non-interactive --standalone --email ${SSLMAIL} --rsa-key-size 2048 -d ${MYDOMAIN} -d www.${MYDOMAIN} certonly >/dev/null 2>&1
+	fi
+	ln -s /etc/letsencrypt/live/${MYDOMAIN}/fullchain.pem /etc/nginx/ssl/${MYDOMAIN}.pem
+	ln -s /etc/letsencrypt/live/${MYDOMAIN}/privkey.pem /etc/nginx/ssl/${MYDOMAIN}.key.pem
+else
+	echo "${info} Creating self-signed SSL certificates..." | awk '{ print strftime("[%H:%M:%S] |"), $0 }'
+	openssl ecparam -genkey -name secp384r1 -out /etc/nginx/ssl/${MYDOMAIN}.key.pem >/dev/null 2>&1
+	openssl req -new -sha256 -key /etc/nginx/ssl/${MYDOMAIN}.key.pem -out /etc/nginx/ssl/csr.pem -subj "/C=/ST=/L=/O=/OU=/CN=*.${MYDOMAIN}" >/dev/null 2>&1
+	openssl req -x509 -days 365 -key /etc/nginx/ssl/${MYDOMAIN}.key.pem -in /etc/nginx/ssl/csr.pem -out /etc/nginx/ssl/${MYDOMAIN}.pem >/dev/null 2>&1
+fi
+
+HPKP1=$(openssl x509 -pubkey < /etc/nginx/ssl/${MYDOMAIN}.pem | openssl pkey -pubin -outform der | openssl dgst -sha256 -binary | base64)
+HPKP2=$(openssl rand -base64 32)
+
+echo "${info} Creating strong Diffie-Hellman parameters, please wait..." | awk '{ print strftime("[%H:%M:%S] |"), $0 }'
+openssl dhparam -out /etc/nginx/ssl/dh.pem 2048 >/dev/null 2>&1
+
 # Create server config
-cat > /etc/nginx/sites-available/${MYOTHERDOMAIN}.conf <<END
+rm -rf /etc/nginx/sites-available/${MYDOMAIN}.conf
+cat > /etc/nginx/sites-available/${MYDOMAIN}.conf <<END
 server {
 			listen 				80 default_server;
-			server_name 		${IPADR} ${MYOTHERDOMAIN};
-			return 301 			https://${MYOTHERDOMAIN}\$request_uri;
+			server_name 		${IPADR} ${MYDOMAIN};
+			return 301 			https://${MYDOMAIN}\$request_uri;
 }
 
 server {
 			listen 				443;
-			server_name 		${IPADR} www.${MYOTHERDOMAIN} mail.${MYOTHERDOMAIN};
-			return 301 			https://${MYOTHERDOMAIN}\$request_uri;
+			server_name 		${IPADR} www.${MYDOMAIN} mail.${MYDOMAIN};
+			return 301 			https://${MYDOMAIN}\$request_uri;
 }
 
 server {
 			listen 				443 ssl http2 default deferred;
-			server_name 		${MYOTHERDOMAIN};
+			server_name 		${MYDOMAIN};
 
-			root 				/etc/nginx/html/${MYOTHERDOMAIN};
+			root 				/etc/nginx/html;
 			index 				index.php index.html index.htm;
 
 			charset 			utf-8;
 
 			error_page 404 		/index.php;
 
-			ssl_certificate 	ssl/${MYOTHERDOMAIN}.pem;
-			ssl_certificate_key ssl/${MYOTHERDOMAIN}.key.pem;
-			#ssl_trusted_certificate ssl/${MYOTHERDOMAIN}.pem;
+			ssl_certificate 	ssl/${MYDOMAIN}.pem;
+			ssl_certificate_key ssl/${MYDOMAIN}.key.pem;
+			#ssl_trusted_certificate ssl/${MYDOMAIN}.pem;
 			ssl_dhparam	     	ssl/dh.pem;
 			ssl_ecdh_curve		secp384r1;
 			ssl_session_cache   shared:SSL:10m;
@@ -229,189 +268,114 @@ server {
 			if (\$http_user_agent ~* "FeedDemon|JikeSpider|Indy Library|Alexa Toolbar|AskTbFXTV|AhrefsBot|CrawlDaddy|CoolpadWebkit|Java|Feedly|UniversalFeedParser|ApacheBench|Microsoft URL Control|Swiftbot|ZmEu|oBot|jaunty|Python-urllib|lightDeckReports Bot|YYSpider|DigExt|YisouSpider|HttpClient|MJ12bot|heritrix|EasouSpider|Ezooms|Scrapy") {
             	return 403;
             }
-			
-	access_log   /etc/nginx/html/${MYOTHERDOMAIN}/logs/.access.log;
-    error_log    /etc/nginx/html/${MYOTHERDOMAIN}/logs/.error.log;
 }
 END
 
-
-# SSL certificate
-if [ ${CLOUDFLARE} == '0' ] && [ ${USE_VALID_SSL} == '1' ]; then
-	echo "${info} Creating valid SSL certificates..." | awk '{ print strftime("[%H:%M:%S] |"), $0 }'
-	if [ ${USE_MAILSERVER} == '1' ]; then
-		./letsencrypt-auto --agree-tos --renew-by-default --non-interactive --standalone --email ${SSLMAIL} --rsa-key-size 2048 -d ${MYOTHERDOMAIN} -d www.${MYOTHERDOMAIN} -d mail.${MYOTHERDOMAIN} -d autodiscover.${MYOTHERDOMAIN} -d autoconfig.${MYOTHERDOMAIN} -d dav.${MYOTHERDOMAIN} certonly >/dev/null 2>&1
-	else
-		./letsencrypt-auto --agree-tos --renew-by-default --non-interactive --standalone --email ${SSLMAIL} --rsa-key-size 2048 -d ${MYOTHERDOMAIN} -d www.${MYOTHERDOMAIN} certonly >/dev/null 2>&1
-	fi
-	ln -s /etc/letsencrypt/live/${MYOTHERDOMAIN}/fullchain.pem /etc/nginx/ssl/${MYOTHERDOMAIN}.pem
-	ln -s /etc/letsencrypt/live/${MYOTHERDOMAIN}/privkey.pem /etc/nginx/ssl/${MYOTHERDOMAIN}.key.pem
-else
-	echo "${info} Creating self-signed SSL certificates..." | awk '{ print strftime("[%H:%M:%S] |"), $0 }'
-	openssl ecparam -genkey -name secp384r1 -out /etc/nginx/ssl/${MYOTHERDOMAIN}.key.pem >/dev/null 2>&1
-	openssl req -new -sha256 -key /etc/nginx/ssl/${MYOTHERDOMAIN}.key.pem -out /etc/nginx/ssl/csr.pem -subj "/C=/ST=/L=/O=/OU=/CN=*.${MYOTHERDOMAIN}" >/dev/null 2>&1
-	openssl req -x509 -days 365 -key /etc/nginx/ssl/${MYOTHERDOMAIN}.key.pem -in /etc/nginx/ssl/csr.pem -out /etc/nginx/ssl/${MYOTHERDOMAIN}.pem >/dev/null 2>&1
-fi
-
-HPKP1=$(openssl x509 -pubkey < /etc/nginx/ssl/${MYOTHERDOMAIN}.pem | openssl pkey -pubin -outform der | openssl dgst -sha256 -binary | base64)
-HPKP2=$(openssl rand -base64 32)
-
-echo "${info} Creating strong Diffie-Hellman parameters, please wait..." | awk '{ print strftime("[%H:%M:%S] |"), $0 }'
-openssl dhparam -out /etc/nginx/ssl/dh.pem 2048 >/dev/null 2>&1
-
-
-#Activate new site
-ln -s /etc/nginx/sites-available/${MYOTHERDOMAIN}.conf /etc/nginx/sites-enabled/${MYOTHERDOMAIN}.conf
-#symbolic link for access log
-ln -s /var/log/nginx/${MYOTHERDOMAIN}.access.log /etc/nginx/html/${MYOTHERDOMAIN}/logs/access.log
-#symbolic link for error log
-ln -s /var/log/nginx/${MYOTHERDOMAIN}.error.log /etc/nginx/html/${MYOTHERDOMAIN}/logs/error.log
-#reload nginx
-service nginx reload
-#Create index.html
-cat > /etc/nginx/html/${MYOTHERDOMAIN}/htdocs/index.html <<END
-<html>
-  <head>
-    <title>www.${MYOTHERDOMAIN}</title>
-  </head>
-  <body>
-    <h1>Success: You Have Set Up a Virtual Host</h1>
-  </body>
-</html>
-END
-
+ln -s /etc/nginx/sites-available/${MYDOMAIN}.conf /etc/nginx/sites-enabled/${MYDOMAIN}.conf
 
 if [ ${CLOUDFLARE} == '0' ] && [ ${USE_VALID_SSL} == '1' ]; then
-	sed -i 's/#ssl/ssl/g' /etc/nginx/sites-available/${MYOTHERDOMAIN}.conf
-	sed -i 's/#resolver/resolver/g' /etc/nginx/sites-available/${MYOTHERDOMAIN}.conf
-	sed -i 's/#add/add/g' /etc/nginx/sites-available/${MYOTHERDOMAIN}.conf
+	sed -i 's/#ssl/ssl/g' /etc/nginx/sites-available/${MYDOMAIN}.conf
+	sed -i 's/#resolver/resolver/g' /etc/nginx/sites-available/${MYDOMAIN}.conf
+	sed -i 's/#add/add/g' /etc/nginx/sites-available/${MYDOMAIN}.conf
 fi
 
-
-if [ ${USE_MAILSERVER} == '1' ]; then
-	echo "${info} Installing mailserver..." | awk '{ print strftime("[%H:%M:%S] |"), $0 }'
-
-	# Create SSL
+# Create SSL
+	mkdir -p /etc/ssl/mail >/dev/null 2>&1
+	rm /etc/ssl/mail/* >/dev/null 2>&1
+	cp /etc/nginx/ssl/dh.pem /etc/ssl/mail/dhparams.pem
 	if [ ${USE_VALID_SSL} == '1' ]; then
-		ln -s /etc/letsencrypt/live/${MYOTHERDOMAIN}/fullchain.pem /etc/ssl/mail/mail.crt
-		ln -s /etc/letsencrypt/live/${MYOTHERDOMAIN}/privkey.pem /etc/ssl/mail/mail.key
+		ln -s /etc/letsencrypt/live/${MYDOMAIN}/fullchain.pem /etc/ssl/mail/mail.crt
+		ln -s /etc/letsencrypt/live/${MYDOMAIN}/privkey.pem /etc/ssl/mail/mail.key
 	else
-		openssl req -new -newkey rsa:4096 -sha256 -days 1095 -nodes -x509 -subj "/C=/ST=/L=/O=/OU=/CN=mail.${MYOTHERDOMAIN}" -keyout /etc/ssl/mail/mail.key -out /etc/ssl/mail/mail.crt >/dev/null 2>&1
+		openssl req -new -newkey rsa:4096 -sha256 -days 1095 -nodes -x509 -subj "/C=/ST=/L=/O=/OU=/CN=mail.${MYDOMAIN}" -keyout /etc/ssl/mail/mail.key -out /etc/ssl/mail/mail.crt >/dev/null 2>&1
+		chmod 600 /etc/ssl/mail/mail.key
+		cp /etc/ssl/mail/mail.crt /usr/local/share/ca-certificates/
 		update-ca-certificates >/dev/null 2>&1
 	fi
 
-	# Postfix
-	echo "${info} Installing Postfix..." | awk '{ print strftime("[%H:%M:%S] |"), $0 }'
-	sed -i "s/MAILCOW_HOST.MAILCOW_DOMAIN/mail.${MYOTHERDOMAIN}/g" /etc/postfix/main.cf
-	sed -i "s/MAILCOW_DOMAIN/${MYOTHERDOMAIN}/g" /etc/postfix/main.cf
 
 
+# Postfix
+sed -i "s/MAILCOW_HOST.MAILCOW_DOMAIN/mail.${MYDOMAIN}/g" /etc/postfix/main.cf
+sed -i "s/MAILCOW_DOMAIN/${MYDOMAIN}/g" /etc/postfix/main.cf
 
+# Fuglu
 	DOVEFILES=$(find /etc/dovecot -maxdepth 1 -type f -printf '/etc/dovecot/%f ')
-	sed -i "s/MAILCOW_HOST.MAILCOW_DOMAIN/mail.${MYOTHERDOMAIN}/g" ${DOVEFILES}
-	sed -i "s/MAILCOW_DOMAIN/${MYOTHERDOMAIN}/g" ${DOVEFILES}
-
-
-	# zpush
+	sed -i "s/MAILCOW_HOST.MAILCOW_DOMAIN/mail.${MYDOMAIN}/g" ${DOVEFILES}
+	
+	
+# zpush
 	echo "${info} Installing Z-Push..." | awk '{ print strftime("[%H:%M:%S] |"), $0 }'
-	sed -i "s/MAILCOW_HOST.MAILCOW_DOMAIN/mail.${MYOTHERDOMAIN}/g" /var/www/zpush/backend/imap/config.php
-	sed -i "s/MAILCOW_DAV_HOST.MAILCOW_DOMAIN/dav.${MYOTHERDOMAIN}/g" /var/www/zpush/backend/caldav/config.php
-	sed -i "s/MAILCOW_DAV_HOST.MAILCOW_DOMAIN/dav.${MYOTHERDOMAIN}/g" /var/www/zpush/backend/carddav/config.php
-	mkdir /var/{lib,log}/z-push 2>/dev/null
-	chown -R www-data: /var/{lib,log}/z-push
-	mkdir /var/www/zpush/mail
-	cat > /var/www/zpush/mail/config-v1.1.xml <<END
+	sed -i "s/MAILCOW_HOST.MAILCOW_DOMAIN/mail.${MYDOMAIN}/g" /var/www/zpush/backend/imap/config.php
+	sed -i "s/MAILCOW_DAV_HOST.MAILCOW_DOMAIN/dav.${MYDOMAIN}/g" /var/www/zpush/backend/caldav/config.php
+	sed -i "s/MAILCOW_DAV_HOST.MAILCOW_DOMAIN/dav.${MYDOMAIN}/g" /var/www/zpush/backend/carddav/config.php
+
+	cat > /var/www/zpush/mail/config-v1.1-$MYDOMAIN.xml <<END
 <?xml version="1.0" encoding="UTF-8"?>
 
 <clientConfig version="1.1">
-  <emailProvider id="${MYOTHERDOMAIN}">
-    <domain>${MYOTHERDOMAIN}</domain>
-    <displayName>${MYOTHERDOMAIN} Mail</displayName>
-    <displayShortName>${MYOTHERDOMAIN}</displayShortName>
+  <emailProvider id="${MYDOMAIN}">
+    <domain>${MYDOMAIN}</domain>
+    <displayName>${MYDOMAIN} Mail</displayName>
+    <displayShortName>${MYDOMAIN}</displayShortName>
     <incomingServer type="imap">
-      <hostname>mail.${MYOTHERDOMAIN}</hostname>
+      <hostname>mail.${MYDOMAIN}</hostname>
       <port>993</port>
       <socketType>SSL</socketType>
       <authentication>password-cleartext</authentication>
       <username>%EMAILADDRESS%</username>
     </incomingServer>
     <incomingServer type="imap">
-      <hostname>mail.${MYOTHERDOMAIN}</hostname>
+      <hostname>mail.${MYDOMAIN}</hostname>
       <port>143</port>
       <socketType>STARTTLS</socketType>
       <authentication>password-cleartext</authentication>
       <username>%EMAILADDRESS%</username>
     </incomingServer>
     <incomingServer type="pop3">
-      <hostname>mail.${MYOTHERDOMAIN}</hostname>
+      <hostname>mail.${MYDOMAIN}</hostname>
       <port>995</port>
       <socketType>SSL</socketType>
       <authentication>password-cleartext</authentication>
       <username>%EMAILADDRESS%</username>
     </incomingServer>
     <incomingServer type="pop3">
-      <hostname>mail.${MYOTHERDOMAIN}</hostname>
+      <hostname>mail.${MYDOMAIN}</hostname>
       <port>110</port>
       <socketType>STARTTLS</socketType>
       <authentication>password-cleartext</authentication>
       <username>%EMAILADDRESS%</username>
     </incomingServer>
     <outgoingServer type="smtp">
-      <hostname>mail.${MYOTHERDOMAIN}</hostname>
+      <hostname>mail.${MYDOMAIN}</hostname>
       <port>587</port>
       <socketType>STARTTLS</socketType>
       <authentication>password-cleartext</authentication>
       <username>%EMAILADDRESS%</username>
     </outgoingServer>
-    <documentation url="https://${MYOTHERDOMAIN}/admin">
+    <documentation url="https://${MYDOMAIN}/admin">
       <descr lang="de">Allgemeine Beschreibung der Einstellungen</descr>
       <descr lang="en">Generic settings page</descr>
     </documentation>
-    <documentation url="https://${MYOTHERDOMAIN}/admin">
+    <documentation url="https://${MYDOMAIN}/admin">
       <descr lang="de">TB 2.0 IMAP-Einstellungen</descr>
       <descr lang="en">TB 2.0 IMAP settings</descr>
     </documentation>
   </emailProvider>
 </clientConfig>
 END
-	chown -R www-data: /var/www/zpush/mail/
-	
-	
-	
-if [[ -z $(dpkg --get-selections | grep -E "^dbus.*install$") ]]; then
-	apt-get update -y >/dev/null 2>&1 && apt-get -y --force-yes install dbus >/dev/null 2>&1
-fi
-
-if [ ${USE_MAILSERVER} == '1' ]; then
-	echo -e "${IPADR} mail.${MYOTHERDOMAIN} mail" >> /etc/hosts
-	hostnamectl set-hostname mail
-else
-	echo -e "${IPADR} ${MYOTHERDOMAIN} $(echo ${MYOTHERDOMAIN} | cut -f 1 -d '.')" >> /etc/hosts
-	hostnamectl set-hostname $(echo ${MYOTHERDOMAIN} | cut -f 1 -d '.')
-fi
-
-if [ ${USE_MAILSERVER} == '1' ]; then
-	echo "mail.${MYOTHERDOMAIN}" > /etc/mailname
-else
-	echo "${MYOTHERDOMAIN}" > /etc/mailname
-fi
 
 
-
-
-
-	# Create Nginx Config
-
-	cat > /etc/nginx/sites-available/autodiscover.${MYOTHERDOMAIN}.conf <<END
+	cat > /etc/nginx/sites-available/autodiscover.${MYDOMAIN}.conf <<END
 server {
 			listen 80;
-			server_name autodiscover.${MYOTHERDOMAIN} autoconfig.${MYOTHERDOMAIN};
-			return 301 https://autodiscover.${MYOTHERDOMAIN}\$request_uri;
+			server_name autodiscover.${MYDOMAIN} autoconfig.${MYDOMAIN};
+			return 301 https://autodiscover.${MYDOMAIN}\$request_uri;
 }
 
 server {
 			listen 443 ssl http2;
-			server_name autodiscover.${MYOTHERDOMAIN} autoconfig.${MYOTHERDOMAIN};
+			server_name autodiscover.${MYDOMAIN} autoconfig.${MYDOMAIN};
 
 			root /var/www/zpush;
 			index index.php;
@@ -419,9 +383,9 @@ server {
 
 			error_page 404 /index.php;
 
-			ssl_certificate 	ssl/${MYOTHERDOMAIN}.pem;
-			ssl_certificate_key ssl/${MYOTHERDOMAIN}.key.pem;
-			#ssl_trusted_certificate ssl/${MYOTHERDOMAIN}.pem;
+			ssl_certificate 	ssl/${MYDOMAIN}.pem;
+			ssl_certificate_key ssl/${MYDOMAIN}.key.pem;
+			#ssl_trusted_certificate ssl/${MYDOMAIN}.pem;
 			ssl_dhparam	     	ssl/dh.pem;
 			#ssl_ecdh_curve		secp384r1;
 			ssl_session_cache   shared:SSL:10m;
@@ -522,16 +486,16 @@ server {
 }
 END
 
-	cat > /etc/nginx/sites-available/dav.${MYOTHERDOMAIN}.conf <<END
+	cat > /etc/nginx/sites-available/dav.${MYDOMAIN}.conf <<END
 server {
 			listen 80;
-			server_name dav.${MYOTHERDOMAIN};
-			return 301 https://dav.${MYOTHERDOMAIN}\$request_uri;
+			server_name dav.${MYDOMAIN};
+			return 301 https://dav.${MYDOMAIN}\$request_uri;
 }
 
 server {
 			listen 443 ssl http2;
-			server_name dav.${MYOTHERDOMAIN};
+			server_name dav.${MYDOMAIN};
 
 			root /var/www/dav;
 			index server.php;
@@ -539,9 +503,9 @@ server {
 
 			error_page 404 /index.php;
 
-			ssl_certificate 	ssl/${MYOTHERDOMAIN}.pem;
-			ssl_certificate_key ssl/${MYOTHERDOMAIN}.key.pem;
-			#ssl_trusted_certificate ssl/${MYOTHERDOMAIN}.pem;
+			ssl_certificate 	ssl/${MYDOMAIN}.pem;
+			ssl_certificate_key ssl/${MYDOMAIN}.key.pem;
+			#ssl_trusted_certificate ssl/${MYDOMAIN}.pem;
 			ssl_dhparam	     	ssl/dh.pem;
 			#ssl_ecdh_curve		secp384r1;
 			ssl_session_cache   shared:SSL:10m;
@@ -638,20 +602,35 @@ server {
 }
 END
 
-	if [ ${CLOUDFLARE} == '0' ] && [ ${USE_VALID_SSL} == '1' ]; then
-		sed -i 's/#ssl/ssl/g' /etc/nginx/sites-available/autodiscover.${MYOTHERDOMAIN}.conf /etc/nginx/sites-available/dav.${MYOTHERDOMAIN}.conf
-		sed -i 's/#resolver/resolver/g' /etc/nginx/sites-available/autodiscover.${MYOTHERDOMAIN}.conf /etc/nginx/sites-available/dav.${MYOTHERDOMAIN}.conf
-		sed -i 's/#add/add/g' /etc/nginx/sites-available/autodiscover.${MYOTHERDOMAIN}.conf /etc/nginx/sites-available/dav.${MYOTHERDOMAIN}.conf
+if [ ${CLOUDFLARE} == '0' ] && [ ${USE_VALID_SSL} == '1' ]; then
+		sed -i 's/#ssl/ssl/g' /etc/nginx/sites-available/autodiscover.${MYDOMAIN}.conf /etc/nginx/sites-available/dav.${MYDOMAIN}.conf
+		sed -i 's/#resolver/resolver/g' /etc/nginx/sites-available/autodiscover.${MYDOMAIN}.conf /etc/nginx/sites-available/dav.${MYDOMAIN}.conf
+		sed -i 's/#add/add/g' /etc/nginx/sites-available/autodiscover.${MYDOMAIN}.conf /etc/nginx/sites-available/dav.${MYDOMAIN}.conf
 	fi
 
-	ln -s /etc/nginx/sites-available/autodiscover.${MYOTHERDOMAIN}.conf /etc/nginx/sites-enabled/autodiscover.${MYOTHERDOMAIN}.conf
-	ln -s /etc/nginx/sites-available/dav.${MYOTHERDOMAIN}.conf /etc/nginx/sites-enabled/dav.${MYOTHERDOMAIN}.conf
-
+	ln -s /etc/nginx/sites-available/mailgraph.conf /etc/nginx/sites-enabled/mailgraph.conf
+	ln -s /etc/nginx/sites-available/autodiscover.${MYDOMAIN}.conf /etc/nginx/sites-enabled/autodiscover.${MYDOMAIN}.conf
+	ln -s /etc/nginx/sites-available/dav.${MYDOMAIN}.conf /etc/nginx/sites-enabled/dav.${MYDOMAIN}.conf
+	
 	# RoundCube
 	echo "${info} Installing RoundCube..." | awk '{ print strftime("[%H:%M:%S] |"), $0 }'
 	if [ ${USE_WEBMAIL} == '1' ]; then
-		sed -i "s/MAILCOW_HOST.MAILCOW_DOMAIN/mail.${MYOTHERDOMAIN}/g" /var/www/mail/rc/config/config.inc.php
-	fi
 		
-systemctl -q reload nginx.service
+		sed -i "s/MAILCOW_HOST.MAILCOW_DOMAIN/mail.${MYDOMAIN}/g" /var/www/mail/rc/config/config.inc.php
+	fi
+#Create index.html
+cat > /etc/nginx/html/${MYOTHERDOMAIN}/htdocs/index.html <<END
+<html>
+  <head>
+    <title>www.${MYOTHERDOMAIN}</title>
+  </head>
+  <body>
+    <h1>Success: You Have Set Up a Virtual Host</h1>
+  </body>
+</html>
+END
+
+		echo " @     		 TXT       \"mailconf=https://autoconfig.${MYDOMAIN}/config-v1.1-$MYDOMAIN.xml\"" | awk '{ print strftime("[%H:%M:%S] |"), $0 }'
+
+
 }
