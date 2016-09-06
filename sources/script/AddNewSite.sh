@@ -3,12 +3,12 @@ addnewsite() {
 source ~/userconfig.cfg
 
 #New Domain
-MYOTHERDOMAIN="OTHERDOMAIN.tld"
-SSLMAIL="YOUREMAILADDRESS"
-USE_MAILSERVER="1"
+MYOTHERDOMAIN="perfectrootserver.de"
+SSLMAIL="rene.wurch@gmail.com"
+USE_MAILSERVER="0"
 CLOUDFLARE="0"
-USE_VALID_SSL="1"
- 
+USE_VALID_SSL="0"
+
 #----------------------------------------------------------------------#
 #-------------------DO NOT EDIT SOMETHING BELOW THIS-------------------#
 #----------------------------------------------------------------------#
@@ -43,37 +43,18 @@ echo "$(date +"[%T]") | ${info} Please wait while the installer is preparing for
 
 #Host IP check
 IPADR=$(hostname -I)
-# SSL certificate
-if [ ${CLOUDFLARE} == '0' ] && [ ${USE_VALID_SSL} == '1' ]; then
-	echo "${info} Creating valid SSL certificates..." | awk '{ print strftime("[%H:%M:%S] |"), $0 }'
-	if [ ${USE_MAILSERVER} == '1' ]; then
-		./letsencrypt-auto --agree-tos --renew-by-default --non-interactive --standalone --email ${SSLMAIL} --rsa-key-size 2048 -d ${MYOTHERDOMAIN} -d www.${MYOTHERDOMAIN} -d mail.${MYOTHERDOMAIN} -d autodiscover.${MYOTHERDOMAIN} -d autoconfig.${MYOTHERDOMAIN} -d dav.${MYOTHERDOMAIN} certonly >/dev/null 2>&1
-	else
-		./letsencrypt-auto --agree-tos --renew-by-default --non-interactive --standalone --email ${SSLMAIL} --rsa-key-size 2048 -d ${MYOTHERDOMAIN} -d www.${MYOTHERDOMAIN} certonly >/dev/null 2>&1
-	fi
-	ln -s /etc/letsencrypt/live/${MYOTHERDOMAIN}/fullchain.pem /etc/nginx/ssl/${MYOTHERDOMAIN}.pem
-	ln -s /etc/letsencrypt/live/${MYOTHERDOMAIN}/privkey.pem /etc/nginx/ssl/${MYOTHERDOMAIN}.key.pem
-else
-	echo "${info} Creating self-signed SSL certificates..." | awk '{ print strftime("[%H:%M:%S] |"), $0 }'
-	openssl ecparam -genkey -name secp384r1 -out /etc/nginx/ssl/${MYOTHERDOMAIN}.key.pem >/dev/null 2>&1
-	openssl req -new -sha256 -key /etc/nginx/ssl/${MYOTHERDOMAIN}.key.pem -out /etc/nginx/ssl/csr.pem -subj "/C=/ST=/L=/O=/OU=/CN=*.${MYOTHERDOMAIN}" >/dev/null 2>&1
-	openssl req -x509 -days 365 -key /etc/nginx/ssl/${MYOTHERDOMAIN}.key.pem -in /etc/nginx/ssl/csr.pem -out /etc/nginx/ssl/${MYOTHERDOMAIN}.pem >/dev/null 2>&1
-fi
 
-HPKP1=$(openssl x509 -pubkey < /etc/nginx/ssl/${MYOTHERDOMAIN}.pem | openssl pkey -pubin -outform der | openssl dgst -sha256 -binary | base64)
-HPKP2=$(openssl rand -base64 32)
-
-echo "${info} Creating strong Diffie-Hellman parameters, please wait..." | awk '{ print strftime("[%H:%M:%S] |"), $0 }'
-openssl dhparam -out /etc/nginx/ssl/dh.pem 2048 >/dev/null 2>&1
 
 #Make some folders
 mkdir -p /etc/nginx/html/${MYOTHERDOMAIN} 
 mkdir -p /etc/nginx/html/${MYOTHERDOMAIN}/logs/
 mkdir -p /etc/nginx/html/${MYOTHERDOMAIN}/htdocs/
+mkdir -p /etc/letsencrypt/live/${MYOTHERDOMAIN}/
 chown -R www-data:www-data /etc/nginx/html/${MYOTHERDOMAIN}/
 chmod 755 /etc/nginx/html/
-#Generate Cert
-./letsencrypt-auto --agree-tos --renew-by-default --non-interactive --standalone --email ${SSLMAIL} --rsa-key-size 2048 -d ${MYOTHERDOMAIN} -d www.${MYOTHERDOMAIN} -d mail.${MYOTHERDOMAIN} -d autodiscover.${MYOTHERDOMAIN} -d autoconfig.${MYOTHERDOMAIN} -d dav.${MYOTHERDOMAIN} certonly >/dev/null 2>&1
+
+
+
 # Create server config
 cat > /etc/nginx/sites-available/${MYOTHERDOMAIN}.conf <<END
 server {
@@ -253,16 +234,42 @@ server {
     error_log    /etc/nginx/html/${MYOTHERDOMAIN}/logs/.error.log;
 }
 END
+
+
+# SSL certificate
+if [ ${CLOUDFLARE} == '0' ] && [ ${USE_VALID_SSL} == '1' ]; then
+	echo "${info} Creating valid SSL certificates..." | awk '{ print strftime("[%H:%M:%S] |"), $0 }'
+	if [ ${USE_MAILSERVER} == '1' ]; then
+		./letsencrypt-auto --agree-tos --renew-by-default --non-interactive --standalone --email ${SSLMAIL} --rsa-key-size 2048 -d ${MYOTHERDOMAIN} -d www.${MYOTHERDOMAIN} -d mail.${MYOTHERDOMAIN} -d autodiscover.${MYOTHERDOMAIN} -d autoconfig.${MYOTHERDOMAIN} -d dav.${MYOTHERDOMAIN} certonly >/dev/null 2>&1
+	else
+		./letsencrypt-auto --agree-tos --renew-by-default --non-interactive --standalone --email ${SSLMAIL} --rsa-key-size 2048 -d ${MYOTHERDOMAIN} -d www.${MYOTHERDOMAIN} certonly >/dev/null 2>&1
+	fi
+	ln -s /etc/letsencrypt/live/${MYOTHERDOMAIN}/fullchain.pem /etc/nginx/ssl/${MYOTHERDOMAIN}.pem
+	ln -s /etc/letsencrypt/live/${MYOTHERDOMAIN}/privkey.pem /etc/nginx/ssl/${MYOTHERDOMAIN}.key.pem
+else
+	echo "${info} Creating self-signed SSL certificates..." | awk '{ print strftime("[%H:%M:%S] |"), $0 }'
+	openssl ecparam -genkey -name secp384r1 -out /etc/nginx/ssl/${MYOTHERDOMAIN}.key.pem >/dev/null 2>&1
+	openssl req -new -sha256 -key /etc/nginx/ssl/${MYOTHERDOMAIN}.key.pem -out /etc/nginx/ssl/csr.pem -subj "/C=/ST=/L=/O=/OU=/CN=*.${MYOTHERDOMAIN}" >/dev/null 2>&1
+	openssl req -x509 -days 365 -key /etc/nginx/ssl/${MYOTHERDOMAIN}.key.pem -in /etc/nginx/ssl/csr.pem -out /etc/nginx/ssl/${MYOTHERDOMAIN}.pem >/dev/null 2>&1
+fi
+
+HPKP1=$(openssl x509 -pubkey < /etc/nginx/ssl/${MYOTHERDOMAIN}.pem | openssl pkey -pubin -outform der | openssl dgst -sha256 -binary | base64)
+HPKP2=$(openssl rand -base64 32)
+
+echo "${info} Creating strong Diffie-Hellman parameters, please wait..." | awk '{ print strftime("[%H:%M:%S] |"), $0 }'
+openssl dhparam -out /etc/nginx/ssl/dh.pem 2048 >/dev/null 2>&1
+
+
 #Activate new site
 ln -s /etc/nginx/sites-available/${MYOTHERDOMAIN}.conf /etc/nginx/sites-enabled/${MYOTHERDOMAIN}.conf
 #symbolic link for access log
 ln -s /var/log/nginx/${MYOTHERDOMAIN}.access.log /etc/nginx/html/${MYOTHERDOMAIN}/logs/access.log
 #symbolic link for error log
-ln -s /var/log/nginx/${MYOTHERDOMAIN}.error.log /etc/nginx/html/${MYOTHERDOMAIN}/logs/rror.log
+ln -s /var/log/nginx/${MYOTHERDOMAIN}.error.log /etc/nginx/html/${MYOTHERDOMAIN}/logs/error.log
 #reload nginx
 service nginx reload
 #Create index.html
-cat > /etc/nginx/html/${MYOTHERDOMAIN} <<END
+cat > /etc/nginx/html/${MYOTHERDOMAIN}/htdocs/index.html <<END
 <html>
   <head>
     <title>www.${MYOTHERDOMAIN}</title>
@@ -310,6 +317,9 @@ if [ ${USE_MAILSERVER} == '1' ]; then
 	sed -i "s/MAILCOW_HOST.MAILCOW_DOMAIN/mail.${MYOTHERDOMAIN}/g" /var/www/zpush/backend/imap/config.php
 	sed -i "s/MAILCOW_DAV_HOST.MAILCOW_DOMAIN/dav.${MYOTHERDOMAIN}/g" /var/www/zpush/backend/caldav/config.php
 	sed -i "s/MAILCOW_DAV_HOST.MAILCOW_DOMAIN/dav.${MYOTHERDOMAIN}/g" /var/www/zpush/backend/carddav/config.php
+	mkdir /var/{lib,log}/z-push 2>/dev/null
+	chown -R www-data: /var/{lib,log}/z-push
+	mkdir /var/www/zpush/mail
 	cat > /var/www/zpush/mail/config-v1.1.xml <<END
 <?xml version="1.0" encoding="UTF-8"?>
 
@@ -365,7 +375,7 @@ if [ ${USE_MAILSERVER} == '1' ]; then
 </clientConfig>
 END
 	chown -R www-data: /var/www/zpush/mail/
-fi	
+	
 	
 	
 if [[ -z $(dpkg --get-selections | grep -E "^dbus.*install$") ]]; then
@@ -642,4 +652,6 @@ END
 	if [ ${USE_WEBMAIL} == '1' ]; then
 		sed -i "s/MAILCOW_HOST.MAILCOW_DOMAIN/mail.${MYOTHERDOMAIN}/g" /var/www/mail/rc/config/config.inc.php
 	fi
-}	
+		
+systemctl -q reload nginx.service
+}
