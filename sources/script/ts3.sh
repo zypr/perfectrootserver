@@ -45,8 +45,8 @@ exit 0" >> /etc/init.d/ts3server
 	
 	TS3_PORTS_TCP="2010, 9987, "
 	TS3_PORTS_UDP="2008, 10011, 30033, 41144, "
-	sed -i "/^OPEN_TCP=\"/ s//&$TS3_PORTS_TCP,/" /etc/arno-iptables-firewall/firewall.conf >/dev/null 2>&1
-	sed -i "/^OPEN_UDP=\"/ s//&$TS3_PORTS_UDP,/" /etc/arno-iptables-firewall/firewall.conf >/dev/null 2>&1
+	sed -i "/^OPEN_TCP=\"/ s//&$TS3_PORTS_TCP/" /etc/arno-iptables-firewall/firewall.conf >/dev/null 2>&1
+	sed -i "/^OPEN_UDP=\"/ s//&$TS3_PORTS_UDP/" /etc/arno-iptables-firewall/firewall.conf >/dev/null 2>&1
 	
 	cat /usr/local/ts3user/ts3serverdata.txt >> ~/credentials.txt
 	echo "" >> ~/credentials.txt
