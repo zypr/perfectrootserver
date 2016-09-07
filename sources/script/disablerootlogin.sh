@@ -6,7 +6,7 @@
 
 
 #DisableRootLogin
-DisableRootLogin() {
+disablerootlogin() {
 source ~/userconfig.cfg
 	
 if [ ${DISABLE_ROOT_LOGIN} == '1' ]; then
