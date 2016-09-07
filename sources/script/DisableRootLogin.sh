@@ -4,13 +4,12 @@
 # Big thanks to https://github.com/andryyy/mailcow and https://github.com/zypr/perfectrootserver
 # Compatible with Debian 8.x (jessie)
 
-	DisableRootLogin() {
 
 #DisableRootLogin
-
-
+DisableRootLogin() {
 source ~/userconfig.cfg
 	
+if [ ${DISABLE_ROOT_LOGIN} == '1' ]; then
 	#creating a strong password!
 	USERPASS=$(openssl rand -base64 30  |  sed 's|/|_|')
 
@@ -25,4 +24,5 @@ sed -i "/LoginGraceTime 30/ s//\n AllowGroups $SSHUSER \n/" /etc/ssh/sshd_config
 #restart
 systemctl -q start ssh
 
+fi #if [ ${DISABLE_ROOT_LOGIN} == '1' ]; then
 }
