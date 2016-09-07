@@ -38,13 +38,13 @@ else
 		echo "${warn} USE_VALID_SSL is disabled, skipping Ajenti installation!" | awk '{ print strftime("[%H:%M:%S] |"), $0 }'	
 	fi	
 	
-echo "--------------------------------------------" >> ~/credentials.txt
-	echo "Ajenti" >> ~/credentials.txt
-	echo "--------------------------------------------" >> ~/credentials.txt
-	echo "https://${MYDOMAIN}:8000" >> ~/credentials.txt
+echo "--------------------------------------------" >> ~/addoninformation.txt
+	echo "Ajenti" >> ~/addoninformation.txt
+	echo "--------------------------------------------" >> ~/addoninformation.txt
+	echo "https://${MYDOMAIN}:8000" >> ~/addoninformation.txt
 	echo "login: root" >> ~/credentials.txt
-	echo "password = ${AJENTI_PASS}" >> ~/credentials.txt
-	echo "" >> ~/credentials.txt
-	echo "" >> ~/credentials.txt	
+	echo "password = ${AJENTI_PASS}" >> ~/addoninformation.txt
+	echo "" >> ~/addoninformation.txt
+	echo "" >> ~/addoninformation.txt	
 fi
 }
