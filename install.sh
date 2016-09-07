@@ -7,12 +7,12 @@
 
 source sources/script/functions.sh
 
-source sources/script/AddNewSite.sh
+source sources/script/addnewsite.sh
 source sources/script/ajenti.sh
 #source sources/script/openvpn.sh
 source sources/script/ts3.sh
 source sources/script/vsftpd.sh
-source sources/script/DisableRootLogin.sh
+source sources/script/disablerootlogin.sh
 
 
 checksystem
@@ -25,7 +25,7 @@ ajenti
 #openvpn
 ts3
 vsftpd
-DisableRootLogin.sh
+disablerootlogin
 
 logininformation
 instructions
