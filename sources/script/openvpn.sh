@@ -8,7 +8,7 @@ openvpn() {
 
 source ~/userconfig.cfg
 
-OpenVPN
+#OpenVPN
 if [ ${USE_OPENVPN} == '1' ]; then
 echo "${info} Installing OPENVPN..." | awk '{ print strftime("[%H:%M:%S] |"), $0 }'
 apt-get -qq update && apt-get -q -y --force-yes install openvpn easy-rsa >/dev/null 2>&1
