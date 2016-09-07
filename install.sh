@@ -18,6 +18,7 @@ source sources/script/DisableRootLogin.sh
 checksystem
 checkconfig
 installation
+addoninformation
 
 addnewsite
 ajenti
