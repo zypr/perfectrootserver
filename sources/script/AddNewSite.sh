@@ -13,14 +13,7 @@ addnewsite() {
 source ~/userconfig.cfg
 
 if [ ${ADD_NEW_SITE} == '1' ]; then
-echo
-echo
-echo "$(date +"[%T]") | $(textb +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+)"
-echo "$(date +"[%T]") |  $(textb Add new Site to Perfect RootServer Script) "
-echo "$(date +"[%T]") | $(textb +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+)"
-echo
-echo "$(date +"[%T]") | ${info} Welcome to the Perfect Rootserver Addon installation!"
-echo "$(date +"[%T]") | ${info} Please wait while the installer is preparing for the first use..."
+echo "${info} Installing AddNewSite..." | awk '{ print strftime("[%H:%M:%S] |"), $0 }'
 
 #Make some folders
 mkdir -p /etc/nginx/html/${MYOTHERDOMAIN} 
