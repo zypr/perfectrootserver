@@ -7,13 +7,6 @@
 addnewsite() {
 source ~/userconfig.cfg
 
-#New Domain
-MYOTHERDOMAIN="YourDomain.tld"
-SSLMAIL="YourEmail@domain.de"
-USE_MAILSERVER="1"
-CLOUDFLARE="0"
-USE_VALID_SSL="1"
-
 #----------------------------------------------------------------------#
 #-------------------DO NOT EDIT SOMETHING BELOW THIS-------------------#
 #----------------------------------------------------------------------#
