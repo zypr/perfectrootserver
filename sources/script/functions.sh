@@ -2044,6 +2044,14 @@ echo "__________________________________________________________________________
 echo "${ok} Done! The credentials are located in the file $(textb /root/credentials.txt)!" | awk '{ print strftime("[%H:%M:%S] |"), $0 }'
 }
 
+addoninformation() {
+touch ~/addoninformation.txt
+echo "///////////////////////////////////////////////////////////////////////////" >> ~/addoninformation.txt
+echo "// Passwords, Usernames, Databases" >> ~/addoninformation.txt
+echo "///////////////////////////////////////////////////////////////////////////" >> ~/addoninformation.txt
+echo "" >> ~/addoninformation.txt
+echo "_______________________________________________________________________________________" >> ~/addoninformation.txt
+
 instructions() {
 	SSH_PASSWD=$(sed -n '/^## SSH$/{n;n;n;p}' ~/credentials.txt | awk '{print $3}')
 	echo
