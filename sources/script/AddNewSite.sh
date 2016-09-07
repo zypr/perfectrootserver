@@ -22,6 +22,7 @@ mkdir -p /etc/nginx/html/${MYOTHERDOMAIN}/htdocs/
 chown -R www-data:www-data /etc/nginx/html/${MYOTHERDOMAIN}/
 chmod 755 /etc/nginx/html/
 
+
 systemctl stop nginx.service
 
 # SSL certificate
