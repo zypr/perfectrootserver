@@ -27,7 +27,7 @@ if [ ${USE_AJENTI} == '1' ] && [ ${USE_VALID_SSL} == '1' ]; then
 	sed -i.bak 's/^[[:space:]]*"password.*$/"password" : "sha512|'"${ajentihash//\//\\/}"'",/' /etc/ajenti/config.json
 	service ajenti restart
 	
-	AJENTI_PORTS="8000,"
+	AJENTI_PORTS="8000, "
 	sed -i "/^OPEN_TCP=\"/ s//&$AJENTI_PORTS/" /etc/arno-iptables-firewall/firewall.conf >/dev/null 2>&1
 	
 	#AJENTI UDP credentials.txt All Ports are open output is wrong
