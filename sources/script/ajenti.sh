@@ -30,21 +30,18 @@ if [ ${USE_AJENTI} == '1' ] && [ ${USE_VALID_SSL} == '1' ]; then
 	AJENTI_PORTS="8000, "
 	sed -i "/^OPEN_TCP=\"/ s//&$AJENTI_PORTS/" /etc/arno-iptables-firewall/firewall.conf >/dev/null 2>&1
 	
-	#AJENTI UDP credentials.txt All Ports are open output is wrong
-	
-	
-else 
-	if [ ${USE_AJENTI} == '1' ] && [ ${USE_VALID_SSL} == '0' ]; then
-		echo "${warn} USE_VALID_SSL is disabled, skipping Ajenti installation!" | awk '{ print strftime("[%H:%M:%S] |"), $0 }'	
-	fi	
-	
-echo "--------------------------------------------" >> ~/addoninformation.txt
+	echo "--------------------------------------------" >> ~/addoninformation.txt
 	echo "Ajenti" >> ~/addoninformation.txt
 	echo "--------------------------------------------" >> ~/addoninformation.txt
 	echo "https://${MYDOMAIN}:8000" >> ~/addoninformation.txt
 	echo "login: root" >> ~/credentials.txt
 	echo "password = ${AJENTI_PASS}" >> ~/addoninformation.txt
 	echo "" >> ~/addoninformation.txt
-	echo "" >> ~/addoninformation.txt	
+	echo "" >> ~/addoninformation.txt
+	
+else 
+	if [ ${USE_AJENTI} == '1' ] && [ ${USE_VALID_SSL} == '0' ]; then
+		echo "${warn} USE_VALID_SSL is disabled, skipping Ajenti installation!" | awk '{ print strftime("[%H:%M:%S] |"), $0 }'	
+	fi	
 fi
 }
