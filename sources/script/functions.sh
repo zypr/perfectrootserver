@@ -2051,6 +2051,7 @@ echo "// Passwords, Usernames, Databases" >> ~/addoninformation.txt
 echo "///////////////////////////////////////////////////////////////////////////" >> ~/addoninformation.txt
 echo "" >> ~/addoninformation.txt
 echo "_______________________________________________________________________________________" >> ~/addoninformation.txt
+}
 
 instructions() {
 	SSH_PASSWD=$(sed -n '/^## SSH$/{n;n;n;p}' ~/credentials.txt | awk '{print $3}')
