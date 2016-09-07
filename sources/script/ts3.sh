@@ -54,6 +54,9 @@ exit 0" >> /etc/init.d/ts3server
 	sed -i "/^OPEN_TCP=\"/ s//&$TS3_PORTS_TCP/" /etc/arno-iptables-firewall/firewall.conf >/dev/null 2>&1
 	sed -i "/^OPEN_UDP=\"/ s//&$TS3_PORTS_UDP/" /etc/arno-iptables-firewall/firewall.conf >/dev/null 2>&1
 	
+	echo "--------------------------------------------" >> ~/addoninformation.txt
+	echo "Teamspeak 3" >> ~/addoninformation.txt
+	echo "--------------------------------------------" >> ~/addoninformation.txt
 	cat /usr/local/ts3user/ts3serverdata.txt >> ~/addoninformation.txt
 	echo "" >> ~/addoninformation.txt
 	echo "" >> ~/addoninformation.txt
