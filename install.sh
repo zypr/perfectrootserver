@@ -13,6 +13,8 @@ source sources/script/ajenti.sh
 source sources/script/ts3.sh
 source sources/script/vsftpd.sh
 
+#source sources/script/DisableRootLogin.sh
+
 
 checksystem
 checkconfig
@@ -23,6 +25,7 @@ ajenti
 #openvpn
 ts3
 vsftpd
+#DisableRootLogin.sh
 
 logininformation
 instructions
