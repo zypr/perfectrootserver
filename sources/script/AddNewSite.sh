@@ -1,7 +1,7 @@
 # The perfect rootserver
 # by shoujii | BoBBer446
 # https://github.com/shoujii/perfectrootserver
-# Big thanks to https://github.com/andryyy/mailcow and https://github.com/zypr/perfectrootserver
+# Big thanks to https://github.com/andryyy/mailcow and https://github.com/zypr/perfectrootserver and TiggaStyle
 # Compatible with Debian 8.x (jessie)
 
 #----------------------------------------------------------------------#
