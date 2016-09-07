@@ -255,6 +255,7 @@ cat > /etc/nginx/html/${MYOTHERDOMAIN}/htdocs/index.html <<END
 </html>
 END
 
+systemctl start nginx.service
 #End if [ ${ADD_NEW_SITE} == '1' ]; then
 fi
 }
