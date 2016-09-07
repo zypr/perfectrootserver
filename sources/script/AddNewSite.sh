@@ -69,6 +69,7 @@ openssl dhparam -out /etc/nginx/ssl/dh.pem 2048 >/dev/null 2>&1
 #Disable default_server in first domain if this script add another one
 sed 's/80 default_server;/80;/g'  /etc/nginx/sites-available/${MYDOMAIN}.conf
 sed 's/server_name 		${IPADR} /server_name 		;/g'  /etc/nginx/sites-available/${MYDOMAIN}.conf
+sed 's/ deferred;/;/g'  /etc/nginx/sites-available/${MYDOMAIN}.conf
 
 
 # Create server config
@@ -77,20 +78,20 @@ cat > /etc/nginx/sites-available/${MYOTHERDOMAIN}.conf <<END
 server {
 			listen 				80;
 			server_name 		${MYOTHERDOMAIN};
-			return 301 			https://${MYOTHERDOMAIN}\$request_uri;
+			return 301 			https://${MYOTHERDOMAIN}$request_uri;
 }
 
 server {
 			listen 				443;
 			server_name 		www.${MYOTHERDOMAIN} mail.${MYOTHERDOMAIN};
-			return 301 			https://${MYOTHERDOMAIN}\$request_uri;
+			return 301 			https://${MYOTHERDOMAIN}$request_uri;
 }
 
 server {
-			listen 				443 ssl http2 deferred;
+			listen 				443 ssl http2;
 			server_name 		${MYOTHERDOMAIN};
 
-			root 				/etc/nginx/html/${MYOTHERDOMAIN}/htdocs/;
+			root 				/etc/nginx/html/${MYOTHERDOMAIN}/htdocs;
 			index 				index.php index.html index.htm;
 
 			charset 			utf-8;
@@ -243,7 +244,7 @@ server {
 				add_header Cache-Control "max-age=2592000, public";
 			}
 
-			if (\$http_user_agent ~* "FeedDemon|JikeSpider|Indy Library|Alexa Toolbar|AskTbFXTV|AhrefsBot|CrawlDaddy|CoolpadWebkit|Java|Feedly|UniversalFeedParser|ApacheBench|Microsoft URL Control|Swiftbot|ZmEu|oBot|jaunty|Python-urllib|lightDeckReports Bot|YYSpider|DigExt|YisouSpider|HttpClient|MJ12bot|heritrix|EasouSpider|Ezooms|Scrapy") {
+			if ($http_user_agent ~* "FeedDemon|JikeSpider|Indy Library|Alexa Toolbar|AskTbFXTV|AhrefsBot|CrawlDaddy|CoolpadWebkit|Java|Feedly|UniversalFeedParser|ApacheBench|Microsoft URL Control|Swiftbot|ZmEu|oBot|jaunty|Python-urllib|lightDeckReports Bot|YYSpider|DigExt|YisouSpider|HttpClient|MJ12bot|heritrix|EasouSpider|Ezooms|Scrapy") {
             	return 403;
             }
 }
@@ -454,7 +455,7 @@ server {
 				add_header Cache-Control "max-age=2592000, public";
 			}
 
-			if (\$http_user_agent ~* "FeedDemon|JikeSpider|Indy Library|Alexa Toolbar|AskTbFXTV|AhrefsBot|CrawlDaddy|CoolpadWebkit|Java|Feedly|UniversalFeedParser|ApacheBench|Microsoft URL Control|Swiftbot|ZmEu|oBot|jaunty|Python-urllib|lightDeckReports Bot|YYSpider|DigExt|YisouSpider|HttpClient|MJ12bot|heritrix|EasouSpider|Ezooms|Scrapy") {
+			if ($http_user_agent ~* "FeedDemon|JikeSpider|Indy Library|Alexa Toolbar|AskTbFXTV|AhrefsBot|CrawlDaddy|CoolpadWebkit|Java|Feedly|UniversalFeedParser|ApacheBench|Microsoft URL Control|Swiftbot|ZmEu|oBot|jaunty|Python-urllib|lightDeckReports Bot|YYSpider|DigExt|YisouSpider|HttpClient|MJ12bot|heritrix|EasouSpider|Ezooms|Scrapy") {
             	return 403;
             }
 
@@ -571,7 +572,7 @@ server {
 				add_header Cache-Control "max-age=2592000, public";
 			}
 
-			if (\$http_user_agent ~* "FeedDemon|JikeSpider|Indy Library|Alexa Toolbar|AskTbFXTV|AhrefsBot|CrawlDaddy|CoolpadWebkit|Java|Feedly|UniversalFeedParser|ApacheBench|Microsoft URL Control|Swiftbot|ZmEu|oBot|jaunty|Python-urllib|lightDeckReports Bot|YYSpider|DigExt|YisouSpider|HttpClient|MJ12bot|heritrix|EasouSpider|Ezooms|Scrapy") {
+			if ($http_user_agent ~* "FeedDemon|JikeSpider|Indy Library|Alexa Toolbar|AskTbFXTV|AhrefsBot|CrawlDaddy|CoolpadWebkit|Java|Feedly|UniversalFeedParser|ApacheBench|Microsoft URL Control|Swiftbot|ZmEu|oBot|jaunty|Python-urllib|lightDeckReports Bot|YYSpider|DigExt|YisouSpider|HttpClient|MJ12bot|heritrix|EasouSpider|Ezooms|Scrapy") {
             	return 403;
             }
 }
