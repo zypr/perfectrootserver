@@ -64,23 +64,30 @@ HPKP2=$(openssl rand -base64 32)
 echo "${info} Creating strong Diffie-Hellman parameters, please wait..." | awk '{ print strftime("[%H:%M:%S] |"), $0 }'
 openssl dhparam -out /etc/nginx/ssl/dh.pem 2048 >/dev/null 2>&1
 
+#This works only in installation script, do not use for updatescript
+#In Update script hte user havte to type the domain.tld in config part
+#Disable default_server in first domain if this script add another one
+sed 's/80 default_server;/80;/g'  /etc/nginx/sites-available/${MYDOMAIN}.conf
+sed 's/server_name 		${IPADR} /server_name 		;/g'  /etc/nginx/sites-available/${MYDOMAIN}.conf
+
+
 # Create server config
 rm -rf /etc/nginx/sites-available/${MYOTHERDOMAIN}.conf
 cat > /etc/nginx/sites-available/${MYOTHERDOMAIN}.conf <<END
 server {
-			listen 				80 default_server;
-			server_name 		${IPADR} ${MYOTHERDOMAIN};
+			listen 				80;
+			server_name 		${MYOTHERDOMAIN};
 			return 301 			https://${MYOTHERDOMAIN}\$request_uri;
 }
 
 server {
 			listen 				443;
-			server_name 		${IPADR} www.${MYOTHERDOMAIN} mail.${MYOTHERDOMAIN};
+			server_name 		www.${MYOTHERDOMAIN} mail.${MYOTHERDOMAIN};
 			return 301 			https://${MYOTHERDOMAIN}\$request_uri;
 }
 
 server {
-			listen 				443 ssl http2 default deferred;
+			listen 				443 ssl http2 deferred;
 			server_name 		${MYOTHERDOMAIN};
 
 			root 				/etc/nginx/html;
