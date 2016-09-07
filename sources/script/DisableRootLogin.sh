@@ -10,6 +10,18 @@ DisableRootLogin() {
 source ~/userconfig.cfg
 	
 if [ ${DISABLE_ROOT_LOGIN} == '1' ]; then
+
+echo
+echo
+echo "$(date +"[%T]") | $(textb +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+)"
+echo "$(date +"[%T]") |  $(textb Disable Root Login in Perfect RootServer Script) "
+echo "$(date +"[%T]") | $(textb +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+)"
+echo
+echo "$(date +"[%T]") | ${info} Welcome to the Perfect Rootserver Addon installation!"
+echo "$(date +"[%T]") | ${info} Please wait while the installer is preparing for the first use..."
+
+
+
 	#creating a strong password!
 	USERPASS=$(openssl rand -base64 30  |  sed 's|/|_|')
 
