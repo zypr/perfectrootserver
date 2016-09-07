@@ -90,7 +90,7 @@ server {
 			listen 				443 ssl http2 deferred;
 			server_name 		${MYOTHERDOMAIN};
 
-			root 				/etc/nginx/html;
+			root 				/etc/nginx/html/${MYOTHERDOMAIN}/htdocs/;
 			index 				index.php index.html index.htm;
 
 			charset 			utf-8;
