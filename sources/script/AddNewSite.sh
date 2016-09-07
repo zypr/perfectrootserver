@@ -4,13 +4,13 @@
 # Big thanks to https://github.com/andryyy/mailcow and https://github.com/zypr/perfectrootserver
 # Compatible with Debian 8.x (jessie)
 
-
-addnewsite() {
-source ~/userconfig.cfg
-
 #----------------------------------------------------------------------#
 #-------------------DO NOT EDIT SOMETHING BELOW THIS-------------------#
 #----------------------------------------------------------------------#
+
+
+addnewsite() {
+source ~/userconfig.cfg
 
 if [ ${ADD_NEW_SITE} == '1' ]; then
 echo
