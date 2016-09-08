@@ -19,7 +19,7 @@ echo "${info} Installing AddNewSite..." | awk '{ print strftime("[%H:%M:%S] |"),
 mkdir -p /etc/nginx/html/${MYOTHERDOMAIN} 
 mkdir -p /etc/nginx/html/${MYOTHERDOMAIN}/logs/
 mkdir -p /etc/nginx/html/${MYOTHERDOMAIN}/htdocs/
-chown -R www-data:www-data /etc/nginx/html/${MYOTHERDOMAIN}/
+chown -R www-data:www-data /etc/nginx/html/${MYOTHERDOMAIN}/htdocs
 chmod 755 /etc/nginx/html/
 
 #Stop System
