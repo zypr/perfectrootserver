@@ -30,11 +30,12 @@ if [ ${CLOUDFLARE} == '0' ] && [ ${USE_VALID_SSL} == '1' ]; then
 	echo "${info} Creating valid SSL certificates..." | awk '{ print strftime("[%H:%M:%S] |"), $0 }'
 	git clone https://github.com/letsencrypt/letsencrypt ~/sources/letsencrypt -q
 	cd ~/sources/letsencrypt
-	if [ ${USE_MAILSERVER} == '1' ]; then
-		./letsencrypt-auto --agree-tos --renew-by-default --non-interactive --standalone --email ${SSLMAIL} --rsa-key-size 2048 -d ${MYOTHERDOMAIN} -d www.${MYOTHERDOMAIN} -d mail.${MYOTHERDOMAIN} -d autodiscover.${MYOTHERDOMAIN} -d autoconfig.${MYOTHERDOMAIN} -d dav.${MYOTHERDOMAIN} certonly >/dev/null 2>&1
-	else
+	#Im _Moment gibt es kein Mailserver zu dieser domain.
+	#if [ ${USE_MAILSERVER} == '1' ]; then
+		#./letsencrypt-auto --agree-tos --renew-by-default --non-interactive --standalone --email ${SSLMAIL} --rsa-key-size 2048 -d ${MYOTHERDOMAIN} -d www.${MYOTHERDOMAIN} -d mail.${MYOTHERDOMAIN} -d autodiscover.${MYOTHERDOMAIN} -d autoconfig.${MYOTHERDOMAIN} -d dav.${MYOTHERDOMAIN} certonly >/dev/null 2>&1
+	#else
 		./letsencrypt-auto --agree-tos --renew-by-default --non-interactive --standalone --email ${SSLMAIL} --rsa-key-size 2048 -d ${MYOTHERDOMAIN} -d www.${MYOTHERDOMAIN} certonly >/dev/null 2>&1
-	fi
+	#fi
 	ln -s /etc/letsencrypt/live/${MYOTHERDOMAIN}/fullchain.pem /etc/nginx/ssl/${MYOTHERDOMAIN}.pem
 	ln -s /etc/letsencrypt/live/${MYOTHERDOMAIN}/privkey.pem /etc/nginx/ssl/${MYOTHERDOMAIN}.key.pem
 else
