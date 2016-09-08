@@ -6,7 +6,7 @@
 
 vsftpd() {
 
-source ~/userconfig.cfg
+source ~/addonconfig.cfg
 
 # VSFTPD
 if [ ${USE_VSFTPD} == '1' ]; then
