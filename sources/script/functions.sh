@@ -153,6 +153,11 @@ checkconfig() {
         echo "${error} Please check the userconfig and set a valid value for the variable \"$(textb CONFIG_COMPLETED)\" to continue." | awk '{ print strftime("[%H:%M:%S] |"), $0 }'
         exit 1
 	fi
+	
+	if [ "$ADDONCONFIG_COMPLETED" != '1' ]; then
+        echo "${error} Please check the addonconfig and set a valid value for the variable \"$(textb CONFIG_COMPLETED)\" to continue." | awk '{ print strftime("[%H:%M:%S] |"), $0 }'
+        exit 1
+	fi
 
 	if [ $(dpkg-query -l | grep libcrack2 | wc -l) -ne 1 ]; then
 		apt-get update -y >/dev/null 2>&1 && apt-get -y --force-yes install libcrack2 >/dev/null 2>&1
