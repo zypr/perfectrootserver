@@ -7,12 +7,12 @@
 
 source sources/script/functions.sh
 
-source sources/script/addnewsite.sh
+#source sources/script/addnewsite.sh
 source sources/script/ajenti.sh
 #source sources/script/openvpn.sh
 source sources/script/ts3.sh
 source sources/script/vsftpd.sh
-source sources/script/disablerootlogin.sh
+#source sources/script/disablerootlogin.sh
 
 
 checksystem
@@ -20,12 +20,12 @@ checkconfig
 installation
 addoninformation
 
-addnewsite
+#addnewsite
 ajenti
 #openvpn
 ts3
 vsftpd
-disablerootlogin
+#disablerootlogin
 
 logininformation
 instructions
