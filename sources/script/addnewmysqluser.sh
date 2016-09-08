@@ -2,7 +2,7 @@
 #Todo: Testen & einfügen
 
 # create random password
-PASSWDDB="$(openssl rand -base64 12)"
+PASSWDDB=$(openssl rand -base64 30  |  sed 's|/|_|')
 
 # replace "-" with "_" for database username
 MAINDB=${USER_NAME//[^a-zA-Z0-9]/_}
