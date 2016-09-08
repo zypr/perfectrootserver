@@ -10,7 +10,7 @@
 
 
 addnewsite() {
-source ~/userconfig.cfg
+source ~/addonconfig.cfg
 
 if [ ${ADD_NEW_SITE} == '1' ]; then
 echo "${info} Installing AddNewSite..." | awk '{ print strftime("[%H:%M:%S] |"), $0 }'
