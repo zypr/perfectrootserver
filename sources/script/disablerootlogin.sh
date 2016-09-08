@@ -7,7 +7,7 @@
 
 #DisableRootLogin
 disablerootlogin() {
-source ~/userconfig.cfg
+source ~/addonconfig.cfg
 	
 if [ ${DISABLE_ROOT_LOGIN} == '1' ]; then
 
