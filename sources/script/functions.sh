@@ -2314,6 +2314,7 @@ instructions() {
 }
 
 source ~/userconfig.cfg
+source ~/addonconfig.cfg
 
 # Some nice colors
 red() { echo "$(tput setaf 1)$*$(tput setaf 9)"; }
