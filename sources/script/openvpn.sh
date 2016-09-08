@@ -6,7 +6,7 @@
 
 openvpn() {
 
-source ~/userconfig.cfg
+source ~/addonconfig.cfg
 
 #OpenVPN
 if [ ${USE_OPENVPN} == '1' ]; then
