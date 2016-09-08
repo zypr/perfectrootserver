@@ -24,8 +24,7 @@ echo "$(date +"[%T]") | ${info} Please wait while the installer is preparing for
 
 	#creating a strong password!
 	USERPASS=$(openssl rand -base64 30  |  sed 's|/|_|')
-
-cd /etc/ssh/sshd_config
+	
 sed 's/#PermitRootLogin prohibit-password/PermitRootLogin no/g' /etc/ssh/sshd_config >/dev/null 2>&1
 sed -i "/LoginGraceTime 30/ s//\n AllowGroups $SSHUSER \n/" /etc/ssh/sshd_config >/dev/null 2>&1
 
