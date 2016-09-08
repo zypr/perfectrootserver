@@ -6,7 +6,7 @@
 
 ajenti() {
 
-source ~/userconfig.cfg
+source ~/addonconfig.cfg
 
 # Ajenti
 if [ ${USE_AJENTI} == '1' ] && [ ${USE_VALID_SSL} == '1' ]; then
