@@ -2015,26 +2015,12 @@ echo "--------------------------------------------" >> ~/credentials.txt
 echo "open ports" >> ~/credentials.txt
 echo "--------------------------------------------" >> ~/credentials.txt
 if [ ${USE_MAILSERVER} == '1' ]; then
-	if [ ${USE_TEAMSPEAK} == '1' ]; then
-		echo "TCP = 25 (SMTP), 80 (HTTP), 110 (POP3), 143(IMAP), 443 (HTTPS), 465 (SMPTS), 2008 (TS3), 10011 (TS3), 30033 (TS3), 41144 (TS3)" >> ~/credentials.txt 
-		echo "TCP = 587 (Submission), 993 (IMAPS), 995 (POP3S), ${SSH} (SSH)" >> ~/credentials.txt
-		echo "UDP = 2010 (TS3), 9987 (TS3)" >> ~/credentials.txt
-		echo "" >> ~/credentials.txt
-		echo "" >> ~/credentials.txt
-	else
 		echo "TCP = 25 (SMTP), 80 (HTTP), 110 (POP3), 143(IMAP), 443 (HTTPS), 465 (SMPTS)" >> ~/credentials.txt 
 		echo "TCP = 587 (Submission), 993 (IMAPS), 995 (POP3S), ${SSH} (SSH)" >> ~/credentials.txt
 		echo "UDP = All ports are closed" >> ~/credentials.txt
 		echo "" >> ~/credentials.txt
 		echo "" >> ~/credentials.txt
-	fi
 else
-	if [ ${USE_TEAMSPEAK} == '1' ]; then
-		echo "TCP = 80 (HTTP), 443 (HTTPS), ${SSH} (SSH), 2008 (TS3), 10011 (TS3), 30033 (TS3), 41144 (TS3)" >> ~/credentials.txt
-		echo "UDP = 2010 (TS3), 9987 (TS3)" >> ~/credentials.txt
-		echo "" >> ~/credentials.txt
-		echo "" >> ~/credentials.txt
-	else
 		echo "TCP = 80 (HTTP), 443 (HTTPS), ${SSH} (SSH)" >> ~/credentials.txt
 		echo "UDP = All ports are closed" >> ~/credentials.txt
 		echo "" >> ~/credentials.txt
@@ -2311,6 +2297,7 @@ instructions() {
 	echo
     echo "${ok} You are done. You can run the assistant again, just write \"$(textb bash) $(textb ~/assistant.sh)\"" | awk '{ print strftime("[%H:%M:%S] |"), $0 }'
     echo "The credentials are located in the file $(textb ~/credentials.txt)!" | awk '{ print strftime("[%H:%M:%S] |"), $0 }'
+	echo "The credentials are located in the file $(textb ~/addoninformation.txt)!" | awk '{ print strftime("[%H:%M:%S] |"), $0 }'
 }
 
 source ~/userconfig.cfg
