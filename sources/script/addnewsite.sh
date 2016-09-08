@@ -28,7 +28,7 @@ systemctl stop nginx.service
 # SSL certificate
 if [ ${CLOUDFLARE} == '0' ] && [ ${USE_VALID_SSL} == '1' ]; then
 	echo "${info} Creating valid SSL certificates..." | awk '{ print strftime("[%H:%M:%S] |"), $0 }'
-	git clone https://github.com/letsencrypt/letsencrypt ~/sources/letsencrypt -q
+	#git clone https://github.com/letsencrypt/letsencrypt ~/sources/letsencrypt -q
 	cd ~/sources/letsencrypt
 	#Im _Moment gibt es kein Mailserver zu dieser domain.
 	#if [ ${USE_MAILSERVER} == '1' ]; then
