@@ -2025,8 +2025,8 @@ else
 		echo "UDP = All ports are closed" >> ~/credentials.txt
 		echo "" >> ~/credentials.txt
 		echo "" >> ~/credentials.txt
-	fi
 fi
+
 echo "You can add additional ports, just edit \"/etc/arno-iptables-firewall/firewall.conf\" (lines 1164 & 1165)" >> ~/credentials.txt
 echo "and restart your firewall -> \"systemctl force-reload arno-iptables-firewall\"" >> ~/credentials.txt
 echo "" >> ~/credentials.txt
