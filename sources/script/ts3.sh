@@ -6,7 +6,7 @@
 
 ts3() {
 
-source ~/userconfig.cfg
+source ~/addonconfig.cfg
 
 # Teamspeak 3
 if [ ${USE_TEAMSPEAK} == '1' ]; then
