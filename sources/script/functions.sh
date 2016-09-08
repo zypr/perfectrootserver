@@ -2033,6 +2033,7 @@ echo "" >> ~/credentials.txt
 echo "" >> ~/credentials.txt
 echo "_______________________________________________________________________________________" >> ~/credentials.txt
 echo "${ok} Done! The credentials are located in the file $(textb /root/credentials.txt)!" | awk '{ print strftime("[%H:%M:%S] |"), $0 }'
+echo "${ok} Done! The credentials are located in the file $(textb /root/addoninformation.txt)!" | awk '{ print strftime("[%H:%M:%S] |"), $0 }'
 }
 
 addoninformation() {
