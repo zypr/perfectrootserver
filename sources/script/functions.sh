@@ -155,7 +155,7 @@ checkconfig() {
 	fi
 	
 	if [ "$ADDONCONFIG_COMPLETED" != '1' ]; then
-        echo "${error} Please check the addonconfig and set a valid value for the variable \"$(textb CONFIG_COMPLETED)\" to continue." | awk '{ print strftime("[%H:%M:%S] |"), $0 }'
+        echo "${error} Please check the addonconfig and set a valid value for the variable \"$(textb ADDONCONFIG_COMPLETED)\" to continue." | awk '{ print strftime("[%H:%M:%S] |"), $0 }'
         exit 1
 	fi
 
