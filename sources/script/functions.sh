@@ -2033,7 +2033,7 @@ echo "" >> ~/credentials.txt
 echo "" >> ~/credentials.txt
 echo "_______________________________________________________________________________________" >> ~/credentials.txt
 echo "${ok} Done! The credentials are located in the file $(textb /root/credentials.txt)!" | awk '{ print strftime("[%H:%M:%S] |"), $0 }'
-echo "${ok} Done! The credentials are located in the file $(textb /root/addoninformation.txt)!" | awk '{ print strftime("[%H:%M:%S] |"), $0 }'
+echo "${ok} Done! The add on credentials are located in the file $(textb /root/addoninformation.txt)!" | awk '{ print strftime("[%H:%M:%S] |"), $0 }'
 }
 
 addoninformation() {
@@ -2298,7 +2298,7 @@ instructions() {
 	echo
     echo "${ok} You are done. You can run the assistant again, just write \"$(textb bash) $(textb ~/assistant.sh)\"" | awk '{ print strftime("[%H:%M:%S] |"), $0 }'
     echo "The credentials are located in the file $(textb ~/credentials.txt)!" | awk '{ print strftime("[%H:%M:%S] |"), $0 }'
-	echo "The credentials are located in the file $(textb ~/addoninformation.txt)!" | awk '{ print strftime("[%H:%M:%S] |"), $0 }'
+	echo "The add on credentials are located in the file $(textb ~/addoninformation.txt)!" | awk '{ print strftime("[%H:%M:%S] |"), $0 }'
 }
 
 source ~/userconfig.cfg
