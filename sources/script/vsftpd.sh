@@ -158,6 +158,8 @@ Your password: $userpass
 END
 	sed -i "/\<$FTP_PORT\>/ "\!"s/^OPEN_TCP=\"/&$FTP_PORT, /" /etc/arno-iptables-firewall/firewall.conf
 	sleep 1
+	#If the Addon runs in Standalone we need that
+	systemctl force-reload arno-iptables-firewall.service >/dev/null 2>&1
 
 	echo "--------------------------------------------" >> ~/addoninformation.txt
 	echo "VSFTP" >> ~/addoninformation.txt
