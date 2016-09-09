@@ -27,8 +27,8 @@ if [ ${USE_AJENTI} == '1' ] && [ ${USE_VALID_SSL} == '1' ]; then
 	sed -i.bak 's/^[[:space:]]*"password.*$/"password" : "sha512|'"${ajentihash//\//\\/}"'",/' /etc/ajenti/config.json
 	service ajenti restart
 	
-	AJENTI_PORTS="8000"
-	sed -i "/\<$AJENTI_PORTS\>/ "\!"s/^OPEN_TCP=\"/&$AJENTI_PORTS,/" /etc/arno-iptables-firewall/firewall.conf
+		sed -i "/\<$AJENTI_PORTS\>/ "\!"s/^OPEN_TCP=\"/&$AJENTI_PORTS, /" /etc/arno-iptables-firewall/firewall.conf	
+	sleep 1
 	
 	echo "--------------------------------------------" >> ~/addoninformation.txt
 	echo "Ajenti" >> ~/addoninformation.txt
