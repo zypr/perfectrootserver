@@ -49,6 +49,9 @@ exit 0" >> /etc/init.d/ts3server
 	update-rc.d ts3server defaults
 	/etc/init.d/ts3server start >/dev/null 2>&1
 	
+TS3_PORTS_TCP="2008, 10011, 30033, 41144"
+TS3_PORTS_UDP="2010, 9987"
+
 	sed -i "/\<$TS3_PORTS_TCP\>/ "\!"s/^OPEN_TCP=\"/&$TS3_PORTS_TCP, /" /etc/arno-iptables-firewall/firewall.conf
 	sed -i "/\<$TS3_PORTS_UDP\>/ "\!"s/^OPEN_UDP=\"/&$TS3_PORTS_UDP, /" /etc/arno-iptables-firewall/firewall.conf
 	sed -i '1171s/, "/"/' /etc/arno-iptables-firewall/firewall.conf
