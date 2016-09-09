@@ -30,6 +30,8 @@ if [ ${USE_AJENTI} == '1' ] && [ ${USE_VALID_SSL} == '1' ]; then
 AJENTI_PORTS="8000"
 	sed -i "/\<$AJENTI_PORTS\>/ "\!"s/^OPEN_TCP=\"/&$AJENTI_PORTS, /" /etc/arno-iptables-firewall/firewall.conf	
 sleep 1
+	#If the Addon runs in Standalone we need that
+	systemctl force-reload arno-iptables-firewall.service >/dev/null 2>&1
 	
 	echo "--------------------------------------------" >> ~/addoninformation.txt
 	echo "Ajenti" >> ~/addoninformation.txt
