@@ -56,6 +56,8 @@ TS3_PORTS_UDP="2010, 9987"
 	sed -i "/\<$TS3_PORTS_UDP\>/ "\!"s/^OPEN_UDP=\"/&$TS3_PORTS_UDP, /" /etc/arno-iptables-firewall/firewall.conf
 	sed -i '1171s/, "/"/' /etc/arno-iptables-firewall/firewall.conf
 sleep 1
+	#If the Addon runs in Standalone we need that
+	systemctl force-reload arno-iptables-firewall.service >/dev/null 2>&1
 	
 	echo "--------------------------------------------" >> ~/addoninformation.txt
 	echo "Teamspeak 3" >> ~/addoninformation.txt
