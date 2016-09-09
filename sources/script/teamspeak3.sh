@@ -4,7 +4,7 @@
 # Big thanks to https://github.com/andryyy/mailcow and https://github.com/zypr/perfectrootserver
 # Compatible with Debian 8.x (jessie)
 
-ts3() {
+teamspeak3() {
 
 source ~/addonconfig.cfg
 
