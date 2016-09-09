@@ -13,6 +13,8 @@ if [ ${USE_VSFTPD} == '1' ]; then
 	echo "${info} VSFTPD..." | awk '{ print strftime("[%H:%M:%S] |"), $0 }'
 	#Host IP check
 	ip=$(hostname -I)
+	# FTP Port
+	FTP_PORT="21"
 	#creating a strong password!
 	userpass=$(openssl rand -base64 30  |  sed 's|/|_|')
 	cd >/dev/null 2>&1
@@ -155,7 +157,8 @@ Your password: $userpass
 -------------------------------------------------------
 END
 	sed -i "/\<$FTP_PORT\>/ "\!"s/^OPEN_TCP=\"/&$FTP_PORT, /" /etc/arno-iptables-firewall/firewall.conf
-sleep 1
+	sleep 1
+
 	echo "--------------------------------------------" >> ~/addoninformation.txt
 	echo "VSFTP" >> ~/addoninformation.txt
 	echo "--------------------------------------------" >> ~/addoninformation.txt
