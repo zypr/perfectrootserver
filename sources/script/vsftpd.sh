@@ -154,7 +154,7 @@ Your username: $FTP_USERNAME
 Your password: $userpass
 -------------------------------------------------------
 END
-sed -i "/\<$FTP_PORT\>/ "\!"s/^OPEN_TCP=\"/&$FTP_PORT,/" /etc/arno-iptables-firewall/firewall.conf
+	sed -i "/\<$FTP_PORT\>/ "\!"s/^OPEN_TCP=\"/&$FTP_PORT, /" /etc/arno-iptables-firewall/firewall.conf
 sleep 1
 	echo "--------------------------------------------" >> ~/addoninformation.txt
 	echo "VSFTP" >> ~/addoninformation.txt
