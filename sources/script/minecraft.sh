@@ -1,3 +1,15 @@
+# The perfect rootserver
+# by shoujii | BoBBer446
+# https://github.com/shoujii/perfectrootserver
+# Big thanks to https://github.com/andryyy/mailcow and https://github.com/zypr/perfectrootserver
+# Compatible with Debian 8.x (jessie)
+
+minecraft() {
+
+source ~/addonconfig.cfg
+
+# Teamspeak 3
+if [ ${USE_MINECRAFT} == '1' ]; then
 echo "${info} Installing Minecraft..." | awk '{ print strftime("[%H:%M:%S] |"), $0 }'
 
 apt-get update -y >/dev/null 2>&1 && apt-get -y upgrade >/dev/null 2>&1
@@ -32,3 +44,5 @@ chmod +x run-minecraft-server.sh
 sudo -u  minecraft /usr/local/minecraft/run-minecraft-server.sh
 
 sed -i 's|eula=false"|eula=true"|' /usr/local/minecraft/eula.txt
+fi
+}
