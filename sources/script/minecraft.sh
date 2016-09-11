@@ -8,7 +8,7 @@ minecraft() {
 
 source ~/addonconfig.cfg
 
-# Teamspeak 3
+# Minecraft
 if [ ${USE_MINECRAFT} == '1' ]; then
 echo "${info} Installing Minecraft..." | awk '{ print strftime("[%H:%M:%S] |"), $0 }'
 
