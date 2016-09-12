@@ -7,27 +7,27 @@
 
 source sources/script/functions.sh
 
-#source sources/script/addnewsite.sh
 source sources/script/ajenti.sh
-#source sources/script/openvpn.sh
 source sources/script/teamspeak3.sh
 source sources/script/minecraft.sh
 source sources/script/vsftpd.sh
-#source sources/script/disablerootlogin.sh
 
+#source sources/script/disablerootlogin.sh
+#source sources/script/openvpn.sh
+#source sources/script/addnewsite.sh
 
 checksystem
 checkconfig
 installation
 addoninformation
 
-#addnewsite
 ajenti
-#openvpn
 teamspeak3
 minecraft
 vsftpd
 #disablerootlogin
+#addnewsite
+#openvpn
 
 logininformation
 instructions
