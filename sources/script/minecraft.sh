@@ -49,9 +49,9 @@ sed -i 's|eula=false|eula=true|' /usr/local/minecraft/eula.txt
 echo "--------------------------------------------" >> ~/addoninformation.txt
 	echo "Minecraft" >> ~/addoninformation.txt
 	echo "--------------------------------------------" >> ~/addoninformation.txt
-	echo "Zum starten von Minecraft bitte folgenden Befehl verwenden "screen sudo -u  minecraft /usr/local/minecraft/run-minecraft-server.sh" to start >> ~/addoninformation.txt
-	echo "Um die Screen Session zu verlassen Ctrl + A dann Ctrl + D drücken" >> ~/addoninformation.txt
-	echo "Zum zurück kehren in die Screen Session "screen -r" in der Terminal eingeben" >> ~/addoninformation.txt
+	echo "Zum starten von Minecraft bitte folgenden Befehl verwenden: screen sudo -u  minecraft /usr/local/minecraft/run-minecraft-server.sh" >> ~/addoninformation.txt
+	echo "Um die Screen Session zu verlassen: Ctrl + A dann Ctrl + D drücken" >> ~/addoninformation.txt
+	echo "Zum zurück kehren in die Screen Session: screen -r in der Terminal eingeben" >> ~/addoninformation.txt
 	echo "" >> ~/addoninformation.txt
 	echo "" >> ~/addoninformation.txt
 fi
