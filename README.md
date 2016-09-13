@@ -9,7 +9,7 @@ Downloading the zip from this branch will fail!
 
 [Get the latest release](https://github.com/shoujii/perfectrootserver/releases/latest "Latest Release"):
 ```
-wget -O ~/perfectrootserver.tar.gz https://github.com/shoujii/perfectrootserver/archive/0.1.4.tar.gz
+wget -O ~/perfectrootserver.tar.gz https://github.com/shoujii/perfectrootserver/archive/0.2.4.tar.gz
 ```
 
 Extract:
@@ -20,6 +20,10 @@ tar -xzf ~/perfectrootserver.tar.gz -C ~/ --strip-components=1
 Edit settings to your needs:
 ```
 nano ~/userconfig.cfg
+```
+
+```
+nano ~/addonconfig.cfg
 ```
 
 Start the installation script:
