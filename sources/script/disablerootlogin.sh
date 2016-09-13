@@ -33,7 +33,7 @@ adduser $SSHUSER --gecos "" --no-create-home --home /root/ --ingroup sshusers >/
 echo $SSHUSER:$USERPASS | chpasswd >/dev/null 2>&1
 	
 #restart
-/etc/init.d/sshd restart
+service ssh restart
 
 echo "--------------------------------------------" >> ~/addoninformation.txt
 	echo "DisableRootLogin" >> ~/addoninformation.txt
