@@ -1,5 +1,8 @@
 This is a Fork from Zypr's perfectrootserver
-It's for my personal use and sometimes there can appear bugs!
+
+
+Please download only versions tagged with Latest release!
+Downloading the zip from this branch will fail!
 
 
 #Short instructions:
