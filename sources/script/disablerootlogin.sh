@@ -38,9 +38,9 @@ echo $SSHUSER:$USERPASS | chpasswd >/dev/null 2>&1
 echo "--------------------------------------------" >> ~/addoninformation.txt
 	echo "DisableRootLogin" >> ~/addoninformation.txt
 	echo "--------------------------------------------" >> ~/addoninformation.txt
-	echo Your SSH USER: $SSHUSER
-	echo Your SSH USER Password: $USERPASS
-	echo "" >> ~/addoninformation.txt
-	echo "" >> ~/addoninformation.txt
+	echo Your SSH USER: $SSHUSER >> ~/addoninformation.txt
+	echo Your SSH USER Password: $USERPASS >> ~/addoninformation.txt
+	echo "" >> ~/addoninformation.txt >> ~/addoninformation.txt
+	echo "" >> ~/addoninformation.txt >> ~/addoninformation.txt
 fi
 }
