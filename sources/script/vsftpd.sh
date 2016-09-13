@@ -15,6 +15,8 @@ if [ ${USE_VSFTPD} == '1' ]; then
 	ip=$(hostname -I)
 	# FTP Port
 	FTP_PORT="21"
+	# pasv_min_port / pasv_max_port
+	PASV_PORT="12000:12500"
 	#creating a strong password!
 	userpass=$(openssl rand -base64 30  |  sed 's|/|_|')
 	cd >/dev/null 2>&1
@@ -157,6 +159,7 @@ Your password: $userpass
 -------------------------------------------------------
 END
 	sed -i "/\<$FTP_PORT\>/ "\!"s/^OPEN_TCP=\"/&$FTP_PORT, /" /etc/arno-iptables-firewall/firewall.conf
+	sed -i "/\<$PASV_PORT\>/ "\!"s/^OPEN_TCP=\"/&$PASV_PORT, /" /etc/arno-iptables-firewall/firewall.conf
 	sleep 1
 	#If the Addon runs in Standalone we need that
 	systemctl force-reload arno-iptables-firewall.service >/dev/null 2>&1
