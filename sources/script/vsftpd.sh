@@ -11,6 +11,15 @@ source ~/addonconfig.cfg
 # VSFTPD
 if [ ${USE_VSFTPD} == '1' ]; then
 	echo "${info} VSFTPD..." | awk '{ print strftime("[%H:%M:%S] |"), $0 }'
+	
+	check_ftp_username='[a-z]'
+		if [[ "$FTP_USERNAME" =~ $heck_ftp_username ]]; then
+		    echo "${error} Your Username is correct" | awk '{ print strftime("[%H:%M:%S] |"), $0 }'
+		else 
+		   echo "${error} Please use only lowercase letters!" | awk '{ print strftime("[%H:%M:%S] |"), $0 }'
+		   exit 1
+		fi
+	
 	#Host IP check
 	ip=$(hostname -I)
 	# FTP Port
