@@ -12,13 +12,12 @@ source ~/addonconfig.cfg
 if [ ${USE_VSFTPD} == '1' ]; then
 	echo "${info} VSFTPD..." | awk '{ print strftime("[%H:%M:%S] |"), $0 }'
 	#Check for username
-	check_ftp_username='[a-z]'
-		if [[ "$FTP_USERNAME" =~ $heck_ftp_username ]]; then
-		    echo "${ok} Your Username is correct" | awk '{ print strftime("[%H:%M:%S] |"), $0 }'
-		else 
-		   echo "${error} Please use only lowercase letters!" | awk '{ print strftime("[%H:%M:%S] |"), $0 }'
-		   exit 1
-		fi
+	while [[ "$FTP_USERNAME" =~ [^a-z] ]]; do
+		echo "Your Username $FTP_USERNAME is not valid! Please user only lower case letters."
+		echo "${error} Your Username $FTP_USERNAME is not valid. Please use only lower case letters and try again:" | awk '{ print strftime("[%H:%M:%S] |"), $0 }'
+			read FTP_USERNAME
+	done
+	echo "${ok} Great! Your new FTP Username is:$FTP_USERNAME" | awk '{ print strftime("[%H:%M:%S] |"), $0 }'
 	#Host IP check
 	ip=$(hostname -I)
 	# FTP Port
