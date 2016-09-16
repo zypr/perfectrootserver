@@ -67,6 +67,13 @@ checksystem() {
 	        read -s -n 1 i
         fi
 	fi
+	
+	#Check CPU System and set RSA Size
+	if [ $(grep -c ^processor /proc/cpuinfo) -ge 2 ]; then
+		RSA_KEY_SIZE="4096"
+			else
+		RSA_KEY_SIZE="2048"
+	fi
 
 	if [ ${CLOUDFLARE} != '1' ]; then
 		if [[ $FQDNIP != $IPADR ]]; then
@@ -616,9 +623,9 @@ if [ ${CLOUDFLARE} == '0' ] && [ ${USE_VALID_SSL} == '1' ]; then
 	git clone https://github.com/letsencrypt/letsencrypt ~/sources/letsencrypt -q
 	cd ~/sources/letsencrypt
 	if [ ${USE_MAILSERVER} == '1' ]; then
-		./letsencrypt-auto --agree-tos --renew-by-default --non-interactive --standalone --email ${SSLMAIL} --rsa-key-size 2048 -d ${MYDOMAIN} -d www.${MYDOMAIN} -d mail.${MYDOMAIN} -d autodiscover.${MYDOMAIN} -d autoconfig.${MYDOMAIN} -d dav.${MYDOMAIN} certonly >/dev/null 2>&1
+		./letsencrypt-auto --agree-tos --renew-by-default --non-interactive --standalone --email ${SSLMAIL} --rsa-key-size ${RSA_KEY_SIZE} -d ${MYDOMAIN} -d www.${MYDOMAIN} -d mail.${MYDOMAIN} -d autodiscover.${MYDOMAIN} -d autoconfig.${MYDOMAIN} -d dav.${MYDOMAIN} certonly >/dev/null 2>&1
 	else
-		./letsencrypt-auto --agree-tos --renew-by-default --non-interactive --standalone --email ${SSLMAIL} --rsa-key-size 2048 -d ${MYDOMAIN} -d www.${MYDOMAIN} certonly >/dev/null 2>&1
+		./letsencrypt-auto --agree-tos --renew-by-default --non-interactive --standalone --email ${SSLMAIL} --rsa-key-size ${RSA_KEY_SIZE} -d ${MYDOMAIN} -d www.${MYDOMAIN} certonly >/dev/null 2>&1
 	fi
 	ln -s /etc/letsencrypt/live/${MYDOMAIN}/fullchain.pem /etc/nginx/ssl/${MYDOMAIN}.pem
 	ln -s /etc/letsencrypt/live/${MYDOMAIN}/privkey.pem /etc/nginx/ssl/${MYDOMAIN}.key.pem
@@ -633,7 +640,7 @@ HPKP1=$(openssl x509 -pubkey < /etc/nginx/ssl/${MYDOMAIN}.pem | openssl pkey -pu
 HPKP2=$(openssl rand -base64 32)
 
 echo "${info} Creating strong Diffie-Hellman parameters, please wait..." | awk '{ print strftime("[%H:%M:%S] |"), $0 }'
-openssl dhparam -out /etc/nginx/ssl/dh.pem 2048 >/dev/null 2>&1
+openssl dhparam -out /etc/nginx/ssl/dh.pem ${RSA_KEY_SIZE} >/dev/null 2>&1
 
 # Create server config
 rm -rf /etc/nginx/sites-available/${MYDOMAIN}.conf
