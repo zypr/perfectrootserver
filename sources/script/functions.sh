@@ -424,6 +424,8 @@ sed -i 's/^#X11DisplayOffset 10/X11DisplayOffset 10/g' /etc/ssh/sshd_config
 sed -i 's/^#PrintMotd yes/PrintMotd no/g' /etc/ssh/sshd_config
 sed -i 's/^#PrintLastLog yes/PrintLastLog yes/g' /etc/ssh/sshd_config
 sed -i 's/^#TCPKeepAlive yes/TCPKeepAlive yes/g' /etc/ssh/sshd_config
+sed -i 's/^#ClientAliveInterval 0/ClientAliveInterval 30/g' /etc/ssh/sshd_config
+sed -i 's/^#ClientAliveCountMax 3/ClientAliveCountMax 3000/g' /etc/ssh/sshd_config
 sed -i 's/^#UsePAM no/UsePAM yes/g' /etc/ssh/sshd_config
 sed -i 's/^#Banner none/Banner \/etc\/issue/g' /etc/ssh/sshd_config
 sed -i 's/^#MaxStartups 10:30:100/MaxStartups 2/g' /etc/ssh/sshd_config
