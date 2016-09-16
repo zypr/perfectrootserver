@@ -72,8 +72,16 @@ checksystem() {
 	if [ $(grep -c ^processor /proc/cpuinfo) -ge 2 ]; then
 		RSA_KEY_SIZE="4096"
 			else
-		RSA_KEY_SIZE="2048"
+			#if this was acitvate by user
+				if [ ${SET_UP_RSA_KEY} = '1' ]; then
+					RSA_KEY_SIZE="4096"
+					else
+					RSA_KEY_SIZE="2048"
+				fi
 	fi
+	
+
+	
 
 	if [ ${CLOUDFLARE} != '1' ]; then
 		if [[ $FQDNIP != $IPADR ]]; then
