@@ -2,7 +2,6 @@ checkconfig() {
 
 source ~/userconfig.cfg
 source ~/addonconfig.cfg
-source sources/script/functions.sh
 
 	echo "${info} Checking your configuration..." | awk '{ print strftime("[%H:%M:%S] |"), $0 }'
 	for var in NGINX_VERSION OPENSSL_VERSION OPENSSH_VERSION NPS_VERSION TIMEZONE MYDOMAIN SSH USE_MAILSERVER MAILCOW_ADMIN_USER USE_WEBMAIL USE_PMA PMA_HTTPAUTH_USER PMA_RESTRICT MYSQL_MCDB_NAME MYSQL_MCDB_USER MYSQL_RCDB_NAME MYSQL_RCDB_USER MYSQL_PMADB_NAME MYSQL_PMADB_USER MYSQL_HOSTNAME CLOUDFLARE
