@@ -21,6 +21,15 @@ source ~/addonconfig.cfg
         echo "${error} Please check the addonconfig and set a valid value for the variable \"$(textb ADDONCONFIG_COMPLETED)\" to continue." | awk '{ print strftime("[%H:%M:%S] |"), $0 }'
         exit 1
 	fi
+	
+	if [ ${USE_VSFTPD} == '1' ]; then
+	#Check for username
+	while [[ "$FTP_USERNAME" =~ [^a-z] ]]; do
+		echo "Your Username $FTP_USERNAME is not valid! Please user only lower case letters."
+		echo "${error} Your Username $FTP_USERNAME is not valid. Please use only lower case letters and try again:" | awk '{ print strftime("[%H:%M:%S] |"), $0 }'
+			read FTP_USERNAME
+	done
+	echo "${ok} Great! Your new FTP Username is:$FTP_USERNAME" | awk '{ print strftime("[%H:%M:%S] |"), $0 }'
 
 	if [ $(dpkg-query -l | grep libcrack2 | wc -l) -ne 1 ]; then
 		apt-get update -y >/dev/null 2>&1 && apt-get -y --force-yes install libcrack2 >/dev/null 2>&1
