@@ -2,7 +2,6 @@ instructions() {
 
 source ~/userconfig.cfg
 source ~/addonconfig.cfg
-source sources/script/functions.sh
 
 	SSH_PASSWD=$(sed -n '/^## SSH$/{n;n;n;p}' ~/credentials.txt | awk '{print $3}')
 	echo
