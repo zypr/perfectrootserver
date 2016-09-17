@@ -8,6 +8,7 @@
 source sources/script/checksystem.sh
 source sources/script/checkconfig.sh
 source sources/script/functions.sh
+source sources/script/instructions.sh
 
 source sources/script/ajenti.sh
 source sources/script/teamspeak3.sh
