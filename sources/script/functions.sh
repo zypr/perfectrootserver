@@ -8,12 +8,8 @@
 ##  DO NOT MODIFY, JUST DON'T! ##
 #################################
 
-generatepw() {
-	while [[ $pw == "" ]]; do
-		pw=$(openssl rand -base64 30 | tr -d / | cut -c -24 | grep -P '(?=^.{8,255}$)(?=^[^\s]*$)(?=.*\d)(?=.*[A-Z])(?=.*[a-z])')
-	done
-	echo "$pw" && unset pw
-}
+source ~/userconfig.cfg
+source ~/addonconfig.cfg
 
 installation() {
 echo "${info} Starting installation!" | awk '{ print strftime("[%H:%M:%S] |"), $0 }'
@@ -1699,56 +1695,3 @@ echo "//////////////////////////////////////////////////////////////////////////
 echo "" >> ~/addoninformation.txt
 echo "_______________________________________________________________________________________" >> ~/addoninformation.txt
 }
-
-source ~/userconfig.cfg
-source ~/addonconfig.cfg
-
-# Some nice colors
-red() { echo "$(tput setaf 1)$*$(tput setaf 9)"; }
-green() { echo "$(tput setaf 2)$*$(tput setaf 9)"; }
-yellow() { echo "$(tput setaf 3)$*$(tput setaf 9)"; }
-magenta() { echo "$(tput setaf 5)$*$(tput setaf 9)"; }
-cyan() { echo "$(tput setaf 6)$*$(tput setaf 9)"; }
-textb() { echo $(tput bold)${1}$(tput sgr0); }
-greenb() { echo $(tput bold)$(tput setaf 2)${1}$(tput sgr0); }
-redb() { echo $(tput bold)$(tput setaf 1)${1}$(tput sgr0); }
-yellowb() { echo $(tput bold)$(tput setaf 3)${1}$(tput sgr0); }
-pinkb() { echo $(tput bold)$(tput setaf 5)${1}$(tput sgr0); }
-
-# Some nice variables
-info="$(textb [INFO] -)"
-warn="$(yellowb [WARN] -)"
-error="$(redb [ERROR] -)"
-fyi="$(pinkb [INFO] -)"
-ok="$(greenb [OKAY] -)"
-
-echo
-echo
-echo "$(date +"[%T]") | $(textb +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+)"
-echo "$(date +"[%T]") |  $(textb P) $(textb e) $(textb r) $(textb f) $(textb e) $(textb c) $(textb t)   $(textb R) $(textb o) $(textb o) $(textb t) $(textb s) $(textb e) $(textb r) $(textb v) $(textb e) $(textb r) "
-echo "$(date +"[%T]") | $(textb +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+)"
-echo
-echo "$(date +"[%T]") | ${info} Welcome to the Perfect Rootserver installation!"
-echo "$(date +"[%T]") | ${info} Please wait while the installer is preparing for the first use..."
-
-if [ $(dpkg-query -l | grep dnsutils | wc -l) -ne 1 ]; then
-	apt-get update -y >/dev/null 2>&1 && apt-get -y --force-yes install dnsutils >/dev/null 2>&1
-fi
-
-if [ $(dpkg-query -l | grep openssl | wc -l) -ne 1 ]; then
-	apt-get update -y >/dev/null 2>&1 && apt-get -y --force-yes install openssl >/dev/null 2>&1
-fi
-
-IPADR=$(ip route get 8.8.8.8 | head -1 | cut -d' ' -f8)
-INTERFACE=$(ip route get 8.8.8.8 | head -1 | cut -d' ' -f5)
-FQDNIP=$(source ~/userconfig.cfg; dig @8.8.8.8 +short ${MYDOMAIN})
-WWWIP=$(source ~/userconfig.cfg; dig @8.8.8.8 +short www.${MYDOMAIN})
-ACIP=$(source ~/userconfig.cfg; dig @8.8.8.8 +short autoconfig.${MYDOMAIN})
-ADIP=$(source ~/userconfig.cfg; dig @8.8.8.8 +short autodiscover.${MYDOMAIN})
-DAVIP=$(source ~/userconfig.cfg; dig @8.8.8.8 +short dav.${MYDOMAIN})
-MAILIP=$(source ~/userconfig.cfg; dig @8.8.8.8 +short mail.${MYDOMAIN})
-CHECKAC=$(source ~/userconfig.cfg; dig @8.8.8.8 ${MYDOMAIN} txt | grep -i mailconf=)
-CHECKMX=$(source ~/userconfig.cfg; dig @8.8.8.8 mx ${MYDOMAIN} +short)
-CHECKSPF=$(source ~/userconfig.cfg; dig @8.8.8.8 ${MYDOMAIN} txt | grep -i spf)
-CHECKDKIM=$(source ~/userconfig.cfg; dig @8.8.8.8 mail._domainkey.${MYDOMAIN} txt | grep -i DKIM1)
-CHECKRDNS=$(dig @8.8.8.8 -x ${IPADR} +short)
