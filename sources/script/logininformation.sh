@@ -2,7 +2,6 @@ logininformation() {
 
 source ~/userconfig.cfg
 source ~/addonconfig.cfg
-source sources/script/functions.sh
 
 touch ~/credentials.txt
 echo "///////////////////////////////////////////////////////////////////////////" >> ~/credentials.txt
