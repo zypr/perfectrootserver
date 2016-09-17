@@ -1,6 +1,3 @@
-source ~/userconfig.cfg
-source ~/addonconfig.cfg
-
 # Some nice colors
 red() { echo "$(tput setaf 1)$*$(tput setaf 9)"; }
 green() { echo "$(tput setaf 2)$*$(tput setaf 9)"; }
@@ -50,13 +47,6 @@ CHECKMX=$(source ~/userconfig.cfg; dig @8.8.8.8 mx ${MYDOMAIN} +short)
 CHECKSPF=$(source ~/userconfig.cfg; dig @8.8.8.8 ${MYDOMAIN} txt | grep -i spf)
 CHECKDKIM=$(source ~/userconfig.cfg; dig @8.8.8.8 mail._domainkey.${MYDOMAIN} txt | grep -i DKIM1)
 CHECKRDNS=$(dig @8.8.8.8 -x ${IPADR} +short)
-
-generatepw() {
-	while [[ $pw == "" ]]; do
-		pw=$(openssl rand -base64 30 | tr -d / | cut -c -24 | grep -P '(?=^.{8,255}$)(?=^[^\s]*$)(?=.*\d)(?=.*[A-Z])(?=.*[a-z])')
-	done
-	echo "$pw" && unset pw
-}
 
 checksystem() {
 	echo "$(date +"[%T]") | ${info} Checking your system..."
@@ -193,3 +183,6 @@ checksystem() {
 	fi
 	echo "${ok} The system meets the minimum requirements." | awk '{ print strftime("[%H:%M:%S] |"), $0 }'
 }
+
+source ~/userconfig.cfg
+source ~/addonconfig.cfg
