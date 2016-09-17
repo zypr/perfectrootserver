@@ -2,6 +2,7 @@ checksystem() {
 
 source ~/userconfig.cfg
 source ~/addonconfig.cfg
+source sources/script/functions.sh
 
 	echo "$(date +"[%T]") | ${info} Checking your system..."
 
