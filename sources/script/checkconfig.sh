@@ -23,15 +23,6 @@ source sources/script/functions.sh
         exit 1
 	fi
 	
-	if [ ${USE_VSFTPD} == '1' ]; then
-	#Check for username
-	while [[ "$FTP_USERNAME" =~ [^a-z] ]]; do
-		echo "Your Username $FTP_USERNAME is not valid! Please user only lower case letters."
-		echo "${error} Your Username $FTP_USERNAME is not valid. Please use only lower case letters and try again:" | awk '{ print strftime("[%H:%M:%S] |"), $0 }'
-			read FTP_USERNAME
-	done
-	echo "${ok} Great! Your new FTP Username is:$FTP_USERNAME" | awk '{ print strftime("[%H:%M:%S] |"), $0 }'
-
 	if [ $(dpkg-query -l | grep libcrack2 | wc -l) -ne 1 ]; then
 		apt-get update -y >/dev/null 2>&1 && apt-get -y --force-yes install libcrack2 >/dev/null 2>&1
 	fi
@@ -70,6 +61,7 @@ source sources/script/functions.sh
 				exit 1
 		fi
 	done
+	
 	if [ ${SSH} == '21' ] || [ ${SSH} == '25' ] || [ ${SSH} == '53' ] || [ ${SSH} == '80' ] || [ ${SSH} == '143' ] ||  [ ${SSH} == '443' ] || [ ${SSH} == '587' ] || [ ${SSH} == '990' ] || [ ${SSH} == '993' ] || [ ${SSH} -gt 1024 ] || [ ${SSH} -le 0 ]; then
 		echo "${error} You are using an unsupportet SSH port, please chose another one!" | awk '{ print strftime("[%H:%M:%S] |"), $0 }'
 		exit 1
@@ -87,6 +79,16 @@ source sources/script/functions.sh
             fi
         fi
 	fi
+	
+	if [ ${USE_VSFTPD} == '1' ]; then
+	#Check for username
+	while [[ "$FTP_USERNAME" =~ [^a-z] ]]; do
+		echo "Your Username $FTP_USERNAME is not valid! Please user only lower case letters."
+		echo "${error} Your Username $FTP_USERNAME is not valid. Please use only lower case letters and try again:" | awk '{ print strftime("[%H:%M:%S] |"), $0 }'
+			read FTP_USERNAME
+	done
+	echo "${ok} Great! Your new FTP Username is:$FTP_USERNAME" | awk '{ print strftime("[%H:%M:%S] |"), $0 }'
+	
 	echo "${ok} Userconfig is correct." | awk '{ print strftime("[%H:%M:%S] |"), $0 }'
 	echo
 }
