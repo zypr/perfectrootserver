@@ -5,9 +5,10 @@
 # Big thanks to https://github.com/andryyy/mailcow
 # Compatible with Debian 8.x (jessie)
 
+source sources/script/functions.sh
+
 source sources/script/checksystem.sh
 source sources/script/checkconfig.sh
-source sources/script/functions.sh
 source sources/script/logininformation.sh
 source sources/script/instructions.sh
 
