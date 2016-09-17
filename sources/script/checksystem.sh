@@ -1,3 +1,6 @@
+source ~/userconfig.cfg
+source ~/addonconfig.cfg
+
 # Some nice colors
 red() { echo "$(tput setaf 1)$*$(tput setaf 9)"; }
 green() { echo "$(tput setaf 2)$*$(tput setaf 9)"; }
@@ -56,10 +59,6 @@ generatepw() {
 }
 
 checksystem() {
-
-source ~/userconfig.cfg
-source ~/addonconfig.cfg
-
 	echo "$(date +"[%T]") | ${info} Checking your system..."
 
 	if [ $(dpkg-query -l | grep gawk | wc -l) -ne 1 ]; then
