@@ -88,7 +88,8 @@ source sources/script/functions.sh
 			read FTP_USERNAME
 	done
 	echo "${ok} Great! Your new FTP Username is:$FTP_USERNAME" | awk '{ print strftime("[%H:%M:%S] |"), $0 }'
+	fi
 	
 	echo "${ok} Userconfig is correct." | awk '{ print strftime("[%H:%M:%S] |"), $0 }'
 	echo
-	}
+}
