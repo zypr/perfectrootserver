@@ -8,8 +8,12 @@
 ##  DO NOT MODIFY, JUST DON'T! ##
 #################################
 
-source ~/userconfig.cfg
-source ~/addonconfig.cfg
+generatepw() {
+        while [[ $pw == "" ]]; do
+                pw=$(openssl rand -base64 30 | tr -d / | cut -c -24 | grep -P '(?=^.{8,255}$)(?=^[^\s]*$)(?=.*\d)(?=.*[A-Z])(?=.*[a-z])')
+        done
+        echo "$pw" && unset pw
+}
 
 installation() {
 echo "${info} Starting installation!" | awk '{ print strftime("[%H:%M:%S] |"), $0 }'
@@ -1695,3 +1699,6 @@ echo "//////////////////////////////////////////////////////////////////////////
 echo "" >> ~/addoninformation.txt
 echo "_______________________________________________________________________________________" >> ~/addoninformation.txt
 }
+
+source ~/userconfig.cfg
+source ~/addonconfig.cfg
