@@ -55,6 +55,9 @@ if [[ -f /usr/share/zoneinfo/${TIMEZONE} ]] ; then
 		echo "${error} Cannot set your timezone: timezone is unknown" | awk '{ print strftime("[%H:%M:%S] |"), $0 }'
 		exit 1
 fi
+#An accurate time is important
+apt-get install ntp >/dev/null 2>&1
+
 echo "${info} Installing prerequisites..." | awk '{ print strftime("[%H:%M:%S] |"), $0 }'
 echo "${warn} Some of the tasks could take a long time, please be patient!" | awk '{ print strftime("[%H:%M:%S] |"), $0 }'
 
