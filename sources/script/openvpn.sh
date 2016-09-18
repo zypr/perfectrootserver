@@ -47,7 +47,7 @@ cd /etc/openvpn/easy-rsa
 cp /etc/openvpn/easy-rsa/keys/{server.crt,server.key,ca.crt} /etc/openvpn
 service openvpn start	
 
-Cert + key for Client
+#Cert + key for Client
 ./build-key client1
 cp /usr/share/doc/openvpn/examples/sample-config-files/client.conf /etc/openvpn/easy-rsa/keys/client.ovpn
 sed -i 's|remote my-server-1 1194|remote '${SERVER_IP}' 1194|' /etc/openvpn/easy-rsa/keys/client.ovpn
