@@ -16,9 +16,9 @@ source sources/script/ajenti.sh
 source sources/script/teamspeak3.sh
 source sources/script/minecraft.sh
 source sources/script/vsftpd.sh
+source sources/script/openvpn.sh
 
 #source sources/script/disablerootlogin.sh
-#source sources/script/openvpn.sh
 #source sources/script/addnewsite.sh
 
 checksystem
@@ -30,9 +30,9 @@ ajenti
 teamspeak3
 minecraft
 vsftpd
+openvpn
 #disablerootlogin
 #addnewsite
-#openvpn
 
 logininformation
 instructions
