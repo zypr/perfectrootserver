@@ -88,6 +88,12 @@ source sources/script/functions.sh
 			read FTP_USERNAME
 	done
 	echo "${ok} Great! Your new FTP Username is:$FTP_USERNAME" | awk '{ print strftime("[%H:%M:%S] |"), $0 }'
+	
+	#Now insert new FTP Username into config to be able in script
+	sed -i '/^FTP_USERNAME=/d' /root/addonconfig.cfg  
+	sleep 1
+	sed -i "/^USE_VSFTPD=*/a FTP_USERNAME=\"$FTP_USERNAME\" " /root/addonconfig.cfg
+	
 	fi
 	
 	echo "${ok} Userconfig is correct." | awk '{ print strftime("[%H:%M:%S] |"), $0 }'
