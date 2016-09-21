@@ -182,6 +182,29 @@ checksystem() {
 		fi
 	fi
 	echo "${ok} The system meets the minimum requirements." | awk '{ print strftime("[%H:%M:%S] |"), $0 }'
+	
+	echo "${info} The SSH PORT will be generated" | awk '{ print strftime("[%H:%M:%S] |"), $0 }'
+	#Generate SSH Port
+	# Initilzing the ignore list with the numbers you have mentioned
+	declare -A ignoreList='(
+		[21]="1" 
+		[22]="1"
+		[25]="1" 
+		[53]="1" 
+		[80]="1" 
+		[143]="1" 
+		[587]="1" 
+		[990]="1" 
+		[993]="1" 
+		[443]="1" 
+		[2008]="1" 
+		[10011]="1" 
+		[30033]="1" 
+		[41144]="1")'
+	randomNumber="$(($RANDOM % 1023))"
+	SSH_PORT=$([[ ! -n "${ignoreList["$randomNumber"]}" ]] && printf "%s\n" "$randomNumber")
+	sleep 1
+	sed -i "/^# The SSH PORT will be generated */a SSH=\"$SSH_PORT\" " /root/userconfig.cfg
 }
 
 source ~/userconfig.cfg
