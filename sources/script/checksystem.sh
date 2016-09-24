@@ -7,23 +7,6 @@ generatepw() {
 
 checksystem() {
 
-echo
-echo
-echo "$(date +"[%T]") | $(textb +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+)"
-echo "$(date +"[%T]") |  $(textb P) $(textb e) $(textb r) $(textb f) $(textb e) $(textb c) $(textb t)   $(textb R) $(textb o) $(textb o) $(textb t) $(textb s) $(textb e) $(textb r) $(textb v) $(textb e) $(textb r) "
-echo "$(date +"[%T]") | $(textb +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+)"
-echo
-echo "$(date +"[%T]") | ${info} Welcome to the Perfect Rootserver installation!"
-echo "$(date +"[%T]") | ${info} Please wait while the installer is preparing for the first use..."
-
-if [ $(dpkg-query -l | grep dnsutils | wc -l) -ne 1 ]; then
-	apt-get update -y >/dev/null 2>&1 && apt-get -y --force-yes install dnsutils >/dev/null 2>&1
-fi
-
-if [ $(dpkg-query -l | grep openssl | wc -l) -ne 1 ]; then
-	apt-get update -y >/dev/null 2>&1 && apt-get -y --force-yes install openssl >/dev/null 2>&1
-fi
-
 	echo "$(date +"[%T]") | ${info} Checking your system..."
 
 	if [ $(dpkg-query -l | grep gawk | wc -l) -ne 1 ]; then
@@ -181,6 +164,23 @@ warn="$(yellowb [WARN] -)"
 error="$(redb [ERROR] -)"
 fyi="$(pinkb [INFO] -)"
 ok="$(greenb [OKAY] -)"
+
+echo
+echo
+echo "$(date +"[%T]") | $(textb +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+)"
+echo "$(date +"[%T]") |  $(textb P) $(textb e) $(textb r) $(textb f) $(textb e) $(textb c) $(textb t)   $(textb R) $(textb o) $(textb o) $(textb t) $(textb s) $(textb e) $(textb r) $(textb v) $(textb e) $(textb r) "
+echo "$(date +"[%T]") | $(textb +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+)"
+echo
+echo "$(date +"[%T]") | ${info} Welcome to the Perfect Rootserver installation!"
+echo "$(date +"[%T]") | ${info} Please wait while the installer is preparing for the first use..."
+
+if [ $(dpkg-query -l | grep dnsutils | wc -l) -ne 1 ]; then
+	apt-get update -y >/dev/null 2>&1 && apt-get -y --force-yes install dnsutils >/dev/null 2>&1
+fi
+
+if [ $(dpkg-query -l | grep openssl | wc -l) -ne 1 ]; then
+	apt-get update -y >/dev/null 2>&1 && apt-get -y --force-yes install openssl >/dev/null 2>&1
+fi
 
 IPADR=$(ip route get 8.8.8.8 | head -1 | cut -d' ' -f8)
 INTERFACE=$(ip route get 8.8.8.8 | head -1 | cut -d' ' -f5)
