@@ -4,7 +4,7 @@
 # Big thanks to https://github.com/andryyy/mailcow and https://github.com/zypr/perfectrootserver
 # Compatible with Debian 8.x (jessie)
 
-openssl() {
+sslssh() {
 
 # OpenSSL
 echo "${info} Installing OpenSSL libs & headers..." | awk '{ print strftime("[%H:%M:%S] |"), $0 }'
