@@ -31,7 +31,7 @@ source sources/addons/openvpn.sh
 checksystem
 checkconfig
 system
-openssl
+sslssh
 nginx
 mailserver
 firewall
