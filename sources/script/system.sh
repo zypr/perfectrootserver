@@ -15,7 +15,7 @@ generatepw() {
         echo "$pw" && unset pw
 }
 
-installation() {
+system() {
 echo "${info} Starting installation!" | awk '{ print strftime("[%H:%M:%S] |"), $0 }'
 
 cat > /etc/hosts <<END
