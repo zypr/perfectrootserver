@@ -6,6 +6,7 @@
 # Compatible with Debian 8.x (jessie)
 
 source sources/script/functions.sh
+source sources/script/mailserver.sh
 
 source sources/script/checksystem.sh
 source sources/script/checkconfig.sh
@@ -24,6 +25,7 @@ source sources/script/openvpn.sh
 checksystem
 checkconfig
 installation
+mailserver
 addoninformation
 
 ajenti
