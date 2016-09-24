@@ -1,21 +1,4 @@
-# Some nice colors
-red() { echo "$(tput setaf 1)$*$(tput setaf 9)"; }
-green() { echo "$(tput setaf 2)$*$(tput setaf 9)"; }
-yellow() { echo "$(tput setaf 3)$*$(tput setaf 9)"; }
-magenta() { echo "$(tput setaf 5)$*$(tput setaf 9)"; }
-cyan() { echo "$(tput setaf 6)$*$(tput setaf 9)"; }
-textb() { echo $(tput bold)${1}$(tput sgr0); }
-greenb() { echo $(tput bold)$(tput setaf 2)${1}$(tput sgr0); }
-redb() { echo $(tput bold)$(tput setaf 1)${1}$(tput sgr0); }
-yellowb() { echo $(tput bold)$(tput setaf 3)${1}$(tput sgr0); }
-pinkb() { echo $(tput bold)$(tput setaf 5)${1}$(tput sgr0); }
-
-# Some nice variables
-info="$(textb [INFO] -)"
-warn="$(yellowb [WARN] -)"
-error="$(redb [ERROR] -)"
-fyi="$(pinkb [INFO] -)"
-ok="$(greenb [OKAY] -)"
+checksystem() {
 
 echo
 echo
@@ -34,21 +17,6 @@ if [ $(dpkg-query -l | grep openssl | wc -l) -ne 1 ]; then
 	apt-get update -y >/dev/null 2>&1 && apt-get -y --force-yes install openssl >/dev/null 2>&1
 fi
 
-IPADR=$(ip route get 8.8.8.8 | head -1 | cut -d' ' -f8)
-INTERFACE=$(ip route get 8.8.8.8 | head -1 | cut -d' ' -f5)
-FQDNIP=$(source ~/userconfig.cfg; dig @8.8.8.8 +short ${MYDOMAIN})
-WWWIP=$(source ~/userconfig.cfg; dig @8.8.8.8 +short www.${MYDOMAIN})
-ACIP=$(source ~/userconfig.cfg; dig @8.8.8.8 +short autoconfig.${MYDOMAIN})
-ADIP=$(source ~/userconfig.cfg; dig @8.8.8.8 +short autodiscover.${MYDOMAIN})
-DAVIP=$(source ~/userconfig.cfg; dig @8.8.8.8 +short dav.${MYDOMAIN})
-MAILIP=$(source ~/userconfig.cfg; dig @8.8.8.8 +short mail.${MYDOMAIN})
-CHECKAC=$(source ~/userconfig.cfg; dig @8.8.8.8 ${MYDOMAIN} txt | grep -i mailconf=)
-CHECKMX=$(source ~/userconfig.cfg; dig @8.8.8.8 mx ${MYDOMAIN} +short)
-CHECKSPF=$(source ~/userconfig.cfg; dig @8.8.8.8 ${MYDOMAIN} txt | grep -i spf)
-CHECKDKIM=$(source ~/userconfig.cfg; dig @8.8.8.8 mail._domainkey.${MYDOMAIN} txt | grep -i DKIM1)
-CHECKRDNS=$(dig @8.8.8.8 -x ${IPADR} +short)
-
-checksystem() {
 	echo "$(date +"[%T]") | ${info} Checking your system..."
 
 	if [ $(dpkg-query -l | grep gawk | wc -l) -ne 1 ]; then
@@ -187,3 +155,38 @@ checksystem() {
 
 source ~/userconfig.cfg
 source ~/addonconfig.cfg
+
+# Some nice colors
+red() { echo "$(tput setaf 1)$*$(tput setaf 9)"; }
+green() { echo "$(tput setaf 2)$*$(tput setaf 9)"; }
+yellow() { echo "$(tput setaf 3)$*$(tput setaf 9)"; }
+magenta() { echo "$(tput setaf 5)$*$(tput setaf 9)"; }
+cyan() { echo "$(tput setaf 6)$*$(tput setaf 9)"; }
+textb() { echo $(tput bold)${1}$(tput sgr0); }
+greenb() { echo $(tput bold)$(tput setaf 2)${1}$(tput sgr0); }
+redb() { echo $(tput bold)$(tput setaf 1)${1}$(tput sgr0); }
+yellowb() { echo $(tput bold)$(tput setaf 3)${1}$(tput sgr0); }
+pinkb() { echo $(tput bold)$(tput setaf 5)${1}$(tput sgr0); }
+
+# Some nice variables
+info="$(textb [INFO] -)"
+warn="$(yellowb [WARN] -)"
+error="$(redb [ERROR] -)"
+fyi="$(pinkb [INFO] -)"
+ok="$(greenb [OKAY] -)"
+
+
+
+IPADR=$(ip route get 8.8.8.8 | head -1 | cut -d' ' -f8)
+INTERFACE=$(ip route get 8.8.8.8 | head -1 | cut -d' ' -f5)
+FQDNIP=$(source ~/userconfig.cfg; dig @8.8.8.8 +short ${MYDOMAIN})
+WWWIP=$(source ~/userconfig.cfg; dig @8.8.8.8 +short www.${MYDOMAIN})
+ACIP=$(source ~/userconfig.cfg; dig @8.8.8.8 +short autoconfig.${MYDOMAIN})
+ADIP=$(source ~/userconfig.cfg; dig @8.8.8.8 +short autodiscover.${MYDOMAIN})
+DAVIP=$(source ~/userconfig.cfg; dig @8.8.8.8 +short dav.${MYDOMAIN})
+MAILIP=$(source ~/userconfig.cfg; dig @8.8.8.8 +short mail.${MYDOMAIN})
+CHECKAC=$(source ~/userconfig.cfg; dig @8.8.8.8 ${MYDOMAIN} txt | grep -i mailconf=)
+CHECKMX=$(source ~/userconfig.cfg; dig @8.8.8.8 mx ${MYDOMAIN} +short)
+CHECKSPF=$(source ~/userconfig.cfg; dig @8.8.8.8 ${MYDOMAIN} txt | grep -i spf)
+CHECKDKIM=$(source ~/userconfig.cfg; dig @8.8.8.8 mail._domainkey.${MYDOMAIN} txt | grep -i DKIM1)
+CHECKRDNS=$(dig @8.8.8.8 -x ${IPADR} +short)
