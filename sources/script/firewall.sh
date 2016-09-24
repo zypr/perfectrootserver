@@ -128,5 +128,12 @@ rm -rf ~/sources/mailcow/fail2ban/inst/0.9.3
 [[ -z $(grep fail2ban /etc/rc.local) ]] && sed -i '/^exit 0/i\test -d /var/run/fail2ban || install -m 755 -d /var/run/fail2ban/' /etc/rc.local
 mkdir /var/run/fail2ban/ >/dev/null 2>&1
 
+# Restart all services
+if [ ${USE_MAILSERVER} == '1' ]; then
+	systemctl -q restart {fail2ban,rsyslog,nginx,php5-fpm,spamassassin,dovecot,postfix,opendkim,clamav-daemon,fuglu,mailgraph}
+else
+	systemctl -q restart {fail2ban,nginx,php5-fpm}
+fi
+
 }
 source ~/userconfig.cfg
