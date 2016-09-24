@@ -6,11 +6,12 @@
 # Compatible with Debian 8.x (jessie)
 
 source sources/script/system.sh
+source sources/script/openssl.sh
+source sources/script/nginx.sh
 source sources/script/mailserver.sh
 source sources/script/firewall.sh
-source sources/script/nginx.sh
-source sources/script/openssl.sh
-source sources/script/mailserver.sh
+
+
 
 source sources/script/checksystem.sh
 source sources/script/checkconfig.sh
@@ -31,8 +32,8 @@ checkconfig
 system
 openssl
 nginx
-firewall
 mailserver
+firewall
 addoninformation
 
 ajenti
