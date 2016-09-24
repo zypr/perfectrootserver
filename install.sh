@@ -5,18 +5,18 @@
 # Big thanks to https://github.com/andryyy/mailcow
 # Compatible with Debian 8.x (jessie)
 
-source sources/script/system.sh
-source sources/script/openssl.sh
-source sources/script/nginx.sh
-source sources/script/mailserver.sh
-source sources/script/firewall.sh
-
-
-
 source sources/script/checksystem.sh
 source sources/script/checkconfig.sh
 source sources/script/logininformation.sh
 source sources/script/instructions.sh
+
+
+source sources/script/system.sh
+source sources/script/sslssh.sh
+source sources/script/nginx.sh
+source sources/script/mailserver.sh
+source sources/script/firewall.sh
+
 
 source sources/addons/ajenti.sh
 source sources/addons/teamspeak3.sh
