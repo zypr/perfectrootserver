@@ -97,6 +97,8 @@ LIST=(
 "http://www.openbl.org/lists/base.txt"
 "http://www.autoshun.org/files/shunlist.csv"
 "http://lists.blocklist.de/lists/all.txt"
+"http://blocklist.greensnow.co/greensnow.txt"
+"https://www.stopforumspam.com/downloads/toxic_ip_cidr.txt"
 )
 for i in "\${LIST[@]}"
 do
