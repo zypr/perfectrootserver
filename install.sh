@@ -18,14 +18,15 @@ source sources/script/checkconfig.sh
 source sources/script/logininformation.sh
 source sources/script/instructions.sh
 
-source sources/script/ajenti.sh
-source sources/script/teamspeak3.sh
-source sources/script/minecraft.sh
-source sources/script/vsftpd.sh
-source sources/script/openvpn.sh
+source sources/addons/ajenti.sh
+source sources/addons/teamspeak3.sh
+source sources/addons/minecraft.sh
+source sources/addons/vsftpd.sh
+source sources/addons/openvpn.sh
 
-#source sources/script/disablerootlogin.sh
-#source sources/script/addnewsite.sh
+#source sources/addons/disablerootlogin.sh
+#source sources/addons/addnewsite.sh
+#source sources/addons/addnewmysqluser.sh
 
 checksystem
 checkconfig
