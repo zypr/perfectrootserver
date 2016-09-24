@@ -202,11 +202,7 @@ END
 sysctl -p >/dev/null 2>&1
 
 # Restart all services
-if [ ${USE_MAILSERVER} == '1' ]; then
-	systemctl -q restart {fail2ban,rsyslog,nginx,php5-fpm,spamassassin,dovecot,postfix,opendkim,clamav-daemon,fuglu,mailgraph}
-else
-	systemctl -q restart {fail2ban,nginx,php5-fpm}
-fi
+systemctl -q restart {rsyslog,php5-fpm}
 
 }
 
