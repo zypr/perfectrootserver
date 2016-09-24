@@ -5,7 +5,11 @@
 # Big thanks to https://github.com/andryyy/mailcow
 # Compatible with Debian 8.x (jessie)
 
-source sources/script/functions.sh
+source sources/script/system.sh
+source sources/script/mailserver.sh
+source sources/script/firewall.sh
+source sources/script/nginx.sh
+source sources/script/openssl.sh
 source sources/script/mailserver.sh
 
 source sources/script/checksystem.sh
@@ -24,7 +28,10 @@ source sources/script/openvpn.sh
 
 checksystem
 checkconfig
-installation
+system
+openssl
+nginx
+firewall
 mailserver
 addoninformation
 
