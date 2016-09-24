@@ -175,8 +175,6 @@ error="$(redb [ERROR] -)"
 fyi="$(pinkb [INFO] -)"
 ok="$(greenb [OKAY] -)"
 
-
-
 IPADR=$(ip route get 8.8.8.8 | head -1 | cut -d' ' -f8)
 INTERFACE=$(ip route get 8.8.8.8 | head -1 | cut -d' ' -f5)
 FQDNIP=$(source ~/userconfig.cfg; dig @8.8.8.8 +short ${MYDOMAIN})
