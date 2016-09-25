@@ -62,16 +62,16 @@ source sources/script/system.sh
 		fi
 	done
 	
-	if [ ${SSH} == '21' ] || [ ${SSH} == '25' ] || [ ${SSH} == '53' ] || [ ${SSH} == '80' ] || [ ${SSH} == '143' ] ||  [ ${SSH} == '443' ] || [ ${SSH} == '587' ] || [ ${SSH} == '990' ] || [ ${SSH} == '993' ] || [ ${SSH} -gt 1024 ] || [ ${SSH} -le 0 ]; then
+	if [ ${SSH_PORT} == '21' ] || [ ${SSH_PORT} == '25' ] || [ ${SSH_PORT} == '53' ] || [ ${SSH_PORT} == '80' ] || [ ${SSH_PORT} == '143' ] ||  [ ${SSH_PORT} == '443' ] || [ ${SSH_PORT} == '587' ] || [ ${SSH_PORT} == '990' ] || [ ${SSH_PORT} == '993' ] || [ ${SSH_PORT} -gt 1024 ] || [ ${SSH_PORT} -le 0 ]; then
 		echo "${error} You are using an unsupportet SSH port, please chose another one!" | awk '{ print strftime("[%H:%M:%S] |"), $0 }'
 		exit 1
 	else
-		if [ ${SSH} == '22' ]; then
+		if [ ${SSH_PORT} == '22' ]; then
 			echo "${warn} Do you really want to use the standard SSH port? -> $(textb 22)" | awk '{ print strftime("[%H:%M:%S] |"), $0 }'
 			echo "${info} Press $(textb ENTER) to skip this warning and proceed or $(textb CTRL-C) to cancel the process" | awk '{ print strftime("[%H:%M:%S] |"), $0 }'
         	read -s -n 1 i
         else
-        	if [[ $SSH =~ ^-?[0-9]+$ ]]; then
+        	if [[ $SSH_PORT =~ ^-?[0-9]+$ ]]; then
             	echo >> /dev/null
             else
             	echo "${error} SSH Port is not an integer, chose another one!" | awk '{ print strftime("[%H:%M:%S] |"), $0 }'
