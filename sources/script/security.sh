@@ -6,7 +6,7 @@ if [ ${SSH_PASS} == 'generatepw' ]; then
   	 sed -i "s/SSH_PASS=\"generatepw\"/SSH_PASS=\"$SSH_PASS\"/g" /root/userconfig.cfg
 fi
 
-if [ ${SSH} == 'generateport' ]; then
+if [ ${SSH_PORT} == 'generateport' ]; then
 
 #Generate SSH Port
 declare -A ignoreList='(
