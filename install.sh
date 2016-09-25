@@ -5,6 +5,7 @@
 # Big thanks to https://github.com/andryyy/mailcow
 # Compatible with Debian 8.x (jessie)
 
+source sources/script/security.sh
 source sources/script/checksystem.sh
 source sources/script/checkconfig.sh
 source sources/script/logininformation.sh
@@ -28,6 +29,7 @@ source sources/addons/openvpn.sh
 #source sources/addons/addnewsite.sh
 #source sources/addons/addnewmysqluser.sh
 
+createpw
 checksystem
 checkconfig
 system
