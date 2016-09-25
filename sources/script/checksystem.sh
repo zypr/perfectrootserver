@@ -1,3 +1,9 @@
+generatepw() {
+        while [[ $pw == "" ]]; do
+                pw=$(openssl rand -base64 30 | tr -d / | cut -c -24 | grep -P '(?=^.{8,255}$)(?=^[^\s]*$)(?=.*\d)(?=.*[A-Z])(?=.*[a-z])')
+        done
+        echo "$pw" && unset pw
+}
 
 
 checksystem() {
