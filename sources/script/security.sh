@@ -5,6 +5,31 @@ if [ ${SSH_PASS} == 'generatepw' ]; then
   	 sed -i "s/SSH_PASS=\"generatepw\"/SSH_PASS=\"$SSH_PASS\"/g" /root/userconfig.cfg
 fi
 
+if [ ${SSH_PORT} == 'generateport' ]; then
+
+#Generate SSH Port
+declare -A ignoreList='(
+		[21]="1" 
+		[22]="1"
+		[25]="1" 
+		[53]="1" 
+		[80]="1" 
+		[143]="1" 
+		[587]="1" 
+		[990]="1" 
+		[993]="1" 
+		[443]="1" 
+		[2008]="1" 
+		[10011]="1" 
+		[30033]="1" 
+		[41144]="1")'
+		
+randomNumber="$(($RANDOM % 1023))"
+#return a string
+SSH_PORT=$([[ ! -n "${ignoreList["$randomNumber"]}" ]] && printf "%s\n" "$randomNumber")
+  	 sed -i "s/SSH_PORT=\"generateport\"/SSH_PORT=\"$SSH_PORT\"/g" /root/userconfig.cfg
+fi
+
 if [ ${USE_MAILSERVER} == '1' ]; then
   if [ ${MAILCOW_ADMIN_PASS} == 'generatepw' ]; then
 	   MAILCOW_ADMIN_PASS=$(openssl rand -base64 30 | tr -d / | cut -c -24 | grep -P '(?=^.{8,255}$)(?=^[^\s]*$)(?=.*\d)(?=.*[A-Z])(?=.*[a-z])')
