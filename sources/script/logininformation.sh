@@ -68,7 +68,7 @@ fi
 echo "_______________________________________________________________________________________" >> ~/credentials.txt
 echo "## SSH" >> ~/credentials.txt
 echo "" >> ~/credentials.txt
-echo "port       = ${SSH}" >> ~/credentials.txt
+echo "port       = ${SSH_PORT}" >> ~/credentials.txt
 echo "password   = ${SSH_PASS}" >> ~/credentials.txt
 echo "privatekey = check /root/ssh_privatekey.txt" >> ~/credentials.txt
 echo "" >> ~/credentials.txt
@@ -125,12 +125,12 @@ echo "open ports" >> ~/credentials.txt
 echo "--------------------------------------------" >> ~/credentials.txt
 if [ ${USE_MAILSERVER} == '1' ]; then
 		echo "TCP = 25 (SMTP), 80 (HTTP), 110 (POP3), 143(IMAP), 443 (HTTPS), 465 (SMPTS)" >> ~/credentials.txt 
-		echo "TCP = 587 (Submission), 993 (IMAPS), 995 (POP3S), ${SSH} (SSH)" >> ~/credentials.txt
+		echo "TCP = 587 (Submission), 993 (IMAPS), 995 (POP3S), ${SSH_PORT} (SSH)" >> ~/credentials.txt
 		echo "UDP = All ports are closed" >> ~/credentials.txt
 		echo "" >> ~/credentials.txt
 		echo "" >> ~/credentials.txt
 else
-		echo "TCP = 80 (HTTP), 443 (HTTPS), ${SSH} (SSH)" >> ~/credentials.txt
+		echo "TCP = 80 (HTTP), 443 (HTTPS), ${SSH_PORT} (SSH)" >> ~/credentials.txt
 		echo "UDP = All ports are closed" >> ~/credentials.txt
 		echo "" >> ~/credentials.txt
 		echo "" >> ~/credentials.txt
