@@ -1,3 +1,5 @@
+createpw() {
+
 if [ ${SSH_PASS} == 'generatepw' ]; then
 	   SSH_PASS=$(openssl rand -base64 30 | tr -d / | cut -c -24 | grep -P '(?=^.{8,255}$)(?=^[^\s]*$)(?=.*\d)(?=.*[A-Z])(?=.*[a-z])')
   	 sed -i "s/SSH_PASS=\`generatepw\`/SSH_PASS=\`$SSH_PASS\`/g"  
@@ -42,5 +44,7 @@ if [ ${MYSQL_PMADB_PASS} == 'generatepw' ]; then
 	   MYSQL_PMADB_PASS=$(openssl rand -base64 30 | tr -d / | cut -c -24 | grep -P '(?=^.{8,255}$)(?=^[^\s]*$)(?=.*\d)(?=.*[A-Z])(?=.*[a-z])')
   	 sed -i "s/MYSQL_PMADB_PASS=\`generatepw\`/MYSQL_PMADB_PASS=\`$MYSQL_PMADB_PASS\`/g"  
 fi
+
+}
 
 source ~/userconfig.cfg
