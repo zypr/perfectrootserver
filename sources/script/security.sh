@@ -7,7 +7,7 @@ fi
 
 if [ ${USE_MAILSERVER} == '1' ]; then
   if [ ${MAILCOW_ADMIN_PASS} == 'generatepw' ]; then
-	   SSH_PASS=$(openssl rand -base64 30 | tr -d / | cut -c -24 | grep -P '(?=^.{8,255}$)(?=^[^\s]*$)(?=.*\d)(?=.*[A-Z])(?=.*[a-z])')
+	   MAILCOW_ADMIN_PASS=$(openssl rand -base64 30 | tr -d / | cut -c -24 | grep -P '(?=^.{8,255}$)(?=^[^\s]*$)(?=.*\d)(?=.*[A-Z])(?=.*[a-z])')
   	 sed -i "s/MAILCOW_ADMIN_PASS=\"generatepw\"/MAILCOW_ADMIN_PASS=\"$MAILCOW_ADMIN_PASS\"/g" /root/userconfig.cfg
   fi
 fi
@@ -36,7 +36,7 @@ if [ ${MYSQL_MCDB_PASS} == 'generatepw' ]; then
 fi
 
 if [ ${MYSQL_RCDB_PASS} == 'generatepw' ]; then
-	   MYSQL_RCDB_PASSS=$(openssl rand -base64 30 | tr -d / | cut -c -24 | grep -P '(?=^.{8,255}$)(?=^[^\s]*$)(?=.*\d)(?=.*[A-Z])(?=.*[a-z])')
+	   MYSQL_RCDB_PASS=$(openssl rand -base64 30 | tr -d / | cut -c -24 | grep -P '(?=^.{8,255}$)(?=^[^\s]*$)(?=.*\d)(?=.*[A-Z])(?=.*[a-z])')
   	 sed -i "s/MYSQL_RCDB_PASS=\"generatepw\"/MYSQL_RCDB_PASS=\"$MYSQL_RCDB_PASS\"/g" /root/userconfig.cfg
 fi
 
