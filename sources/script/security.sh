@@ -29,7 +29,6 @@ randomNumber="$(($RANDOM % 1023))"
 #return a string
 SSH_PORT=$([[ ! -n "${ignoreList["$randomNumber"]}" ]] && printf "%s\n" "$randomNumber")
   	 sed -i "s/SSH_PORT=\"generateport\"/SSH_PORT=\"$SSH_PORT\"/g" /root/userconfig.cfg
-	 sed -i "s/^Port 22/Port ${SSH_PORT}/g" /etc/ssh/sshd_config
 fi
 
 if [ ${USE_MAILSERVER} == '1' ]; then
