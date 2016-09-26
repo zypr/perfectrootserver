@@ -6,8 +6,8 @@ if [ ${SSH_PASS} == 'generatepw' ]; then
   	 sed -i "s/SSH_PASS=\"generatepw\"/SSH_PASS=\"$SSH_PASS\"/g" /root/userconfig.cfg
 fi
 
+#Check SSH Port
 if [ ${SSH_PORT} == 'generateport' ]; then
-
 #Generate SSH Port
 declare -A ignoreList='(
 		[21]="1" 
@@ -28,8 +28,17 @@ declare -A ignoreList='(
 randomNumber="$(($RANDOM % 1023))"
 #return a string
 SSH_PORT=$([[ ! -n "${ignoreList["$randomNumber"]}" ]] && printf "%s\n" "$randomNumber")
-  	 sed -i "s/SSH_PORT=\"generateport\"/SSH_PORT=\"$SSH_PORT\"/g" /root/userconfig.cfg
+  	 sed -i "s/SSH_PORT=\"generateport\"/SSH_PORT=\"$SSH_PORT\"/g" /root/userconfig.cfg	 
+else
+	if [[ $SSH_PORT =~ ^-?[0-9]+$ ]]; then
+	            #Todo, prüfe ob usereingabe in ignoreList
+            	echo  >/dev/null 2>&1
+            else
+            	echo "${error} SSH Port is not an integer, chose another one!" | awk '{ print strftime("[%H:%M:%S] |"), $0 }'
+            	exit 1
+	fi
 fi
+
 
 if [ ${USE_MAILSERVER} == '1' ]; then
   if [ ${MAILCOW_ADMIN_PASS} == 'generatepw' ]; then
