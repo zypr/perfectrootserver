@@ -56,7 +56,6 @@ update-rc.d -f arno-iptables-firewall start 11 S . stop 10 0 6 >/dev/null 2>&1
 
 # Configure firewall.conf
 bash /usr/local/share/environment >/dev/null 2>&1
-sed -i "s/^Port 22/Port ${SSH_PORT}/g" /etc/ssh/sshd_config
 sed -i "s/^EXT_IF=.*/EXT_IF="${INTERFACE}"/g" /etc/arno-iptables-firewall/firewall.conf
 sed -i 's/^EXT_IF_DHCP_IP=.*/EXT_IF_DHCP_IP="0"/g' /etc/arno-iptables-firewall/firewall.conf
 sed -i 's/^#FIREWALL_LOG=.*/FIREWALL_LOG="\/var\/log\/firewall.log"/g' /etc/arno-iptables-firewall/firewall.conf
