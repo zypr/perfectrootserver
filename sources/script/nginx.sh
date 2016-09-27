@@ -285,7 +285,7 @@ server {
 				fastcgi_param PATH_INFO \$fastcgi_path_info;
 				fastcgi_param PATH_TRANSLATED \$document_root\$fastcgi_path_info;
 				fastcgi_param APP_ENV production;
-				fastcgi_pass unix:/var/run/php5-fpm.sock;
+				fastcgi_pass unix:/var/run/php7-fpm.sock;
 				fastcgi_index index.php;
 				include fastcgi.conf;
 				fastcgi_intercept_errors off;
@@ -357,43 +357,43 @@ fi
 
 # Configure PHP
 echo "${info} Configuring PHP..." | awk '{ print strftime("[%H:%M:%S] |"), $0 }'
-sed -i 's/.*disable_functions =.*/disable_functions = pcntl_alarm,pcntl_fork,pcntl_waitpid,pcntl_wait,pcntl_wifexited,pcntl_wifstopped,pcntl_wifsignaled,pcntl_wexitstatus,pcntl_wtermsig,pcntl_wstopsig,pcntl_signal,pcntl_signal_dispatch,pcntl_get_last_error,pcntl_strerror,pcntl_sigprocmask,pcntl_sigwaitinfo,pcntl_sigtimedwait,pcntl_exec,pcntl_getpriority,pcntl_setpriority,escapeshellarg,passthru,proc_close,proc_get_status,proc_nice,proc_open,proc_terminate,/' /etc/php5/fpm/php.ini
-sed -i 's/.*ignore_user_abort =.*/ignore_user_abort = Off/' /etc/php5/fpm/php.ini
-sed -i 's/.*expose_php =.*/expose_php = Off/' /etc/php5/fpm/php.ini
-sed -i 's/.*post_max_size =.*/post_max_size = 15M/' /etc/php5/fpm/php.ini
-sed -i 's/.*default_charset =.*/default_charset = "UTF-8"/' /etc/php5/fpm/php.ini
-sed -i 's/.*cgi.fix_pathinfo=.*/cgi.fix_pathinfo=1/' /etc/php5/fpm/php.ini
-sed -i 's/.*upload_max_filesize =.*/upload_max_filesize = 15M/' /etc/php5/fpm/php.ini
-sed -i 's/.*default_socket_timeout =.*/default_socket_timeout = 30/' /etc/php5/fpm/php.ini
-sed -i 's/.*date.timezone =.*/date.timezone = Europe\/Berlin/' /etc/php5/fpm/php.ini
-sed -i 's/.*mysql.allow_persistent =.*/mysql.allow_persistent = Off/' /etc/php5/fpm/php.ini
-sed -i 's/.*session.cookie_httponly =.*/session.cookie_httponly = 1/' /etc/php5/fpm/php.ini
+sed -i 's/.*disable_functions =.*/disable_functions = pcntl_alarm,pcntl_fork,pcntl_waitpid,pcntl_wait,pcntl_wifexited,pcntl_wifstopped,pcntl_wifsignaled,pcntl_wexitstatus,pcntl_wtermsig,pcntl_wstopsig,pcntl_signal,pcntl_signal_dispatch,pcntl_get_last_error,pcntl_strerror,pcntl_sigprocmask,pcntl_sigwaitinfo,pcntl_sigtimedwait,pcntl_exec,pcntl_getpriority,pcntl_setpriority,escapeshellarg,passthru,proc_close,proc_get_status,proc_nice,proc_open,proc_terminate,/' /etc/php7/fpm/php.ini
+sed -i 's/.*ignore_user_abort =.*/ignore_user_abort = Off/' /etc/php7/fpm/php.ini
+sed -i 's/.*expose_php =.*/expose_php = Off/' /etc/php7/fpm/php.ini
+sed -i 's/.*post_max_size =.*/post_max_size = 15M/' /etc/php7/fpm/php.ini
+sed -i 's/.*default_charset =.*/default_charset = "UTF-8"/' /etc/php7/fpm/php.ini
+sed -i 's/.*cgi.fix_pathinfo=.*/cgi.fix_pathinfo=1/' /etc/php7/fpm/php.ini
+sed -i 's/.*upload_max_filesize =.*/upload_max_filesize = 15M/' /etc/php7/fpm/php.ini
+sed -i 's/.*default_socket_timeout =.*/default_socket_timeout = 30/' /etc/php7/fpm/php.ini
+sed -i 's/.*date.timezone =.*/date.timezone = Europe\/Berlin/' /etc/php7/fpm/php.ini
+sed -i 's/.*mysql.allow_persistent =.*/mysql.allow_persistent = Off/' /etc/php7/fpm/php.ini
+sed -i 's/.*session.cookie_httponly =.*/session.cookie_httponly = 1/' /etc/php7/fpm/php.ini
 
 # Configure PHP-FPM
-sed -i 's/.*emergency_restart_threshold =.*/emergency_restart_threshold = 10/' /etc/php5/fpm/php-fpm.conf
-sed -i 's/.*emergency_restart_interval =.*/emergency_restart_interval = 1m/' /etc/php5/fpm/php-fpm.conf
-sed -i 's/.*process_control_timeout =.*/process_control_timeout = 10/' /etc/php5/fpm/php-fpm.conf
-sed -i 's/.*events.mechanism =.*/events.mechanism = epoll/' /etc/php5/fpm/php-fpm.conf
-sed -i 's/.*listen.mode =.*/listen.mode = 0666/' /etc/php5/fpm/pool.d/www.conf
-sed -i 's/.*listen.allowed_clients =.*/listen.allowed_clients = 127.0.0.1/' /etc/php5/fpm/pool.d/www.conf
-sed -i 's/.*pm.max_children =.*/pm.max_children = 50/' /etc/php5/fpm/pool.d/www.conf
-sed -i 's/.*pm.start_servers =.*/pm.start_servers = 15/' /etc/php5/fpm/pool.d/www.conf
-sed -i 's/.*pm.min_spare_servers =.*/pm.min_spare_servers = 5/' /etc/php5/fpm/pool.d/www.conf
-sed -i 's/.*pm.max_spare_servers =.*/pm.max_spare_servers = 25/' /etc/php5/fpm/pool.d/www.conf
-sed -i 's/.*pm.process_idle_timeout =.*/pm.process_idle_timeout = 60s;/' /etc/php5/fpm/pool.d/www.conf
-sed -i 's/.*request_terminate_timeout =.*/request_terminate_timeout = 360/' /etc/php5/fpm/pool.d/www.conf
-sed -i 's/.*security.limit_extensions =.*/security.limit_extensions = .php/' /etc/php5/fpm/pool.d/www.conf
-sed -i 's/.*php_flag[display_errors] =.*/php_flag[display_errors] = off/' /etc/php5/fpm/pool.d/www.conf
-sed -i 's/.*php_admin_value[error_log] =.*/php_admin_value[error_log] = \/var\/log\/fpm5-php.www.log/' /etc/php5/fpm/pool.d/www.conf
-sed -i 's/.*php_admin_flag[log_errors] =.*/php_admin_flag[log_errors] = on/' /etc/php5/fpm/pool.d/www.conf
-sed -i 's/.*php_admin_value[memory_limit] =.*/php_admin_value[memory_limit] = 128M/' /etc/php5/fpm/pool.d/www.conf
-echo -e "php_flag[display_errors] = off" >> /etc/php5/fpm/pool.d/www.conf
+sed -i 's/.*emergency_restart_threshold =.*/emergency_restart_threshold = 10/' /etc/php7/fpm/php-fpm.conf
+sed -i 's/.*emergency_restart_interval =.*/emergency_restart_interval = 1m/' /etc/php7/fpm/php-fpm.conf
+sed -i 's/.*process_control_timeout =.*/process_control_timeout = 10/' /etc/php7/fpm/php-fpm.conf
+sed -i 's/.*events.mechanism =.*/events.mechanism = epoll/' /etc/php7/fpm/php-fpm.conf
+sed -i 's/.*listen.mode =.*/listen.mode = 0666/' /etc/php7/fpm/pool.d/www.conf
+sed -i 's/.*listen.allowed_clients =.*/listen.allowed_clients = 127.0.0.1/' /etc/php7/fpm/pool.d/www.conf
+sed -i 's/.*pm.max_children =.*/pm.max_children = 50/' /etc/php7/fpm/pool.d/www.conf
+sed -i 's/.*pm.start_servers =.*/pm.start_servers = 15/' /etc/php7/fpm/pool.d/www.conf
+sed -i 's/.*pm.min_spare_servers =.*/pm.min_spare_servers = 5/' /etc/php7/fpm/pool.d/www.conf
+sed -i 's/.*pm.max_spare_servers =.*/pm.max_spare_servers = 25/' /etc/php7/fpm/pool.d/www.conf
+sed -i 's/.*pm.process_idle_timeout =.*/pm.process_idle_timeout = 60s;/' /etc/php7/fpm/pool.d/www.conf
+sed -i 's/.*request_terminate_timeout =.*/request_terminate_timeout = 360/' /etc/php7/fpm/pool.d/www.conf
+sed -i 's/.*security.limit_extensions =.*/security.limit_extensions = .php/' /etc/php7/fpm/pool.d/www.conf
+sed -i 's/.*php_flag[display_errors] =.*/php_flag[display_errors] = off/' /etc/php7/fpm/pool.d/www.conf
+sed -i 's/.*php_admin_value[error_log] =.*/php_admin_value[error_log] = \/var\/log\/fpm5-php.www.log/' /etc/php7/fpm/pool.d/www.conf
+sed -i 's/.*php_admin_flag[log_errors] =.*/php_admin_flag[log_errors] = on/' /etc/php7/fpm/pool.d/www.conf
+sed -i 's/.*php_admin_value[memory_limit] =.*/php_admin_value[memory_limit] = 128M/' /etc/php7/fpm/pool.d/www.conf
+echo -e "php_flag[display_errors] = off" >> /etc/php7/fpm/pool.d/www.conf
 
 # Configure APCu
-rm -rf /etc/php5/mods-available/apcu.ini
-rm -rf /etc/php5/mods-available/20-apcu.ini
+rm -rf /etc/php7/mods-available/apcu.ini
+rm -rf /etc/php7/mods-available/20-apcu.ini
 
-cat > /etc/php5/mods-available/apcu.ini <<END
+cat > /etc/php7/mods-available/apcu.ini <<END
 extension=apcu.so
 apc.enabled=1
 apc.stat = "0"
@@ -419,12 +419,12 @@ apc.report_autofilter="0"
 apc.stat_ctime="0"
 END
 
-ln -s /etc/php5/mods-available/apcu.ini /etc/php5/mods-available/20-apcu.ini
+ln -s /etc/php7/mods-available/apcu.ini /etc/php7/mods-available/20-apcu.ini
 
 
 # Restart FPM & Nginx
 systemctl -q start nginx.service
-systemctl -q restart php5-fpm.service
+systemctl -q restart php7-fpm.service
 
 # phpMyAdmin
 if [ $USE_PMA == '1' ]; then
@@ -532,7 +532,7 @@ location /pma {
         include fastcgi_params;
         fastcgi_index index.php;
         fastcgi_param SCRIPT_FILENAME /usr/local/phpmyadmin/\$1;
-        fastcgi_pass unix:/var/run/php5-fpm.sock;
+        fastcgi_pass unix:/var/run/php7-fpm.sock;
     }
     location ~* ^/pma/(.+\.(jpg|jpeg|gif|css|png|js|ico|html|xml|txt))$ {
         alias /usr/local/phpmyadmin/\$1;
@@ -558,7 +558,7 @@ location /pma {
         include fastcgi_params;
         fastcgi_index index.php;
         fastcgi_param SCRIPT_FILENAME /usr/local/phpmyadmin/\$1;
-        fastcgi_pass unix:/var/run/php5-fpm.sock;
+        fastcgi_pass unix:/var/run/php7-fpm.sock;
     }
     location ~* ^/pma/(.+\.(jpg|jpeg|gif|css|png|js|ico|html|xml|txt))$ {
         alias /usr/local/phpmyadmin/\$1;
