@@ -185,9 +185,9 @@ else
 	openssl ecparam -genkey -name secp384r1 -out /etc/nginx/ssl/${MYDOMAIN}.key.pem 
 	echo "Erste Zeile okay"
 	openssl req -new -sha256 -key /etc/nginx/ssl/${MYDOMAIN}.key.pem -out /etc/nginx/ssl/csr.pem -subj "/C=DE/ST=Kassel/L=Kassel/O=Privat/OU=Privat/CN=*.${MYDOMAIN}"
-	"Zweite Zeile okay"
-	openssl req -x509 -days 365 -key /etc/nginx/ssl/${MYDOMAIN}.key.pem -in /etc/nginx/ssl/csr.pem -out /etc/nginx/ssl/${MYDOMAIN}.pem
-	"Dritte Zeile okay"
+	echo "Zweite Zeile okay"
+	openssl req -x509 -days 365 -key /etc/nginx/ssl/${MYDOMAIN}.key.pem -in /etc/nginx/ssl/csr.pem -out /etc/nginx/ssl/${MYDOMAIN}.pem -subj "/C=DE/ST=Kassel/L=Kassel/O=Privat/OU=Privat/CN=*.${MYDOMAIN}"
+	echo "Dritte Zeile okay"
 fi
 
 HPKP1=$(openssl x509 -pubkey < /etc/nginx/ssl/${MYDOMAIN}.pem | openssl pkey -pubin -outform der | openssl dgst -sha256 -binary | base64)
