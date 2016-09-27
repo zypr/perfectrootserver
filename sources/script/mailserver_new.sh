@@ -434,14 +434,9 @@ DEBIAN_FRONTEND=noninteractive ${APT} -y install dovecot-common dovecot-core dov
 			systemctl enable spamassassin
 		fi
 			
-			
-			
-			
-			
-			
-		webserver)
+	
+		#webserver
 			mkdir -p /var/www/ 2> /dev/null
-			if [[ ${httpd_platform} == "nginx" ]]; then
 				# Some systems miss the default php fpm listener, reinstall it now
 				apt-get -o Dpkg::Options::="--force-confmiss" install -y --reinstall ${PHP}-fpm > /dev/null
 				rm /etc/nginx/sites-enabled/*mailcow* 2>/dev/null
@@ -455,15 +450,7 @@ DEBIAN_FRONTEND=noninteractive ${APT} -y install dovecot-common dovecot-core dov
 					sed -i "/http {/a\ \ \ \ \ \ \ \ server_names_hash_bucket_size 64;" /etc/nginx/nginx.conf
 				sed -i "s/MAILCOW_HOST.MAILCOW_DOMAIN;/${sys_hostname}.${sys_domain};/g" /etc/nginx/sites-available/mailcow.conf
 				sed -i "s/MAILCOW_DOMAIN;/${sys_domain};/g" /etc/nginx/sites-available/mailcow.conf
-			elif [[ ${httpd_platform} == "apache2" ]]; then
-				rm /etc/apache2/sites-enabled/*mailcow* 2>/dev/null
-				cp webserver/apache2/conf/sites-available/mailcow${site_config} /etc/apache2/sites-available/mailcow.conf
-				ln -s /etc/apache2/sites-available/mailcow.conf /etc/apache2/sites-enabled/000-0-mailcow.conf 2>/dev/null
-				sed -i "s/\"\MAILCOW_HOST.MAILCOW_DOMAIN\"/\"${sys_hostname}.${sys_domain}\"/g" /etc/apache2/sites-available/mailcow.conf
-				sed -i "s/MAILCOW_DOMAIN\"/${sys_domain}\"/g" /etc/apache2/sites-available/mailcow.conf
-				sed -i "s#MAILCOW_TIMEZONE#${sys_timezone}#g" /etc/apache2/sites-available/mailcow.conf
-				a2enmod rewrite ssl headers cgi proxy proxy_http env > /dev/null 2>&1
-			fi
+				
 			mkdir ${PHPLIB}/sessions 2> /dev/null
 			cp -R webserver/htdocs/mail /var/www/
 			find /var/www/mail -type d -exec chmod 755 {} \;
@@ -492,8 +479,9 @@ DEBIAN_FRONTEND=noninteractive ${APT} -y install dovecot-common dovecot-core dov
 			else
 				echo "$(textb [INFO]) - An administrator exists, will not create another mailcow administrator"
 			fi
-			;;
-		roundcube)
+			
+			
+		#roundcube
 			mkdir -p /var/www/mail/rc
 			tar xf roundcube/inst/${roundcube_version}.tar -C roundcube/inst/
 			cp -R roundcube/inst/${roundcube_version}/* /var/www/mail/rc/
@@ -513,29 +501,15 @@ DEBIAN_FRONTEND=noninteractive ${APT} -y install dovecot-common dovecot-core dov
 			chown -R www-data: /var/www/mail/rc
 			rm -rf roundcube/inst/${roundcube_version}
 			rm -rf /var/www/mail/rc/installer/
-			;;
-		sogo)
+			
+			
+		#sogo
 			mysql --host ${my_dbhost} -u root -p${my_rootpw} ${my_mailcowdb} < webserver/htdocs/sogo.sql
-			if [[ $dist_id == "Debian" ]]; then
-				if [[ $dist_codename == "jessie" ]]; then
 					echo "$(textb [INFO]) - Adding official SOGo repository..."
 					echo "deb http://packages.inverse.ca/SOGo/nightly/3/debian/ jessie jessie" > /etc/apt/sources.list.d/sogo.list
 					apt-key adv --keyserver keys.gnupg.net --recv-key 0x810273C4 > /dev/null 2>&1
 					apt-get -y update >/dev/null
-				fi
-			elif [[ $dist_id == "Ubuntu" ]]; then
-				if [[ $dist_codename == "trusty" ]]; then
-					echo "$(textb [INFO]) - Adding official SOGo repository..."
-					echo "deb http://packages.inverse.ca/SOGo/nightly/3/ubuntu/ trusty trusty" > /etc/apt/sources.list.d/sogo.list
-					apt-key adv --keyserver keys.gnupg.net --recv-key 0x810273C4 > /dev/null 2>&1
-					apt-get -y update >/dev/null
-				elif [[ $dist_codename == "xenial" ]]; then
-					echo "$(textb [INFO]) - Adding official SOGo repository..."
-					echo "deb http://packages.inverse.ca/SOGo/nightly/3/ubuntu/ xenial xenial" > /etc/apt/sources.list.d/sogo.list
-					apt-key adv --keyserver keys.gnupg.net --recv-key 0x810273C4 > /dev/null 2>&1
-					apt-get -y update >/dev/null
-				fi
-			fi
+			
 			echo "$(textb [INFO]) - Installing SOGo packages, please stand by."
 			${APT} -y install sogo sogo-activesync libwbxml2-0 memcached
 			sudo -u sogo bash -c "
@@ -588,13 +562,11 @@ DEBIAN_FRONTEND=noninteractive ${APT} -y install dovecot-common dovecot-core dov
 				cat /dev/null > /etc/apache2/conf-available/SOGo.conf
 			fi
 			;;
-		restartservices)
+			
+		#restartservices
 			[[ -f /lib/systemd/systemd ]] && echo "$(textb [INFO]) - Restarting services, this may take a few seconds..."
-			if [[ ${httpd_platform} == "nginx" ]]; then
 				FPM="${PHPSVC}"
-			else
-				FPM=""
-			fi
+			
 			for var in ${JETTY_NAME} ${httpd_platform} ${FPM} spamassassin fuglu dovecot postfix opendkim clamav-daemon mailgraph
 			do
 				service ${var} stop
@@ -604,165 +576,4 @@ DEBIAN_FRONTEND=noninteractive ${APT} -y install dovecot-common dovecot-core dov
 			[[ ${mailing_platform} == "sogo" ]] && service sogo restart
 			;;
 	esac
-}
-upgradetask() {
-	if [[ ! -f /etc/mailcow_version ]]; then
-		echo "$(redb [ERR]) - mailcow is not installed"
-		exit 1
-	fi
-	if [[ -z $(grep -E "0.9|0.10|0.11|0.12|0.13|0.14" /etc/mailcow_version) ]]; then
-		echo "$(redb [ERR]) - Upgrade not supported"
-		exit 1
-	fi
-	if [[ ! -z $(which apache2) && ! -z $(apache2 -v | grep "2.4") ]]; then
-		httpd_platform="apache2"
-	elif [[ ! -z $(which nginx) ]]; then
-		httpd_platform="nginx"
-	else
-		echo "$(pinkb [NOTICE]) - Falling back to Nginx: Apache 2.4 was not available!"
-		httpd_platform="nginx"
-	fi
-	echo "$(textb [INFO]) - Checking for upgrade prerequisites and collecting system information..."
-	if [[ -z $(which lsb_release) ]]; then
-		apt-get -y update > /dev/null ; apt-get -y install lsb-release > /dev/null 2>&1
-	fi
-	[[ -z ${sys_hostname} ]] && sys_hostname=$(hostname -s)
-	[[ -z ${sys_domain} ]] && sys_domain=$(hostname -d)
-	sys_timezone=$(cat /etc/timezone)
-	timestamp=$(date +%Y%m%d_%H%M%S)
-	readconf=( $(php -f misc/readconf.php) )
-	my_dbhost=${readconf[0]}
-	my_mailcowuser=${readconf[1]}
-	my_mailcowpass=${readconf[2]}
-	my_mailcowdb=${readconf[3]}
-	if [[ -z $(grep -i "sogo" /etc/mailcow_version) ]]; then
-		hashing_method="SHA512-CRYPT"
-		site_config="_rc"
-		mailing_platform="roundcube"
-		my_rcuser=${readconf[4]}
-		my_rcpass=${readconf[5]}
-		my_rcdb=${readconf[6]}
-	else
-		hashing_method="SSHA256"
-		site_config="_sogo"
-		mailing_platform="sogo"
-		my_rcuser="unused"
-		my_rcpass="unused"
-		my_rcdb="unused"
-	fi
-	[[ -z ${my_dbhost} ]] && my_dbhost="localhost"
-	echo "$(pinkb [NOTICE]) - mailcow needs your SQL root password to perform higher privilege level tasks"
-        read -p "Please enter your SQL root user password: " my_rootpw
-	while [[ $(mysql --host ${my_dbhost} -u root -p${my_rootpw} -e ""; echo $?) -ne 0 ]]; do
-		read -p "Please enter your SQL root user password: " my_rootpw
-	done
-	for var in httpd_platform sys_hostname sys_domain sys_timezone my_dbhost my_mailcowdb my_mailcowuser my_mailcowpass my_rcuser my_rcpass my_rcdb
-	do
-		if [[ -z ${!var} ]]; then
-			echo "$(redb [ERR]) - Could not gather required information: \"${var}\" empty, upgrade failed..."
-			echo
-			exit 1
-		fi
-	done
-	echo -e "\nThe following configuration was detected:"
-	echo "
-$(textb "Hostname")               ${sys_hostname}
-$(textb "Domain")                 ${sys_domain}
-$(textb "FQDN")                   ${sys_hostname}.${sys_domain}
-$(textb "Timezone")               ${sys_timezone}
-$(textb "mailcow MySQL")          ${my_mailcowuser}:${my_mailcowpass}@${my_dbhost}/${my_mailcowdb}"
-if [[ ${mailing_platform} == "roundcube" ]]; then
-	echo "$(textb "Roundcube MySQL")        ${my_rcuser}:${my_rcpass}@${my_dbhost}/${my_rcdb}"
-fi
-echo "$(textb "Web server")             ${httpd_platform^}
-$(textb "Mailing platform")       ${mailing_platform^}
-$(textb "Web root")               https://${sys_hostname}.${sys_domain}
---------------------------------------------------------
-THIS UPGRADE WILL RESET SOME OF YOUR CONFIGURATION FILES
---------------------------------------------------------
-A backup will be stored in ./before_upgrade_${timestamp}
---------------------------------------------------------
-"
-	echo "$(pinkb [NOTICE]) - You can overwrite the detected hostname and domain by calling the installer with -H hostname and -D example.org"
-	if [[ ${inst_confirm_proceed} == "yes" ]]; then
-		read -p "Press ENTER to continue or CTRL-C to cancel the upgrade process"
-	fi
-	echo -en "Creating backups in ./before_upgrade_${timestamp}... \t"
-	mkdir before_upgrade_${timestamp}
-	cp -R /var/www/mail/ before_upgrade_${timestamp}/mail_wwwroot
-	mysqldump --host ${my_dbhost} -u ${my_mailcowuser} -p${my_mailcowpass} ${my_mailcowdb} > backup_mailcow_db.sql 2>/dev/null
-	if [[ ${mailing_platform} == "roundcube" ]]; then
-		mysqldump --host ${my_dbhost} -u ${my_rcuser} -p${my_rcpass} ${my_rcdb} > backup_roundcube_db.sql 2>/dev/null
-	fi
-	for dir in "postfix" "dovecot" "spamassassin" "${httpd_platform}" "fuglu" "mysql" "${PHP}" "clamav"; do
-		[[ -d "${dir}" ]] && cp -R "/etc/${dir}/" "before_upgrade_${timestamp}/"
-	done
-	echo -e "$(greenb "[OK]")"
-	echo -en "Stopping services, this may take a few seconds... \t\t"
-	if [[ ${httpd_platform} == "nginx" ]]; then
-		FPM="${PHPSVC}"
-	else
-		FPM=""
-	fi
-	for var in ${httpd_platform} ${FPM} spamassassin fuglu dovecot postfix opendkim clamav-daemon mailgraph
-	do
-		service ${var} stop > /dev/null 2>&1
-	done
-	[[ ${mailing_platform} == "sogo" ]] && service sogo stop
-	echo -e "$(greenb "[OK]")"
-	if [[ ! -z $(openssl x509 -issuer -in /etc/ssl/mail/mail.crt | grep ${sys_hostname}.${sys_domain}) ]]; then
-		echo "$(textb [INFO]) - Update CA certificate store, self-signed only..."
-		cp /etc/ssl/mail/mail.crt /usr/local/share/ca-certificates/
-		update-ca-certificates
-	fi
-	if [[ ! -f /etc/ssl/mail/dhparams.pem ]]; then
-		echo "$(textb [INFO]) - Generating 2048 bit DH parameters, this may take a while, please wait..."
-		openssl dhparam -out /etc/ssl/mail/dhparams.pem 2048 2> /dev/null
-	fi
-
-	returnwait "Package installation"
-	installtask installpackages
-
-	#PF_RR_BEFORE=$(postconf smtpd_recipient_restrictions 2> /dev/null)
-	#PF_SR_BEFORE=$(postconf smtpd_sender_restrictions 2> /dev/null)
-	returnwait "Postfix configuration"
-	installtask postfix
-	#postconf -e "${PF_RR_BEFORE}"
-	#postconf -e "${PF_SR_BEFORE}"
-
-	returnwait "Dovecot configuration"
-	installtask dovecot
-
-	returnwait "FuGlu configuration"
-	installtask fuglu
-
-	returnwait "ClamAV configuration"
-	installtask clamav
-
-	returnwait "Spamassassin configuration"
-	installtask spamassassin
-
-	returnwait "Webserver configuration"
-	installtask webserver
-	mv /var/www/PFLOG /var/log/pflogsumm.log 2> /dev/null
-
-	if [[ ${mailing_platform} == "roundcube" ]]; then
-		returnwait "Roundcube configuration"
-		installtask roundcube
-	else
-		returnwait "SOGo configuration"
-		installtask sogo
-	fi
-
-	returnwait "OpenDKIM configuration"
-	installtask opendkim
-
-	returnwait "Restarting services"
-	installtask restartservices
-
-	returnwait "Finish upgrade" "no"
-	echo Done.
-	echo
-	echo "\"installer.log\" file updated."
-	return 0
 }
