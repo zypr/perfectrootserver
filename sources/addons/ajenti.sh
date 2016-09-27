@@ -16,7 +16,6 @@ if [ ${USE_AJENTI} == '1' ] && [ ${USE_VALID_SSL} == '1' ]; then
 	apt-get -qq update && apt-get -q -y --force-yes install ajenti >/dev/null 2>&1
 	
 #gevent workaround -> https://github.com/ajenti/ajenti/issues/702 https://github.com/ajenti/ajenti/issues/870
-	apt-get -q -y --force-yes install python-setuptools python-dev build-essential >/dev/null 2>&1
 	sudo easy_install -U gevent==1.1b4 >/dev/null 2>&1
 	
 #Use Lets Encrypt Cert for Ajenti
