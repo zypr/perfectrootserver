@@ -26,13 +26,9 @@ if [ ${SSH_PORT} == 'generateport' ]; then
 
 	#Generate SSH Port	
 	randomNumber="$(($RANDOM % 1023))"
-	echo "Inhalt der Randomnumber in security sh"
-	echo $randomNumber
-	
+
 	#return a string
 	SSH_PORT=$([[ ! -n "${ignoreList["$randomNumber"]}" ]] && printf "%s\n" "$randomNumber")
-	echo "Inhalt von SSH port in security sh
-	echo $SSH_PORT
   	sed -i "s/SSH_PORT=\"generateport\"/SSH_PORT=\"$SSH_PORT\"/g" /root/userconfig.cfg	 
 else
 	if [[ $SSH_PORT =~ ^-?[0-9]+$ ]]; then
