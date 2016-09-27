@@ -1,14 +1,10 @@
 createpw() {
-#passwordgenerator=$(openssl rand -base64 30 | tr -d / | cut -c -24 | grep -P '(?=^.{8,255}$)(?=^[^\s]*$)(?=.*\d)(?=.*[A-Z])(?=.*[a-z])')
 
 if [ ${SSH_PASS} == 'generatepw' ]; then
 	   SSH_PASS=$(openssl rand -base64 30 | tr -d / | cut -c -24 | grep -P '(?=^.{8,255}$)(?=^[^\s]*$)(?=.*\d)(?=.*[A-Z])(?=.*[a-z])')
   	 sed -i "s/SSH_PASS=\"generatepw\"/SSH_PASS=\"$SSH_PASS\"/g" /root/userconfig.cfg
 fi
 
-#Check SSH Port
-if [ ${SSH_PORT} == 'generateport' ]; then
-#Generate SSH Port
 declare -A ignoreList='(
 		[21]="1" 
 		[22]="1"
@@ -24,15 +20,20 @@ declare -A ignoreList='(
 		[10011]="1" 
 		[30033]="1" 
 		[41144]="1")'
-		
-randomNumber="$(($RANDOM % 1023))"
-echo "Inhalt der Randomnumber in security sh"
-echo $randomNumber
-#return a string
-SSH_PORT=$([[ ! -n "${ignoreList["$randomNumber"]}" ]] && printf "%s\n" "$randomNumber")
 
-echo "Inhalt von SSH port in security sh
-  	 sed -i "s/SSH_PORT=\"generateport\"/SSH_PORT=\"$SSH_PORT\"/g" /root/userconfig.cfg	 
+#Check SSH Port
+if [ ${SSH_PORT} == 'generateport' ]; then
+
+	#Generate SSH Port	
+	randomNumber="$(($RANDOM % 1023))"
+	echo "Inhalt der Randomnumber in security sh"
+	echo $randomNumber
+	
+	#return a string
+	SSH_PORT=$([[ ! -n "${ignoreList["$randomNumber"]}" ]] && printf "%s\n" "$randomNumber")
+	echo "Inhalt von SSH port in security sh
+	echo $SSH_PORT
+  	sed -i "s/SSH_PORT=\"generateport\"/SSH_PORT=\"$SSH_PORT\"/g" /root/userconfig.cfg	 
 else
 	if [[ $SSH_PORT =~ ^-?[0-9]+$ ]]; then
 	            #Todo, prüfe ob usereingabe in ignoreList
