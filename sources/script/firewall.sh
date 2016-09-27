@@ -114,9 +114,9 @@ END
 chmod +x /etc/cron.daily/blocked-hosts
 
 # Fail2Ban
-tar xf ~/sources/mailcow/fail2ban/inst/0.9.5.tar -C ~/sources/mailcow/fail2ban/inst/
+tar xf ~/sources/mailcow/fail2ban/inst/0.9.3.tar -C ~/sources/mailcow/fail2ban/inst/
 rm -rf /etc/fail2ban/
-(cd ~/sources/mailcow/fail2ban/inst/0.9.5 ; python setup.py -q install)
+(cd ~/sources/mailcow/fail2ban/inst/0.9.3 ; python setup.py -q install)
 mkdir -p /var/run/fail2ban
 cp ~/sources/mailcow/fail2ban/conf/fail2ban.service /etc/systemd/system/fail2ban.service
 [[ -f /lib/systemd/system/fail2ban.service ]] && rm /lib/systemd/system/fail2ban.service
@@ -129,7 +129,7 @@ if [[ ! -f /etc/fail2ban/jail.local ]]; then
 	cp ~/sources/mailcow/fail2ban/conf/jail.local /etc/fail2ban/jail.local
 fi
 cp ~/sources/mailcow/fail2ban/conf/jail.d/*.conf /etc/fail2ban/jail.d/
-rm -rf ~/sources/mailcow/fail2ban/inst/0.9.5
+rm -rf ~/sources/mailcow/fail2ban/inst/0.9.3
 [[ -z $(grep fail2ban /etc/rc.local) ]] && sed -i '/^exit 0/i\test -d /var/run/fail2ban || install -m 755 -d /var/run/fail2ban/' /etc/rc.local
 mkdir /var/run/fail2ban/
 
