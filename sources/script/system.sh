@@ -195,7 +195,7 @@ END
 sysctl -p >/dev/null 2>&1
 
 # Restart all services
-systemctl -q restart {rsyslog,php7-fpm}
+systemctl -q restart {rsyslog,php7.0-fpm}
 
 }
 
