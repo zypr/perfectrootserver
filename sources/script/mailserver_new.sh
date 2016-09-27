@@ -31,17 +31,6 @@ returnwait() {
 }
 
 checkconfig() {
-	if [[ ${httpd_platform} != "nginx" && ${httpd_platform} != "apache2" ]]; then
-		echo "$(redb [ERR]) - \"httpd_platform\" is neither nginx nor apache2"
-		exit 1
-	elif [[ ${httpd_platform} = "apache2" && -z $(apt-cache show apache2 | grep Version | grep "2.4") ]]; then
-		echo "$(redb [ERR]) - Unable to install Apache 2.4, please use Nginx or upgrade your distribution"
-		exit 1
-	fi
-	if [[ ${mailing_platform} != "sogo" && ${mailing_platform} != "roundcube" ]]; then
-		echo "$(redb [ERR]) - \"mailing_platform\" is neither sogo nor roundcube"
-		exit 1
-	fi
 	#if [[ ${mailing_platform} == "sogo" && ${my_usemariadb} == "yes" ]]; then
 	#	echo "$(redb [ERR]) - Cannot use MariaDB with SOGo"
 	#	exit 1
