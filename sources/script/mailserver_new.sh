@@ -93,7 +93,7 @@ installtask() {
 	PHPLIB="/var/lib/php5"
 	PHPSVC="php5-fpm"
 
-	WEBSERVER_BACKEND="nginx-extras ${PHP}-fpm"
+	WEBSERVER_BACKEND="nginx-extras php5-fpm"
 	OPENJDK="openjdk-7"
 	JETTY_NAME="jetty8"
 				
@@ -109,26 +109,22 @@ installtask() {
 	else
 		DATABASE_BACKEND=""
 	fi
-	[[ -z ${APT} ]] && APT="apt-get --force-yes"
-DEBIAN_FRONTEND=noninteractive ${APT} -y install dnsutils sudo zip bzip2 unzip unrar-free curl rrdtool mailgraph fcgiwrap spawn-fcgi python-setuptools libmail-spf-perl libmail-dkim-perl file bsd-mailx \
+
+DEBIAN_FRONTEND=noninteractive apt-get --force-yes -y install dnsutils sudo zip bzip2 unzip unrar-free curl rrdtool mailgraph fcgiwrap spawn-fcgi python-setuptools libmail-spf-perl libmail-dkim-perl file bsd-mailx \
 openssl php-auth-sasl php-http-request php-mail php-mail-mime php-mail-mimedecode php-net-dime php-net-smtp \
-php-net-socket php-net-url php-pear php-soap ${PHP} ${PHP}-cli ${PHP}-common ${PHP}-curl ${PHP}-gd ${PHP}-imap \
-${PHP}-intl ${PHP}-xsl ${PHP}-mcrypt ${PHP}-mysql libawl-php ${PHP}-xmlrpc ${DATABASE_BACKEND} ${WEBSERVER_BACKEND} mailutils pyzor razor \
+php-net-socket php-net-url php-pear php-soap php5 php5-cli php5-common php5-curl php5-gd php5-imap \
+php5-intl php5-xsl php5-mcrypt php5-mysql libawl-php php5-xmlrpc ${DATABASE_BACKEND} ${WEBSERVER_BACKEND} mailutils pyzor razor \
 postfix postfix-mysql postfix-pcre postgrey pflogsumm spamassassin spamc sa-compile libdbd-mysql-perl opendkim opendkim-tools clamav-daemon \
 python-magic liblockfile-simple-perl libdbi-perl libmime-base64-urlsafe-perl libtest-tempdir-perl liblogger-syslog-perl \
-${OPENJDK}-jre-headless libcurl4-openssl-dev libexpat1-dev solr-jetty > /dev/null
-	if [ "$?" -ne "0" ]; then
-		echo "$(redb [ERR]) - Package installation failed:"
-		tail -n 20 /var/log/dpkg.log
-		exit 1
-	fi
+openjdk-7-jre-headless libcurl4-openssl-dev libexpat1-dev solr-jetty > /dev/null
+	
 	update-alternatives --set mailx /usr/bin/bsd-mailx --quiet > /dev/null 2>&1
 	mkdir -p /etc/dovecot/private/
 	cp /etc/ssl/certs/ssl-cert-snakeoil.pem /etc/dovecot/dovecot.pem
 	cp /etc/ssl/private/ssl-cert-snakeoil.key /etc/dovecot/dovecot.key
 	cp /etc/ssl/certs/ssl-cert-snakeoil.pem /etc/dovecot/private/dovecot.pem
 	cp /etc/ssl/private/ssl-cert-snakeoil.key /etc/dovecot/private/dovecot.key
-DEBIAN_FRONTEND=noninteractive ${APT} -y install dovecot-common dovecot-core dovecot-imapd dovecot-lmtpd dovecot-managesieved dovecot-sieve dovecot-mysql dovecot-pop3d dovecot-solr >/dev/null
+DEBIAN_FRONTEND=noninteractive apt-get --force-yes -y install dovecot-common dovecot-core dovecot-imapd dovecot-lmtpd dovecot-managesieved dovecot-sieve dovecot-mysql dovecot-pop3d dovecot-solr >/dev/null
 	for oldfiles in /etc/cron.daily/mc_clean_spam_aliases /usr/local/sbin/mc_pflog_renew /usr/local/sbin/mc_msg_size /usr/local/sbin/mc_dkim_ctrl /usr/local/sbin/mc_resetadmin
 	do
 	if [ -f "${oldfiles}" ] ; then
@@ -419,150 +415,144 @@ DEBIAN_FRONTEND=noninteractive ${APT} -y install dovecot-common dovecot-core dov
 	razor-admin -register -home /etc/razor
 	su debian-spamd -c "pyzor --homedir /etc/mail/spamassassin/.pyzor discover 2> /dev/null"
 	su debian-spamd -c "sa-update 2> /dev/null"
-		if [[ -f /lib/systemd/systemd ]]; then
-			systemctl enable spamassassin
-		fi
+	if [[ -f /lib/systemd/systemd ]]; then
+		systemctl enable spamassassin
+	fi
 			
 	
-		#webserver
-			mkdir -p /var/www/ 2> /dev/null
-				# Some systems miss the default php fpm listener, reinstall it now
-				apt-get -o Dpkg::Options::="--force-confmiss" install -y --reinstall ${PHP}-fpm > /dev/null
-				rm /etc/nginx/sites-enabled/*mailcow* 2>/dev/null
-				cp webserver/nginx/conf/sites-available/mailcow${site_config} /etc/nginx/sites-available/mailcow.conf
-				cp webserver/php-fpm/conf/${PHPV}/pool/mail.conf ${PHPCONF}/fpm/pool.d/mail.conf
-				cp webserver/php-fpm/conf/${PHPV}/php-fpm.conf ${PHPCONF}/fpm/php-fpm.conf
-				sed -i "/date.timezone/c\php_admin_value[date.timezone] = ${sys_timezone}" ${PHPCONF}/fpm/pool.d/mail.conf
-				ln -s /etc/nginx/sites-available/mailcow.conf /etc/nginx/sites-enabled/mailcow.conf 2>/dev/null
-				[[ ! -z $(grep "server_names_hash_bucket_size" /etc/nginx/nginx.conf) ]] && \
-					sed -i "/server_names_hash_bucket_size/c\ \ \ \ \ \ \ \ server_names_hash_bucket_size 64;" /etc/nginx/nginx.conf || \
-					sed -i "/http {/a\ \ \ \ \ \ \ \ server_names_hash_bucket_size 64;" /etc/nginx/nginx.conf
-				sed -i "s/MAILCOW_HOST.MAILCOW_DOMAIN;/${sys_hostname}.${sys_domain};/g" /etc/nginx/sites-available/mailcow.conf
-				sed -i "s/MAILCOW_DOMAIN;/${sys_domain};/g" /etc/nginx/sites-available/mailcow.conf
+	#webserver
+	mkdir -p /var/www/ 2> /dev/null
+	# Some systems miss the default php fpm listener, reinstall it now
+	apt-get -o Dpkg::Options::="--force-confmiss" install -y --reinstall php5-fpm > /dev/null
+	rm /etc/nginx/sites-enabled/*mailcow* 2>/dev/null
+	cp webserver/nginx/conf/sites-available/mailcow${site_config} /etc/nginx/sites-available/mailcow.conf
+	cp webserver/php-fpm/conf/${PHPV}/pool/mail.conf ${PHPCONF}/fpm/pool.d/mail.conf
+	cp webserver/php-fpm/conf/${PHPV}/php-fpm.conf ${PHPCONF}/fpm/php-fpm.conf
+	sed -i "/date.timezone/c\php_admin_value[date.timezone] = ${sys_timezone}" ${PHPCONF}/fpm/pool.d/mail.conf
+	ln -s /etc/nginx/sites-available/mailcow.conf /etc/nginx/sites-enabled/mailcow.conf 2>/dev/null
+	[[ ! -z $(grep "server_names_hash_bucket_size" /etc/nginx/nginx.conf) ]] && \
+		sed -i "/server_names_hash_bucket_size/c\ \ \ \ \ \ \ \ server_names_hash_bucket_size 64;" /etc/nginx/nginx.conf || \
+		sed -i "/http {/a\ \ \ \ \ \ \ \ server_names_hash_bucket_size 64;" /etc/nginx/nginx.conf
+		sed -i "s/MAILCOW_HOST.MAILCOW_DOMAIN;/${sys_hostname}.${sys_domain};/g" /etc/nginx/sites-available/mailcow.conf
+		sed -i "s/MAILCOW_DOMAIN;/${sys_domain};/g" /etc/nginx/sites-available/mailcow.conf
 				
-			mkdir ${PHPLIB}/sessions 2> /dev/null
-			cp -R webserver/htdocs/mail /var/www/
-			find /var/www/mail -type d -exec chmod 755 {} \;
-			find /var/www/mail -type f -exec chmod 644 {} \;
-			echo none > /var/log/pflogsumm.log
-			sed -i "s/my_dbhost/${my_dbhost}/g" /var/www/mail/inc/vars.inc.php
-			sed -i "s/my_mailcowpass/${my_mailcowpass}/g" /var/www/mail/inc/vars.inc.php
-			sed -i "s/my_mailcowuser/${my_mailcowuser}/g" /var/www/mail/inc/vars.inc.php
-			sed -i "s/my_mailcowdb/${my_mailcowdb}/g" /var/www/mail/inc/vars.inc.php
-			sed -i "s/MAILCOW_HASHING/${hashing_method}/g" /var/www/mail/inc/vars.inc.php
-			chown -R www-data: /var/www/mail/. ${PHPLIB}/sessions
-			mysql --host ${my_dbhost} -u root -p${my_rootpw} ${my_mailcowdb} < webserver/htdocs/init.sql
-			if [[ -z $(mysql --host ${my_dbhost} -u root -p${my_rootpw} ${my_mailcowdb} -e "SHOW COLUMNS FROM domain LIKE 'relay_all_recipients';" -N -B) ]]; then
-				mysql --host ${my_dbhost} -u root -p${my_rootpw} ${my_mailcowdb} -e "ALTER TABLE domain ADD relay_all_recipients tinyint(1) NOT NULL DEFAULT '0';" -N -B
-			fi
-			if [[ -z $(mysql --host ${my_dbhost} -u root -p${my_rootpw} ${my_mailcowdb} -e "SHOW COLUMNS FROM mailbox LIKE 'tls_enforce_in';" -N -B) ]]; then
-				mysql --host ${my_dbhost} -u root -p${my_rootpw} ${my_mailcowdb} -e "ALTER TABLE mailbox ADD tls_enforce_in tinyint(1) NOT NULL DEFAULT '0';" -N -B
-				mysql --host ${my_dbhost} -u root -p${my_rootpw} ${my_mailcowdb} -e "ALTER TABLE mailbox ADD tls_enforce_out tinyint(1) NOT NULL DEFAULT '0';" -N -B
-			fi
-			mysql --host ${my_dbhost} -u root -p${my_rootpw} ${my_mailcowdb} -e "DELETE FROM spamalias"
-			mysql --host ${my_dbhost} -u root -p${my_rootpw} ${my_mailcowdb} -e "ALTER TABLE spamalias MODIFY COLUMN validity int(11) NOT NULL"
-			if [[ $(mysql --host ${my_dbhost} -u root -p${my_rootpw} ${my_mailcowdb} -s -N -e "SELECT * FROM admin;" | wc -l) -lt 1 ]]; then
-				mailcow_admin_pass_hashed=$(doveadm pw -s ${hashing_method} -p ${mailcow_admin_pass})
-				mysql --host ${my_dbhost} -u root -p${my_rootpw} ${my_mailcowdb} -e "INSERT INTO admin VALUES ('$mailcow_admin_user','${mailcow_admin_pass_hashed}', '1', NOW(), NOW(), '1');"
-				mysql --host ${my_dbhost} -u root -p${my_rootpw} ${my_mailcowdb} -e "INSERT INTO domain_admins (username, domain, created, active) VALUES ('$mailcow_admin_user', 'ALL', NOW(), '1');"
-			else
-				echo "$(textb [INFO]) - An administrator exists, will not create another mailcow administrator"
-			fi
+	mkdir ${PHPLIB}/sessions 2> /dev/null
+	cp -R webserver/htdocs/mail /var/www/
+	find /var/www/mail -type d -exec chmod 755 {} \;
+	find /var/www/mail -type f -exec chmod 644 {} \;
+	echo none > /var/log/pflogsumm.log
+	sed -i "s/my_dbhost/${my_dbhost}/g" /var/www/mail/inc/vars.inc.php
+	sed -i "s/my_mailcowpass/${my_mailcowpass}/g" /var/www/mail/inc/vars.inc.php
+	sed -i "s/my_mailcowuser/${my_mailcowuser}/g" /var/www/mail/inc/vars.inc.php
+	sed -i "s/my_mailcowdb/${my_mailcowdb}/g" /var/www/mail/inc/vars.inc.php
+	sed -i "s/MAILCOW_HASHING/${hashing_method}/g" /var/www/mail/inc/vars.inc.php
+	chown -R www-data: /var/www/mail/. ${PHPLIB}/sessions
+	mysql --host ${my_dbhost} -u root -p${my_rootpw} ${my_mailcowdb} < webserver/htdocs/init.sql
+	if [[ -z $(mysql --host ${my_dbhost} -u root -p${my_rootpw} ${my_mailcowdb} -e "SHOW COLUMNS FROM domain LIKE 'relay_all_recipients';" -N -B) ]]; then
+		mysql --host ${my_dbhost} -u root -p${my_rootpw} ${my_mailcowdb} -e "ALTER TABLE domain ADD relay_all_recipients tinyint(1) NOT NULL DEFAULT '0';" -N -B
+	fi
+	if [[ -z $(mysql --host ${my_dbhost} -u root -p${my_rootpw} ${my_mailcowdb} -e "SHOW COLUMNS FROM mailbox LIKE 'tls_enforce_in';" -N -B) ]]; then
+		mysql --host ${my_dbhost} -u root -p${my_rootpw} ${my_mailcowdb} -e "ALTER TABLE mailbox ADD tls_enforce_in tinyint(1) NOT NULL DEFAULT '0';" -N -B
+		mysql --host ${my_dbhost} -u root -p${my_rootpw} ${my_mailcowdb} -e "ALTER TABLE mailbox ADD tls_enforce_out tinyint(1) NOT NULL DEFAULT '0';" -N -B
+	fi
+	mysql --host ${my_dbhost} -u root -p${my_rootpw} ${my_mailcowdb} -e "DELETE FROM spamalias"
+	mysql --host ${my_dbhost} -u root -p${my_rootpw} ${my_mailcowdb} -e "ALTER TABLE spamalias MODIFY COLUMN validity int(11) NOT NULL"
+	if [[ $(mysql --host ${my_dbhost} -u root -p${my_rootpw} ${my_mailcowdb} -s -N -e "SELECT * FROM admin;" | wc -l) -lt 1 ]]; then
+		mailcow_admin_pass_hashed=$(doveadm pw -s ${hashing_method} -p ${mailcow_admin_pass})
+		mysql --host ${my_dbhost} -u root -p${my_rootpw} ${my_mailcowdb} -e "INSERT INTO admin VALUES ('$mailcow_admin_user','${mailcow_admin_pass_hashed}', '1', NOW(), NOW(), '1');"
+		mysql --host ${my_dbhost} -u root -p${my_rootpw} ${my_mailcowdb} -e "INSERT INTO domain_admins (username, domain, created, active) VALUES ('$mailcow_admin_user', 'ALL', NOW(), '1');"
+	else
+		echo "$(textb [INFO]) - An administrator exists, will not create another mailcow administrator"
+	fi
 			
 			
-		#roundcube
-			mkdir -p /var/www/mail/rc
-			tar xf roundcube/inst/${roundcube_version}.tar -C roundcube/inst/
-			cp -R roundcube/inst/${roundcube_version}/* /var/www/mail/rc/
-			if [[ ${is_upgradetask} != "yes" ]]; then
-				cp -R roundcube/conf/* /var/www/mail/rc/
-				sed -i "s/my_dbhost/${my_dbhost}/g" /var/www/mail/rc/config/config.inc.php
-				sed -i "s/my_rcuser/${my_rcuser}/g" /var/www/mail/rc/config/config.inc.php
-				sed -i "s/my_rcpass/${my_rcpass}/g" /var/www/mail/rc/config/config.inc.php
-				sed -i "s/my_rcdb/${my_rcdb}/g" /var/www/mail/rc/config/config.inc.php
-				sed -i "s/conf_rcdeskey/$(genpasswd)/g" /var/www/mail/rc/config/config.inc.php
-				sed -i "s/MAILCOW_HOST.MAILCOW_DOMAIN/${sys_hostname}.${sys_domain}/g" /var/www/mail/rc/config/config.inc.php
-				mysql --host ${my_dbhost} -u ${my_rcuser} -p${my_rcpass} ${my_rcdb} < /var/www/mail/rc/SQL/mysql.initial.sql
-			else
-				chmod +x roundcube/inst/${roundcube_version}/bin/installto.sh
-				roundcube/inst/${roundcube_version}/bin/installto.sh /var/www/mail/rc
-			fi
-			chown -R www-data: /var/www/mail/rc
-			rm -rf roundcube/inst/${roundcube_version}
-			rm -rf /var/www/mail/rc/installer/
+	#roundcube
+	mkdir -p /var/www/mail/rc
+	tar xf roundcube/inst/${roundcube_version}.tar -C roundcube/inst/
+	cp -R roundcube/inst/${roundcube_version}/* /var/www/mail/rc/
+	if [[ ${is_upgradetask} != "yes" ]]; then
+		cp -R roundcube/conf/* /var/www/mail/rc/
+		sed -i "s/my_dbhost/${my_dbhost}/g" /var/www/mail/rc/config/config.inc.php
+		sed -i "s/my_rcuser/${my_rcuser}/g" /var/www/mail/rc/config/config.inc.php
+		sed -i "s/my_rcpass/${my_rcpass}/g" /var/www/mail/rc/config/config.inc.php
+		sed -i "s/my_rcdb/${my_rcdb}/g" /var/www/mail/rc/config/config.inc.php
+		sed -i "s/conf_rcdeskey/$(genpasswd)/g" /var/www/mail/rc/config/config.inc.php
+		sed -i "s/MAILCOW_HOST.MAILCOW_DOMAIN/${sys_hostname}.${sys_domain}/g" /var/www/mail/rc/config/config.inc.php
+		mysql --host ${my_dbhost} -u ${my_rcuser} -p${my_rcpass} ${my_rcdb} < /var/www/mail/rc/SQL/mysql.initial.sql
+	else
+		chmod +x roundcube/inst/${roundcube_version}/bin/installto.sh
+		roundcube/inst/${roundcube_version}/bin/installto.sh /var/www/mail/rc
+	fi
+	chown -R www-data: /var/www/mail/rc
+	rm -rf roundcube/inst/${roundcube_version}
+	rm -rf /var/www/mail/rc/installer/
 			
 			
-		#sogo
-			mysql --host ${my_dbhost} -u root -p${my_rootpw} ${my_mailcowdb} < webserver/htdocs/sogo.sql
-					echo "$(textb [INFO]) - Adding official SOGo repository..."
-					echo "deb http://packages.inverse.ca/SOGo/nightly/3/debian/ jessie jessie" > /etc/apt/sources.list.d/sogo.list
-					apt-key adv --keyserver keys.gnupg.net --recv-key 0x810273C4 > /dev/null 2>&1
-					apt-get -y update >/dev/null
+	#sogo
+	mysql --host ${my_dbhost} -u root -p${my_rootpw} ${my_mailcowdb} < webserver/htdocs/sogo.sql
+	echo "$(textb [INFO]) - Adding official SOGo repository..."
+	echo "deb http://packages.inverse.ca/SOGo/nightly/3/debian/ jessie jessie" > /etc/apt/sources.list.d/sogo.list
+	apt-key adv --keyserver keys.gnupg.net --recv-key 0x810273C4 > /dev/null 2>&1
+	apt-get -y update >/dev/null
 			
-			echo "$(textb [INFO]) - Installing SOGo packages, please stand by."
-			${APT} -y install sogo sogo-activesync libwbxml2-0 memcached
-			sudo -u sogo bash -c "
-			defaults write sogod SOGoUserSources '({type = sql;id = directory;viewURL = mysql://${my_mailcowuser}:${my_mailcowpass}@${my_dbhost}:3306/${my_mailcowdb}/sogo_view;canAuthenticate = YES;isAddressBook = YES;displayName = \"Global Address Book\";MailFieldNames = (aliases, senderacl);userPasswordAlgorithm = ssha256;})'
-			defaults write sogod SOGoProfileURL 'mysql://${my_mailcowuser}:${my_mailcowpass}@${my_dbhost}:3306/${my_mailcowdb}/sogo_user_profile'
-			defaults write sogod OCSFolderInfoURL 'mysql://${my_mailcowuser}:${my_mailcowpass}@${my_dbhost}:3306/${my_mailcowdb}/sogo_folder_info'
-			defaults write sogod OCSEMailAlarmsFolderURL 'mysql://${my_mailcowuser}:${my_mailcowpass}@${my_dbhost}:3306/${my_mailcowdb}/sogo_alarms_folder'
-			defaults write sogod OCSSessionsFolderURL 'mysql://${my_mailcowuser}:${my_mailcowpass}@${my_dbhost}:3306/${my_mailcowdb}/sogo_sessions_folder'
-			defaults write sogod SOGoEnableEMailAlarms YES
-			defaults write sogod SOGoPageTitle '${sys_hostname}.${sys_domain}';
-			defaults write sogod SOGoForwardEnabled YES;
-			defaults write sogod SOGoMailAuxiliaryUserAccountsEnabled YES;
-			defaults write sogod SOGoTimeZone '${sys_timezone}';
-			defaults write sogod SOGoMailDomain '${sys_domain}';
-			defaults write sogod SOGoAppointmentSendEMailNotifications YES;
-			defaults write sogod SOGoSieveScriptsEnabled YES;
-			defaults write sogod SOGoSieveServer 'sieve://127.0.0.1:4190';
-			defaults write sogod SOGoVacationEnabled YES;
-			defaults write sogod SOGoDraftsFolderName Drafts;
-			defaults write sogod SOGoSentFolderName Sent;
-			defaults write sogod SOGoTrashFolderName Trash;
-			defaults write sogod SOGoIMAPServer 'imap://127.0.0.1:143/';
-			defaults write sogod SOGoSMTPServer 127.0.0.1:588;
-			defaults write sogod SOGoMailingMechanism smtp;
-			defaults write sogod SOGoMailCustomFromEnabled YES;
-			defaults write sogod SOGoPasswordChangeEnabled NO;
-			defaults write sogod SOGoAppointmentSendEMailNotifications YES;
-			defaults write sogod SOGoACLsSendEMailNotifications YES;
-			defaults write sogod SOGoFoldersSendEMailNotifications YES;
-			defaults write sogod SOGoLanguage English;
-			defaults write sogod SOGoMemcachedHost '127.0.0.1';
-			defaults write sogod WOListenQueueSize 300;
-			defaults write sogod WOPidFile = '/var/run/sogo.pid';
-			defaults write sogod WOWatchDogRequestTimeout 10;
-			defaults write sogod SOGoMaximumPingInterval 354;
-			defaults write sogod SOGoMaximumSyncInterval 354;
-			defaults write sogod SOGoMaximumSyncResponseSize 1024;
-			defaults write sogod SOGoMaximumSyncWindowSize 15480;
-			defaults write sogod SOGoInternalSyncInterval 30;"
-			# ~1 for 10 users, more when AS is enabled - 384M is the absolute max. it may reach
-			PREFORK=$(( ($(free -mt | tail -1 | awk '{print $2}') - 100) / 384 * 5 ))
-			[[ ${PREFORK} -eq 0 ]] && PREFORK="5"
-			sed -i "/PREFORK/c\PREFORK=${PREFORK}" /etc/default/sogo
-			sed -i '/SHOWWARNING/c\SHOWWARNING=false' /etc/tmpreaper.conf
-			sed -i '/expire-autoreply/s/^#//g' /etc/cron.d/sogo
-			sed -i '/expire-sessions/s/^#//g' /etc/cron.d/sogo
-			sed -i '/ealarms-notify/s/^#//g' /etc/cron.d/sogo
-			if [[ ${httpd_platform} == "apache2" ]]; then
-				a2disconf SOGo
-				cat /dev/null > /etc/apache2/conf-available/SOGo.conf
-			fi
-			;;
+	echo "$(textb [INFO]) - Installing SOGo packages, please stand by."
+	apt-get --force-yes -y install sogo sogo-activesync libwbxml2-0 memcached
+	sudo -u sogo bash -c "
+	defaults write sogod SOGoUserSources '({type = sql;id = directory;viewURL = mysql://${my_mailcowuser}:${my_mailcowpass}@${my_dbhost}:3306/${my_mailcowdb}/sogo_view;canAuthenticate = YES;isAddressBook = YES;displayName = \"Global Address Book\";MailFieldNames = (aliases, senderacl);userPasswordAlgorithm = ssha256;})'
+	defaults write sogod SOGoProfileURL 'mysql://${my_mailcowuser}:${my_mailcowpass}@${my_dbhost}:3306/${my_mailcowdb}/sogo_user_profile'
+	defaults write sogod OCSFolderInfoURL 'mysql://${my_mailcowuser}:${my_mailcowpass}@${my_dbhost}:3306/${my_mailcowdb}/sogo_folder_info'
+	defaults write sogod OCSEMailAlarmsFolderURL 'mysql://${my_mailcowuser}:${my_mailcowpass}@${my_dbhost}:3306/${my_mailcowdb}/sogo_alarms_folder'
+	defaults write sogod OCSSessionsFolderURL 'mysql://${my_mailcowuser}:${my_mailcowpass}@${my_dbhost}:3306/${my_mailcowdb}/sogo_sessions_folder'
+	defaults write sogod SOGoEnableEMailAlarms YES
+	defaults write sogod SOGoPageTitle '${sys_hostname}.${sys_domain}';
+	defaults write sogod SOGoForwardEnabled YES;
+	defaults write sogod SOGoMailAuxiliaryUserAccountsEnabled YES;
+	defaults write sogod SOGoTimeZone '${sys_timezone}';
+	defaults write sogod SOGoMailDomain '${sys_domain}';
+	defaults write sogod SOGoAppointmentSendEMailNotifications YES;
+	defaults write sogod SOGoSieveScriptsEnabled YES;
+	defaults write sogod SOGoSieveServer 'sieve://127.0.0.1:4190';
+	defaults write sogod SOGoVacationEnabled YES;
+	defaults write sogod SOGoDraftsFolderName Drafts;
+	defaults write sogod SOGoSentFolderName Sent;
+	defaults write sogod SOGoTrashFolderName Trash;
+	defaults write sogod SOGoIMAPServer 'imap://127.0.0.1:143/';
+	defaults write sogod SOGoSMTPServer 127.0.0.1:588;
+	defaults write sogod SOGoMailingMechanism smtp;
+	defaults write sogod SOGoMailCustomFromEnabled YES;
+	defaults write sogod SOGoPasswordChangeEnabled NO;
+	defaults write sogod SOGoAppointmentSendEMailNotifications YES;
+	defaults write sogod SOGoACLsSendEMailNotifications YES;
+	defaults write sogod SOGoFoldersSendEMailNotifications YES;
+	defaults write sogod SOGoLanguage English;
+	defaults write sogod SOGoMemcachedHost '127.0.0.1';
+	defaults write sogod WOListenQueueSize 300;
+	defaults write sogod WOPidFile = '/var/run/sogo.pid';
+	defaults write sogod WOWatchDogRequestTimeout 10;
+	defaults write sogod SOGoMaximumPingInterval 354;
+	defaults write sogod SOGoMaximumSyncInterval 354;
+	defaults write sogod SOGoMaximumSyncResponseSize 1024;
+	defaults write sogod SOGoMaximumSyncWindowSize 15480;
+	defaults write sogod SOGoInternalSyncInterval 30;"
+	# ~1 for 10 users, more when AS is enabled - 384M is the absolute max. it may reach
+	PREFORK=$(( ($(free -mt | tail -1 | awk '{print $2}') - 100) / 384 * 5 ))
+	[[ ${PREFORK} -eq 0 ]] && PREFORK="5"
+	sed -i "/PREFORK/c\PREFORK=${PREFORK}" /etc/default/sogo
+	sed -i '/SHOWWARNING/c\SHOWWARNING=false' /etc/tmpreaper.conf
+	sed -i '/expire-autoreply/s/^#//g' /etc/cron.d/sogo
+	sed -i '/expire-sessions/s/^#//g' /etc/cron.d/sogo
+	sed -i '/ealarms-notify/s/^#//g' /etc/cron.d/sogo
 			
-		#restartservices
-			[[ -f /lib/systemd/systemd ]] && echo "$(textb [INFO]) - Restarting services, this may take a few seconds..."
-				FPM="${PHPSVC}"
+	#restartservices
+		[[ -f /lib/systemd/systemd ]] && echo "$(textb [INFO]) - Restarting services, this may take a few seconds..."
+			FPM="${PHPSVC}"
 			
-			for var in ${JETTY_NAME} ${httpd_platform} ${FPM} spamassassin fuglu dovecot postfix opendkim clamav-daemon mailgraph
-			do
-				service ${var} stop
-				sleep 1.5
-				service ${var} start
-			done
-			[[ ${mailing_platform} == "sogo" ]] && service sogo restart
-			;;
+		for var in ${JETTY_NAME} ${httpd_platform} ${FPM} spamassassin fuglu dovecot postfix opendkim clamav-daemon mailgraph
+		do
+			service ${var} stop
+			sleep 1.5
+			service ${var} start
+		done
+		[[ ${mailing_platform} == "sogo" ]] && service sogo restart
 	esac
 }
