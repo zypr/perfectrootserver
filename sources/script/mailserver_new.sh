@@ -275,16 +275,11 @@ DEBIAN_FRONTEND=noninteractive ${APT} -y install dovecot-common dovecot-core dov
 	tar xf fuglu/inst/${fuglu_version}.tar -C fuglu/inst/ 2> /dev/null
 	(cd fuglu/inst/${fuglu_version} ; python setup.py -q install)
 	cp -R fuglu/conf/* /etc/fuglu/
-	if [[ -f /lib/systemd/systemd ]]; then
 		cp fuglu/inst/${fuglu_version}/scripts/startscripts/debian/8/fuglu.service /etc/systemd/system/fuglu.service
 		systemctl disable fuglu
 		[[ -f /lib/systemd/system/fuglu.service ]] && rm /lib/systemd/system/fuglu.service
 		systemctl daemon-reload
 		systemctl enable fuglu
-	else
-		install -m 755 fuglu/inst/${fuglu_version}/scripts/startscripts/debian/7/fuglu /etc/init.d/fuglu
-		update-rc.d fuglu defaults
-	fi
 	rm -rf fuglu/inst/${fuglu_version}	
 			
 			
