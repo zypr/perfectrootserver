@@ -26,8 +26,12 @@ declare -A ignoreList='(
 		[41144]="1")'
 		
 randomNumber="$(($RANDOM % 1023))"
+echo "Inhalt der Randomnumber in security sh"
+echo $randomNumber
 #return a string
 SSH_PORT=$([[ ! -n "${ignoreList["$randomNumber"]}" ]] && printf "%s\n" "$randomNumber")
+
+echo "Inhalt von SSH port in security sh
   	 sed -i "s/SSH_PORT=\"generateport\"/SSH_PORT=\"$SSH_PORT\"/g" /root/userconfig.cfg	 
 else
 	if [[ $SSH_PORT =~ ^-?[0-9]+$ ]]; then
