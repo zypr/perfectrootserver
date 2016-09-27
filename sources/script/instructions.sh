@@ -3,7 +3,7 @@ instructions() {
 source ~/userconfig.cfg
 source ~/addonconfig.cfg
 
-	SSH_PASSWD=$(sed -n '/^## SSH$/{n;n;n;p}' ~/credentials.txt | awk '{print $3}')
+	SSH_PASSWD=$(sed -n '/^## SSH_PORT$/{n;n;n;p}' ~/credentials.txt | awk '{print $3}')
 	echo
 	echo "${info} Your server is ready to go! Do you want to start the configuration assistant?" | awk '{ print strftime("[%H:%M:%S] |"), $0 }'
 	echo "${info} Press $(textb ENTER) to proceed or $(textb CTRL-C) to cancel the process" | awk '{ print strftime("[%H:%M:%S] |"), $0 }'
