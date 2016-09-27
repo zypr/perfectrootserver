@@ -52,31 +52,24 @@ installtask() {
 				exit 1
 			fi
 			echo "${sys_hostname}.${sys_domain}" > /etc/mailname
+			
+			
 			echo "$(textb [INFO]) - Installing prerequisites..."
 			apt-get -y update > /dev/null ; apt-get -y install lsb-release whiptail apt-utils ssl-cert > /dev/null 2>&1
 			[[ $roundcube == "roundcube" ]] && hashing_method="SHA512-CRYPT" || hashing_method="SSHA256"
 			[[ $roundcube == "roundcube" ]] && site_config="_rc" || site_config="_sogo"
-			;;
 			
 			
 	#installpackages		
 	/usr/sbin/make-ssl-cert generate-default-snakeoil --force-overwrite
 	echo "$(textb [INFO]) - Installing packages unattended, please stand by, errors will be reported."
 	apt-get -y update >/dev/null
-	if [[ ${my_dbhost} == "localhost" || ${my_dbhost} == "127.0.0.1" ]] && [[ ${is_upgradetask} != "yes" ]]; then
-		if [[ ${my_usemariadb} == "yes" ]]; then
-			DATABASE_BACKEND="mariadb-client mariadb-server"
-		else
-			DATABASE_BACKEND="mysql-client mysql-server"
-		fi
-	else
-		DATABASE_BACKEND=""
-	fi
+	
 
 DEBIAN_FRONTEND=noninteractive apt-get --force-yes -y install dnsutils sudo zip bzip2 unzip unrar-free curl rrdtool mailgraph fcgiwrap spawn-fcgi python-setuptools libmail-spf-perl libmail-dkim-perl file bsd-mailx \
 openssl php-auth-sasl php-http-request php-mail php-mail-mime php-mail-mimedecode php-net-dime php-net-smtp \
 php-net-socket php-net-url php-pear php-soap php5 php5-cli php5-common php5-curl php5-gd php5-imap \
-php5-intl php5-xsl php5-mcrypt php5-mysql libawl-php php5-xmlrpc ${DATABASE_BACKEND} nginx-extras php5-fpm mailutils pyzor razor \
+php5-intl php5-xsl php5-mcrypt php5-mysql libawl-php php5-xmlrpc mariadb-client mariadb-server nginx-extras php5-fpm mailutils pyzor razor \
 postfix postfix-mysql postfix-pcre postgrey pflogsumm spamassassin spamc sa-compile libdbd-mysql-perl opendkim opendkim-tools clamav-daemon \
 python-magic liblockfile-simple-perl libdbi-perl libmime-base64-urlsafe-perl libtest-tempdir-perl liblogger-syslog-perl \
 openjdk-7-jre-headless libcurl4-openssl-dev libexpat1-dev solr-jetty > /dev/null
@@ -128,9 +121,9 @@ DEBIAN_FRONTEND=noninteractive apt-get --force-yes -y install dovecot-common dov
 		cp -R letsencrypt-sh/inst/${letsencrypt_sh_version}/* /opt/letsencrypt-sh/
 				install -m 644 letsencrypt-sh/conf/config.sh /opt/letsencrypt-sh/config.sh
 		install -m 644 letsencrypt-sh/conf/domains.txt /etc/ssl/mail/domains.txt
-		sed -i "s/MAILCOW_HOST.MAILCOW_DOMAIN/${sys_hostname}.${sys_domain}/g" /etc/ssl/mail/domains.txt
+		sed -i "s/MAILCOW_HOST.${MYDOMAIN}/${sys_hostname}.${sys_domain}/g" /etc/ssl/mail/domains.txt
 		# Set postmaster as certificate owner
-		sed -i "s/MAILCOW_DOMAIN/${sys_domain}/g" /opt/letsencrypt-sh/config.sh
+		sed -i "s/${MYDOMAIN}/${sys_domain}/g" /opt/letsencrypt-sh/config.sh
 		# letsencrypt-sh will use config instead of config.sh for versions >= 0.2.0
 		cp /opt/letsencrypt-sh/config.sh /opt/letsencrypt-sh/config
 		install -m 755 letsencrypt-sh/conf/le-renew /etc/cron.weekly/le-renew
@@ -163,19 +156,19 @@ DEBIAN_FRONTEND=noninteractive apt-get --force-yes -y install dovecot-common dov
 	fi
 	SQLCMDARRAY=(
 		"DROP DATABASE IF EXISTS ${my_mailcowdb}"
-		"DROP DATABASE IF EXISTS ${my_rcdb}"
+		"DROP DATABASE IF EXISTS ${MYSQL_RCDB_NAME}"
 		"CREATE DATABASE ${my_mailcowdb}"
-		"GRANT ALL PRIVILEGES ON ${my_mailcowdb}.* TO '${my_mailcowuser}'@'%' IDENTIFIED BY '${my_mailcowpass}'"
+		"GRANT ALL PRIVILEGES ON ${my_mailcowdb}.* TO '${MYSQL_MCDB_USER}'@'%' IDENTIFIED BY '${MYSQL_MCDB_PASS}'"
 	)
 	if [[ $roundcube == "roundcube" ]]; then
 		SQLCMDARRAY+=(
-			"CREATE DATABASE ${my_rcdb}"
-			"GRANT ALL PRIVILEGES ON ${my_rcdb}.* TO '$my_rcuser'@'%' IDENTIFIED BY '$my_rcpass'"
+			"CREATE DATABASE ${MYSQL_RCDB_NAME}"
+			"GRANT ALL PRIVILEGES ON ${MYSQL_RCDB_NAME}.* TO '$MYSQL_RCDB_USER'@'%' IDENTIFIED BY '$MYSQL_RCDB_PASS'"
 		)
 	fi
 	SQLCMDARRAY+=("FLUSH PRIVILEGES")
 	for ((i = 0; i < ${#SQLCMDARRAY[@]}; i++)); do
-		mysql --host ${my_dbhost} -u root -p${my_rootpw} -e "${SQLCMDARRAY[$i]}"
+		mysql --host ${MYSQL_HOSTNAME} -u root -p${my_rootpw} -e "${SQLCMDARRAY[$i]}"
 		if [[ $? -eq 1 ]]; then
 			echo "$(redb [ERR]) - SQL failed at command '${SQLCMDARRAY[$i]}'"
 			exit 1
@@ -197,10 +190,10 @@ DEBIAN_FRONTEND=noninteractive apt-get --force-yes -y install dovecot-common dov
 	install -m 644 postfix/conf/smtp_dsn_filter.pcre /etc/postfix/smtp_dsn_filter.pcre
 	sed -i "s/sys_hostname.sys_domain/${sys_hostname}.${sys_domain}/g" /etc/postfix/main.cf
 	sed -i "s/sys_domain/${sys_domain}/g" /etc/postfix/main.cf
-	sed -i "s/my_mailcowpass/${my_mailcowpass}/g" /etc/postfix/sql/*
-	sed -i "s/my_mailcowuser/${my_mailcowuser}/g" /etc/postfix/sql/*
+	sed -i "s/MYSQL_MCDB_PASS/${MYSQL_MCDB_PASS}/g" /etc/postfix/sql/*
+	sed -i "s/MYSQL_MCDB_USER/${MYSQL_MCDB_USER}/g" /etc/postfix/sql/*
 	sed -i "s/my_mailcowdb/${my_mailcowdb}/g" /etc/postfix/sql/*
-	sed -i "s/my_dbhost/${my_dbhost}/g" /etc/postfix/sql/*
+	sed -i "s/MYSQL_HOSTNAME/${MYSQL_HOSTNAME}/g" /etc/postfix/sql/*
 	sed -i '/^POSTGREY_OPTS=/s/=.*/="--inet=127.0.0.1:10023"/' /etc/default/postgrey
 	chmod 755 /var/spool/
 	sed -i "/%www-data/d" /etc/sudoers 2> /dev/null
@@ -248,12 +241,12 @@ DEBIAN_FRONTEND=noninteractive apt-get --force-yes -y install dovecot-common dov
 	touch /etc/dovecot/mailcow_public_folder.conf
 	chmod 664 "/etc/dovecot/mailcow_public_folder.conf"; chown root:www-data "/etc/dovecot/mailcow_public_folder.conf"
 	DOVEFILES=$(find /etc/dovecot -maxdepth 1 -type f -printf '/etc/dovecot/%f ')
-	sed -i "s/MAILCOW_HOST.MAILCOW_DOMAIN/${sys_hostname}.${sys_domain}/g" ${DOVEFILES}
-	sed -i "s/MAILCOW_DOMAIN/${sys_domain}/g" ${DOVEFILES}
-	sed -i "s/my_mailcowpass/${my_mailcowpass}/g" ${DOVEFILES}
-	sed -i "s/my_mailcowuser/${my_mailcowuser}/g" ${DOVEFILES}
+	sed -i "s/MAILCOW_HOST.${MYDOMAIN}/${sys_hostname}.${sys_domain}/g" ${DOVEFILES}
+	sed -i "s/${MYDOMAIN}/${sys_domain}/g" ${DOVEFILES}
+	sed -i "s/MYSQL_MCDB_PASS/${MYSQL_MCDB_PASS}/g" ${DOVEFILES}
+	sed -i "s/MYSQL_MCDB_USER/${MYSQL_MCDB_USER}/g" ${DOVEFILES}
 	sed -i "s/my_mailcowdb/${my_mailcowdb}/g" ${DOVEFILES}
-	sed -i "s/my_dbhost/${my_dbhost}/g" ${DOVEFILES}
+	sed -i "s/MYSQL_HOSTNAME/${MYSQL_HOSTNAME}/g" ${DOVEFILES}
 	sed -i "s/MAILCOW_HASHING/${hashing_method}/g" ${DOVEFILES}
 	[[ ${IPV6} != "yes" ]] && sed -i '/listen =/c\listen = *' /etc/dovecot/dovecot.conf
 	mkdir /etc/dovecot/conf.d 2> /dev/null
@@ -361,10 +354,10 @@ DEBIAN_FRONTEND=noninteractive apt-get --force-yes -y install dovecot-common dov
 	sed -i '/^OPTIONS=/s/=.*/="--create-prefs --max-children 5 --helper-home-dir --username debian-spamd --socketpath \/var\/run\/spamd.sock --socketowner debian-spamd --socketgroup debian-spamd --sql-config --nouser-config"/' /etc/default/spamassassin
 	sed -i '/^CRON=/s/=.*/="1"/' /etc/default/spamassassin
 	sed -i '/^ENABLED=/s/=.*/="1"/' /etc/default/spamassassin
-	sed -i "s/my_mailcowpass/${my_mailcowpass}/g" /etc/spamassassin/local.cf
-	sed -i "s/my_mailcowuser/${my_mailcowuser}/g" /etc/spamassassin/local.cf
+	sed -i "s/MYSQL_MCDB_PASS/${MYSQL_MCDB_PASS}/g" /etc/spamassassin/local.cf
+	sed -i "s/MYSQL_MCDB_USER/${MYSQL_MCDB_USER}/g" /etc/spamassassin/local.cf
 	sed -i "s/my_mailcowdb/${my_mailcowdb}/g" /etc/spamassassin/local.cf
-	sed -i "s/my_dbhost/${my_dbhost}/g" /etc/spamassassin/local.cf
+	sed -i "s/MYSQL_HOSTNAME/${MYSQL_HOSTNAME}/g" /etc/spamassassin/local.cf
 	# Thanks to mf3hd@GitHub
 	[[ -z $(grep RANDOM_DELAY /etc/crontab) ]] && sed -i '/SHELL/a RANDOM_DELAY=30' /etc/crontab
 	install -m 755 spamassassin/conf/spamlearn /etc/cron.daily/spamlearn
@@ -396,34 +389,34 @@ DEBIAN_FRONTEND=noninteractive apt-get --force-yes -y install dovecot-common dov
 	[[ ! -z $(grep "server_names_hash_bucket_size" /etc/nginx/nginx.conf) ]] && \
 		sed -i "/server_names_hash_bucket_size/c\ \ \ \ \ \ \ \ server_names_hash_bucket_size 64;" /etc/nginx/nginx.conf || \
 		sed -i "/http {/a\ \ \ \ \ \ \ \ server_names_hash_bucket_size 64;" /etc/nginx/nginx.conf
-		sed -i "s/MAILCOW_HOST.MAILCOW_DOMAIN;/${sys_hostname}.${sys_domain};/g" /etc/nginx/sites-available/mailcow.conf
-		sed -i "s/MAILCOW_DOMAIN;/${sys_domain};/g" /etc/nginx/sites-available/mailcow.conf
+		sed -i "s/MAILCOW_HOST.${MYDOMAIN};/${sys_hostname}.${sys_domain};/g" /etc/nginx/sites-available/mailcow.conf
+		sed -i "s/${MYDOMAIN};/${sys_domain};/g" /etc/nginx/sites-available/mailcow.conf
 				
 	mkdir /var/lib/php5/sessions 2> /dev/null
 	cp -R webserver/htdocs/mail /var/www/
 	find /var/www/mail -type d -exec chmod 755 {} \;
 	find /var/www/mail -type f -exec chmod 644 {} \;
 	echo none > /var/log/pflogsumm.log
-	sed -i "s/my_dbhost/${my_dbhost}/g" /var/www/mail/inc/vars.inc.php
-	sed -i "s/my_mailcowpass/${my_mailcowpass}/g" /var/www/mail/inc/vars.inc.php
-	sed -i "s/my_mailcowuser/${my_mailcowuser}/g" /var/www/mail/inc/vars.inc.php
+	sed -i "s/MYSQL_HOSTNAME/${MYSQL_HOSTNAME}/g" /var/www/mail/inc/vars.inc.php
+	sed -i "s/MYSQL_MCDB_PASS/${MYSQL_MCDB_PASS}/g" /var/www/mail/inc/vars.inc.php
+	sed -i "s/MYSQL_MCDB_USER/${MYSQL_MCDB_USER}/g" /var/www/mail/inc/vars.inc.php
 	sed -i "s/my_mailcowdb/${my_mailcowdb}/g" /var/www/mail/inc/vars.inc.php
 	sed -i "s/MAILCOW_HASHING/${hashing_method}/g" /var/www/mail/inc/vars.inc.php
 	chown -R www-data: /var/www/mail/. /var/lib/php5/sessions
-	mysql --host ${my_dbhost} -u root -p${my_rootpw} ${my_mailcowdb} < webserver/htdocs/init.sql
-	if [[ -z $(mysql --host ${my_dbhost} -u root -p${my_rootpw} ${my_mailcowdb} -e "SHOW COLUMNS FROM domain LIKE 'relay_all_recipients';" -N -B) ]]; then
-		mysql --host ${my_dbhost} -u root -p${my_rootpw} ${my_mailcowdb} -e "ALTER TABLE domain ADD relay_all_recipients tinyint(1) NOT NULL DEFAULT '0';" -N -B
+	mysql --host ${MYSQL_HOSTNAME} -u root -p${my_rootpw} ${my_mailcowdb} < webserver/htdocs/init.sql
+	if [[ -z $(mysql --host ${MYSQL_HOSTNAME} -u root -p${my_rootpw} ${my_mailcowdb} -e "SHOW COLUMNS FROM domain LIKE 'relay_all_recipients';" -N -B) ]]; then
+		mysql --host ${MYSQL_HOSTNAME} -u root -p${my_rootpw} ${my_mailcowdb} -e "ALTER TABLE domain ADD relay_all_recipients tinyint(1) NOT NULL DEFAULT '0';" -N -B
 	fi
-	if [[ -z $(mysql --host ${my_dbhost} -u root -p${my_rootpw} ${my_mailcowdb} -e "SHOW COLUMNS FROM mailbox LIKE 'tls_enforce_in';" -N -B) ]]; then
-		mysql --host ${my_dbhost} -u root -p${my_rootpw} ${my_mailcowdb} -e "ALTER TABLE mailbox ADD tls_enforce_in tinyint(1) NOT NULL DEFAULT '0';" -N -B
-		mysql --host ${my_dbhost} -u root -p${my_rootpw} ${my_mailcowdb} -e "ALTER TABLE mailbox ADD tls_enforce_out tinyint(1) NOT NULL DEFAULT '0';" -N -B
+	if [[ -z $(mysql --host ${MYSQL_HOSTNAME} -u root -p${my_rootpw} ${my_mailcowdb} -e "SHOW COLUMNS FROM mailbox LIKE 'tls_enforce_in';" -N -B) ]]; then
+		mysql --host ${MYSQL_HOSTNAME} -u root -p${my_rootpw} ${my_mailcowdb} -e "ALTER TABLE mailbox ADD tls_enforce_in tinyint(1) NOT NULL DEFAULT '0';" -N -B
+		mysql --host ${MYSQL_HOSTNAME} -u root -p${my_rootpw} ${my_mailcowdb} -e "ALTER TABLE mailbox ADD tls_enforce_out tinyint(1) NOT NULL DEFAULT '0';" -N -B
 	fi
-	mysql --host ${my_dbhost} -u root -p${my_rootpw} ${my_mailcowdb} -e "DELETE FROM spamalias"
-	mysql --host ${my_dbhost} -u root -p${my_rootpw} ${my_mailcowdb} -e "ALTER TABLE spamalias MODIFY COLUMN validity int(11) NOT NULL"
-	if [[ $(mysql --host ${my_dbhost} -u root -p${my_rootpw} ${my_mailcowdb} -s -N -e "SELECT * FROM admin;" | wc -l) -lt 1 ]]; then
+	mysql --host ${MYSQL_HOSTNAME} -u root -p${my_rootpw} ${my_mailcowdb} -e "DELETE FROM spamalias"
+	mysql --host ${MYSQL_HOSTNAME} -u root -p${my_rootpw} ${my_mailcowdb} -e "ALTER TABLE spamalias MODIFY COLUMN validity int(11) NOT NULL"
+	if [[ $(mysql --host ${MYSQL_HOSTNAME} -u root -p${my_rootpw} ${my_mailcowdb} -s -N -e "SELECT * FROM admin;" | wc -l) -lt 1 ]]; then
 		mailcow_admin_pass_hashed=$(doveadm pw -s ${hashing_method} -p ${mailcow_admin_pass})
-		mysql --host ${my_dbhost} -u root -p${my_rootpw} ${my_mailcowdb} -e "INSERT INTO admin VALUES ('$mailcow_admin_user','${mailcow_admin_pass_hashed}', '1', NOW(), NOW(), '1');"
-		mysql --host ${my_dbhost} -u root -p${my_rootpw} ${my_mailcowdb} -e "INSERT INTO domain_admins (username, domain, created, active) VALUES ('$mailcow_admin_user', 'ALL', NOW(), '1');"
+		mysql --host ${MYSQL_HOSTNAME} -u root -p${my_rootpw} ${my_mailcowdb} -e "INSERT INTO admin VALUES ('$mailcow_admin_user','${mailcow_admin_pass_hashed}', '1', NOW(), NOW(), '1');"
+		mysql --host ${MYSQL_HOSTNAME} -u root -p${my_rootpw} ${my_mailcowdb} -e "INSERT INTO domain_admins (username, domain, created, active) VALUES ('$mailcow_admin_user', 'ALL', NOW(), '1');"
 	else
 		echo "$(textb [INFO]) - An administrator exists, will not create another mailcow administrator"
 	fi
@@ -435,13 +428,13 @@ DEBIAN_FRONTEND=noninteractive apt-get --force-yes -y install dovecot-common dov
 	cp -R roundcube/inst/${roundcube_version}/* /var/www/mail/rc/
 	if [[ ${is_upgradetask} != "yes" ]]; then
 		cp -R roundcube/conf/* /var/www/mail/rc/
-		sed -i "s/my_dbhost/${my_dbhost}/g" /var/www/mail/rc/config/config.inc.php
-		sed -i "s/my_rcuser/${my_rcuser}/g" /var/www/mail/rc/config/config.inc.php
-		sed -i "s/my_rcpass/${my_rcpass}/g" /var/www/mail/rc/config/config.inc.php
-		sed -i "s/my_rcdb/${my_rcdb}/g" /var/www/mail/rc/config/config.inc.php
+		sed -i "s/MYSQL_HOSTNAME/${MYSQL_HOSTNAME}/g" /var/www/mail/rc/config/config.inc.php
+		sed -i "s/MYSQL_RCDB_USER/${MYSQL_RCDB_USER}/g" /var/www/mail/rc/config/config.inc.php
+		sed -i "s/MYSQL_RCDB_PASS/${MYSQL_RCDB_PASS}/g" /var/www/mail/rc/config/config.inc.php
+		sed -i "s/MYSQL_RCDB_NAME/${MYSQL_RCDB_NAME}/g" /var/www/mail/rc/config/config.inc.php
 		sed -i "s/conf_rcdeskey/$(genpasswd)/g" /var/www/mail/rc/config/config.inc.php
-		sed -i "s/MAILCOW_HOST.MAILCOW_DOMAIN/${sys_hostname}.${sys_domain}/g" /var/www/mail/rc/config/config.inc.php
-		mysql --host ${my_dbhost} -u ${my_rcuser} -p${my_rcpass} ${my_rcdb} < /var/www/mail/rc/SQL/mysql.initial.sql
+		sed -i "s/MAILCOW_HOST.${MYDOMAIN}/${sys_hostname}.${sys_domain}/g" /var/www/mail/rc/config/config.inc.php
+		mysql --host ${MYSQL_HOSTNAME} -u ${MYSQL_RCDB_USER} -p${MYSQL_RCDB_PASS} ${MYSQL_RCDB_NAME} < /var/www/mail/rc/SQL/mysql.initial.sql
 	else
 		chmod +x roundcube/inst/${roundcube_version}/bin/installto.sh
 		roundcube/inst/${roundcube_version}/bin/installto.sh /var/www/mail/rc
