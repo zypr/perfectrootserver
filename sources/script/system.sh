@@ -55,8 +55,8 @@ echo "${warn} Some of the tasks could take a long time, please be patient!" | aw
 rm /etc/apt/sources.list
 cat > /etc/apt/sources.list <<END
 # Dotdeb
-deb http://packages.dotdeb.org jessie all
-deb-src http://packages.dotdeb.org jessie all
+deb http://ftp.hosteurope.de/mirror/packages.dotdeb.org/ stable all
+deb-src http://ftp.hosteurope.de/mirror/packages.dotdeb.org/ stable all
 
 # Doveocot
 deb http://xi.rename-it.nl/debian/ stable-auto/dovecot-2.3 main
