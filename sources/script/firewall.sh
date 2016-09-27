@@ -66,6 +66,8 @@ sed -i 's/^#BLOCK_HOSTS_FILE=.*/BLOCK_HOSTS_FILE="\/etc\/arno-iptables-firewall\
 echo "ssh port in fw sh"
 echo ${SSH_PORT}
 
+systemctl -q restart ssh.service
+
 if [ ${USE_MAILSERVER} == '1' ]; then
 	sed -i "s/^OPEN_TCP=.*/OPEN_TCP=\"${SSH_PORT}, 25, 80, 110, 143, 443, 465, 587, 993, 995\"/" /etc/arno-iptables-firewall/firewall.conf
 else
