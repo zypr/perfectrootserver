@@ -136,9 +136,9 @@ mkdir /var/run/fail2ban/ >/dev/null 2>&1
 
 # Restart all services
 if [ ${USE_MAILSERVER} == '1' ]; then
-	systemctl -q restart {fail2ban,rsyslog,nginx,php7.0-fpm,spamassassin,dovecot,postfix,opendkim,clamav-daemon,fuglu,mailgraph}
+	systemctl -q restart {fail2ban,rsyslog,nginx,php5-fpm,spamassassin,dovecot,postfix,opendkim,clamav-daemon,fuglu,mailgraph}
 else
-	systemctl -q restart {fail2ban,nginx,php7.0-fpm}
+	systemctl -q restart {fail2ban,nginx,php5-fpm}
 fi
 
 }
