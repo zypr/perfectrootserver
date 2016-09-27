@@ -115,8 +115,8 @@ chmod +x /etc/cron.daily/blocked-hosts
 
 # Fail2Ban
 tar xf ~/sources/mailcow/fail2ban/inst/0.9.3.tar -C ~/sources/mailcow/fail2ban/inst/
-rm -rf /etc/fail2ban/
-(cd ~/sources/mailcow/fail2ban/inst/0.9.3 ; python setup.py -q install)
+rm -rf /etc/fail2ban/ >/dev/null 2>&1
+(cd ~/sources/mailcow/fail2ban/inst/0.9.3 ; python setup.py -q install >/dev/null 2>&1)
 mkdir -p /var/run/fail2ban
 cp ~/sources/mailcow/fail2ban/conf/fail2ban.service /etc/systemd/system/fail2ban.service
 [[ -f /lib/systemd/system/fail2ban.service ]] && rm /lib/systemd/system/fail2ban.service
@@ -131,7 +131,8 @@ fi
 cp ~/sources/mailcow/fail2ban/conf/jail.d/*.conf /etc/fail2ban/jail.d/
 rm -rf ~/sources/mailcow/fail2ban/inst/0.9.3
 [[ -z $(grep fail2ban /etc/rc.local) ]] && sed -i '/^exit 0/i\test -d /var/run/fail2ban || install -m 755 -d /var/run/fail2ban/' /etc/rc.local
-mkdir /var/run/fail2ban/
+mkdir /var/run/fail2ban/ >/dev/null 2>&1
+
 
 # Restart all services
 if [ ${USE_MAILSERVER} == '1' ]; then
