@@ -7,11 +7,26 @@ fi
 
 
 #Check SSH PORT
-BLOCKED_PORTS=(22 25 53 80 143 587 990 993 443 2008 10011 30033 41144)
+declare -A BLOCKED_PORTS='(
+        [21]="1"
+        [22]="1"
+        [25]="1"
+        [53]="1"
+        [80]="1"
+        [143]="1"
+        [587]="1"
+        [990]="1"
+        [993]="1"
+        [443]="1"
+        [2008]="1"
+        [10011]="1"
+        [30033]="1"
+        [41144]="1")'
+
 
 if [ ${SSH_PORT} == 'generateport' ]; then
 
-    #Generate SSH Port    
+    #Generate SSH Port
     randomNumber="$(($RANDOM % 1023))"
 
     #return a string
@@ -20,17 +35,19 @@ if [ ${SSH_PORT} == 'generateport' ]; then
 else
     if [[ $SSH_PORT =~ ^-?[0-9]+$ ]]; then
 
-                if [[ " ${BLOCKED_PORTS[@]} " =~ " $SSH_PORT " ]]; then
-                   echo "${error} SSH Port is not allowed, chose another one!" | awk '{ print strftime("[%H:%M:%S] |"), $0 }'
-                else
-                    echo "${ok} Your SSH Port is: $SSH_PORT" | awk '{ print strftime("[%H:%M:%S] |"), $0 }'
-                fi
-                echo  >/dev/null 2>&1
+                if [[ -v BLOCKED_PORTS[$SSH_PORT] ]]; then
+					echo "$SSH_PORT is known. Choose an other Port!"
+				else
+					#You can use this Port
+					echo "${ok} Great, your Port ist $SSH_PORT" | awk '{ print strftime("[%H:%M:%S] |"), $0 }'
+				fi
+
             else
                 echo "${error} SSH Port is not an integer, chose another one!" | awk '{ print strftime("[%H:%M:%S] |"), $0 }'
                 exit 1
     fi
 fi
+#End Check SSH PORT
 
 
 if [ ${USE_MAILSERVER} == '1' ]; then
