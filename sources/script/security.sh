@@ -5,39 +5,36 @@ if [ ${SSH_PASS} == 'generatepw' ]; then
   	 sed -i "s/SSH_PASS=\"generatepw\"/SSH_PASS=\"$SSH_PASS\"/g" /root/userconfig.cfg
 fi
 
-declare -A ignoreList='(
-		[21]="1" 
-		[22]="1"
-		[25]="1" 
-		[53]="1" 
-		[80]="1" 
-		[143]="1" 
-		[587]="1" 
-		[990]="1" 
-		[993]="1" 
-		[443]="1" 
-		[2008]="1" 
-		[10011]="1" 
-		[30033]="1" 
-		[41144]="1")'
+SH_PORT="20"
 
-#Check SSH Port
+BLOCKED_PORTS=(22 25 53 80 143 587 990 993 443 2008 10011 30033 41144)
+#printf "%s\n" "${BLOCKED_PORTS[@]}" >> ports.txt
+
+
+
+
+
 if [ ${SSH_PORT} == 'generateport' ]; then
 
-	#Generate SSH Port	
-	randomNumber="$(($RANDOM % 1023))"
+    #Generate SSH Port    
+    randomNumber="$(($RANDOM % 1023))"
 
-	#return a string
-	SSH_PORT=$([[ ! -n "${ignoreList["$randomNumber"]}" ]] && printf "%s\n" "$randomNumber")
-  	sed -i "s/SSH_PORT=\"generateport\"/SSH_PORT=\"$SSH_PORT\"/g" /root/userconfig.cfg	 
+    #return a string
+    SSH_PORT=$([[ ! -n "${BLOCKED_PORTS["$randomNumber"]}" ]] && printf "%s\n" "$randomNumber")
+
 else
-	if [[ $SSH_PORT =~ ^-?[0-9]+$ ]]; then
-	            #Todo, prüfe ob usereingabe in ignoreList
-            	echo  >/dev/null 2>&1
+    if [[ $SSH_PORT =~ ^-?[0-9]+$ ]]; then
+
+                if [[ " ${BLOCKED_PORTS[@]} " =~ " $SSH_PORT " ]]; then
+                   echo "${error} SSH Port is not allowed, chose another one!" | awk '{ print strftime("[%H:%M:%S] |"), $0 }'
+                else
+                    echo "${ok} Your SSH Port is: $SSH_PORT" | awk '{ print strftime("[%H:%M:%S] |"), $0 }'
+                fi
+                echo  >/dev/null 2>&1
             else
-            	echo "${error} SSH Port is not an integer, chose another one!" | awk '{ print strftime("[%H:%M:%S] |"), $0 }'
-            	exit 1
-	fi
+                echo "${error} SSH Port is not an integer, chose another one!" | awk '{ print strftime("[%H:%M:%S] |"), $0 }'
+                exit 1
+    fi
 fi
 
 
