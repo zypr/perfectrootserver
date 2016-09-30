@@ -5,14 +5,9 @@ if [ ${SSH_PASS} == 'generatepw' ]; then
   	 sed -i "s/SSH_PASS=\"generatepw\"/SSH_PASS=\"$SSH_PASS\"/g" /root/userconfig.cfg
 fi
 
-SH_PORT="20"
 
+#Check SSH PORT
 BLOCKED_PORTS=(22 25 53 80 143 587 990 993 443 2008 10011 30033 41144)
-#printf "%s\n" "${BLOCKED_PORTS[@]}" >> ports.txt
-
-
-
-
 
 if [ ${SSH_PORT} == 'generateport' ]; then
 
