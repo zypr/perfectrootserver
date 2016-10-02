@@ -70,7 +70,7 @@ source sources/script/system.sh
 		echo "${error} Your Username $FTP_USERNAME is not valid. Please use only lower case letters and try again:" | awk '{ print strftime("[%H:%M:%S] |"), $0 }'
 			read FTP_USERNAME
 	done
-	echo "${ok} Great! Your new FTP Username is:$FTP_USERNAME" | awk '{ print strftime("[%H:%M:%S] |"), $0 }'
+	echo "${ok} Great! Your FTP Username is: $FTP_USERNAME" | awk '{ print strftime("[%H:%M:%S] |"), $0 }'
 	
 	#Now insert new FTP Username into config to be able in script
 	sed -i '/^FTP_USERNAME=/d' /root/addonconfig.cfg  
