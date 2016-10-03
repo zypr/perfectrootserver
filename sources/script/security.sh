@@ -31,6 +31,7 @@ if [ ${SSH_PORT} == 'generateport' ]; then
 
     #return a string
     SSH_PORT=$([[ ! -n "${BLOCKED_PORTS["$randomNumber"]}" ]] && printf "%s\n" "$randomNumber")
+    sed -i "s/SSH_PORT=\"generateport\"/SSH_PORT=\"$SSH_PORT\"/g" /root/userconfig.cfg
 
 else
     if [[ $SSH_PORT =~ ^-?[0-9]+$ ]]; then
