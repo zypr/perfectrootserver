@@ -1,6 +1,6 @@
 createpw() {
 
-if [ ${SSH_PASS} == 'generatepw' ]; then
+if [ ${SSH_PASS} == "generatepw" ]; then
 	   SSH_PASS=$(openssl rand -base64 30 | tr -d / | cut -c -24 | grep -P '(?=^.{8,255}$)(?=^[^\s]*$)(?=.*\d)(?=.*[A-Z])(?=.*[a-z])')
   	 sed -i "s/SSH_PASS=\"generatepw\"/SSH_PASS=\"$SSH_PASS\"/g" /root/userconfig.cfg
 fi
