@@ -21,7 +21,7 @@ source ~/addonconfig.cfg
 	yellow "private key as *.ppk file. Now you can use the key to" | awk '{ print strftime("[%H:%M:%S] |"), $0 }'
 	yellow "authenticate with your server using Putty." | awk '{ print strftime("[%H:%M:%S] |"), $0 }'
 	echo
-	echo "Password for your ssh key = ${SSH_PASSWD}" | awk '{ print strftime("[%H:%M:%S] |"), $0 }'
+	echo "Password for your ssh key = ${SSH_PASS}" | awk '{ print strftime("[%H:%M:%S] |"), $0 }'
 	echo
 	echo
 	cat ~/ssh_privatekey.txt
