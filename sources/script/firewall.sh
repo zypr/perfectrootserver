@@ -91,17 +91,18 @@ BLACKLIST="/etc/arno-iptables-firewall/blocked-hosts"
 BLACKLIST_TEMP="\$BLACKLIST_DIR/blacklist"
 LIST=(
 "http://www.projecthoneypot.org/list_of_ips.php?t=d&rss=1"
-"http://check.torproject.org/cgi-bin/TorBulkExitList.py?ip=1.1.1.1"
-"http://www.maxmind.com/en/anonymous_proxies"
+"https://check.torproject.org/cgi-bin/TorBulkExitList.py?ip=1.1.1.1"
+"https://www.maxmind.com/en/proxy-detection-sample-list"
 "http://danger.rulez.sk/projects/bruteforceblocker/blist.php"
 "http://rules.emergingthreats.net/blockrules/compromised-ips.txt"
-"http://www.spamhaus.org/drop/drop.lasso"
+"https://www.spamhaus.org/drop/drop.lasso"
 "http://cinsscore.com/list/ci-badguys.txt"
-"http://www.openbl.org/lists/base.txt"
+"https://www.openbl.org/lists/base.txt"
 "http://www.autoshun.org/files/shunlist.csv"
-"http://lists.blocklist.de/lists/all.txt"
+"https://lists.blocklist.de/lists/all.txt"
 "http://blocklist.greensnow.co/greensnow.txt"
 "https://www.stopforumspam.com/downloads/toxic_ip_cidr.txt"
+"https://raw.githubusercontent.com/firehol/blocklist-ipsets/master/firehol_level1.netset"
 )
 for i in "\${LIST[@]}"
 do
@@ -114,9 +115,9 @@ END
 chmod +x /etc/cron.daily/blocked-hosts
 
 # Fail2Ban
-tar xf ~/sources/mailcow/fail2ban/inst/0.9.3.tar -C ~/sources/mailcow/fail2ban/inst/
+tar xf ~/sources/mailcow/fail2ban/inst/0.9.4.tar -C ~/sources/mailcow/fail2ban/inst/
 rm -rf /etc/fail2ban/ >/dev/null 2>&1
-(cd ~/sources/mailcow/fail2ban/inst/0.9.3 ; python setup.py -q install >/dev/null 2>&1)
+(cd ~/sources/mailcow/fail2ban/inst/0.9.4 ; python setup.py -q install >/dev/null 2>&1)
 mkdir -p /var/run/fail2ban
 cp ~/sources/mailcow/fail2ban/conf/fail2ban.service /etc/systemd/system/fail2ban.service
 [[ -f /lib/systemd/system/fail2ban.service ]] && rm /lib/systemd/system/fail2ban.service
@@ -129,7 +130,7 @@ if [[ ! -f /etc/fail2ban/jail.local ]]; then
 	cp ~/sources/mailcow/fail2ban/conf/jail.local /etc/fail2ban/jail.local
 fi
 cp ~/sources/mailcow/fail2ban/conf/jail.d/*.conf /etc/fail2ban/jail.d/
-rm -rf ~/sources/mailcow/fail2ban/inst/0.9.3
+rm -rf ~/sources/mailcow/fail2ban/inst/0.9.4
 [[ -z $(grep fail2ban /etc/rc.local) ]] && sed -i '/^exit 0/i\test -d /var/run/fail2ban || install -m 755 -d /var/run/fail2ban/' /etc/rc.local
 mkdir /var/run/fail2ban/ >/dev/null 2>&1
 

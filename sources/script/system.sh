@@ -149,11 +149,8 @@ mysql -u root -p${MYSQL_ROOT_PASS} -e "DELETE FROM mysql.user WHERE User=''; DEL
 cd ~/sources
 mkdir bash && cd $_
 echo "${info} Downloading GNU bash & latest security patches..." | awk '{ print strftime("[%H:%M:%S] |"), $0 }'
-wget https://ftp.gnu.org/gnu/bash/bash-4.3.tar.gz >/dev/null 2>&1
-for i in $(seq -f "%03g" 1 46); do wget http://ftp.gnu.org/gnu/bash/bash-4.3-patches/bash43-$i; done >/dev/null 2>&1
-tar zxf bash-4.3.tar.gz && cd bash-4.3 >/dev/null 2>&1
-echo "${info} Patching sourcefiles..." | awk '{ print strftime("[%H:%M:%S] |"), $0 }'
-for i in ../bash43-[0-9][0-9][0-9]; do patch -p0 -s < $i; done
+wget https://ftp.gnu.org/gnu/bash/bash-${BASH_VERSION}.tar.gz >/dev/null 2>&1
+tar zxf bash-${BASH_VERSION}.tar.gz && cd bash-${BASH_VERSION} >/dev/null 2>&1
 echo "${info} Compiling GNU bash..." | awk '{ print strftime("[%H:%M:%S] |"), $0 }'
 ./configure --prefix=/usr/local >/dev/null 2>&1 && make >/dev/null 2>&1 && make install >/dev/null 2>&1
 cp -f /usr/local/bin/bash /bin/bash
