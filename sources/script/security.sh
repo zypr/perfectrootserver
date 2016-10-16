@@ -42,7 +42,7 @@ else
 					exit 1
 				else
 					#You can use this Port
-					echo "${ok} Great, your Port ist $SSH_PORT" | awk '{ print strftime("[%H:%M:%S] |"), $0 }'
+					echo "${ok} Great, your Port is $SSH_PORT" | awk '{ print strftime("[%H:%M:%S] |"), $0 }'
 				fi
 
             else
