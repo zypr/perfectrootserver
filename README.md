@@ -9,7 +9,7 @@ Downloading the zip from this branch will fail!
 
 [Get the latest release](https://github.com/shoujii/perfectrootserver/releases/latest "Latest Release"):
 ```
-wget -O ~/perfectrootserver.tar.gz https://github.com/shoujii/perfectrootserver/archive/0.2.4.tar.gz
+wget -O ~/perfectrootserver.tar.gz https://github.com/shoujii/perfectrootserver/archive/0.2.5.tar.gz
 ```
 
 Extract:
