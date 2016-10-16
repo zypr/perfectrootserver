@@ -34,8 +34,8 @@ cp bin/arno-iptables-firewall /usr/local/sbin/
 cp bin/arno-fwfilter /usr/local/bin/
 cp -R share/arno-iptables-firewall/* /usr/local/share/arno-iptables-firewall/
 ln -s /usr/local/share/arno-iptables-firewall/plugins/traffic-accounting-show /usr/local/sbin/traffic-accounting-show
-gzip -c share/man/man1/arno-fwfilter.1 >/usr/local/share/man/man1/arno-fwfilter.1.gz >/dev/null 2>&1
-gzip -c share/man/man8/arno-iptables-firewall.8 >/usr/local/share/man/man8/arno-iptables-firewall.8.gz >/dev/null 2>&1
+gzip -c share/man/man1/arno-fwfilter.1 >/usr/local/share/man/man1/arno-fwfilter.1.gz >>/root/stderror.log 2>&1  >> /root/stdout.log
+gzip -c share/man/man8/arno-iptables-firewall.8 >/usr/local/share/man/man8/arno-iptables-firewall.8.gz >>/root/stderror.log 2>&1  >> /root/stdout.log
 cp README /usr/local/share/doc/arno-iptables-firewall/
 cp etc/init.d/arno-iptables-firewall /etc/init.d/
 if [ -d "/usr/lib/systemd/system/" ]; then
@@ -52,10 +52,10 @@ chown 0:0 /etc/arno-iptables-firewall/custom-rules
 chmod +x /usr/local/share/environment
 
 # Start Arno-Iptables-Firewall at boot
-update-rc.d -f arno-iptables-firewall start 11 S . stop 10 0 6 >/dev/null 2>&1
+update-rc.d -f arno-iptables-firewall start 11 S . stop 10 0 6 >>/root/stderror.log 2>&1  >> /root/stdout.log
 
 # Configure firewall.conf
-bash /usr/local/share/environment >/dev/null 2>&1
+bash /usr/local/share/environment >>/root/stderror.log 2>&1  >> /root/stdout.log
 sed -i "s/^Port 22/Port ${SSH_PORT}/g" /etc/ssh/sshd_config
 sed -i "s/^EXT_IF=.*/EXT_IF="${INTERFACE}"/g" /etc/arno-iptables-firewall/firewall.conf
 sed -i 's/^EXT_IF_DHCP_IP=.*/EXT_IF_DHCP_IP="0"/g' /etc/arno-iptables-firewall/firewall.conf
@@ -91,18 +91,17 @@ BLACKLIST="/etc/arno-iptables-firewall/blocked-hosts"
 BLACKLIST_TEMP="\$BLACKLIST_DIR/blacklist"
 LIST=(
 "http://www.projecthoneypot.org/list_of_ips.php?t=d&rss=1"
-"https://check.torproject.org/cgi-bin/TorBulkExitList.py?ip=1.1.1.1"
-"https://www.maxmind.com/en/proxy-detection-sample-list"
+"http://check.torproject.org/cgi-bin/TorBulkExitList.py?ip=1.1.1.1"
+"http://www.maxmind.com/en/anonymous_proxies"
 "http://danger.rulez.sk/projects/bruteforceblocker/blist.php"
 "http://rules.emergingthreats.net/blockrules/compromised-ips.txt"
-"https://www.spamhaus.org/drop/drop.lasso"
+"http://www.spamhaus.org/drop/drop.lasso"
 "http://cinsscore.com/list/ci-badguys.txt"
-"https://www.openbl.org/lists/base.txt"
+"http://www.openbl.org/lists/base.txt"
 "http://www.autoshun.org/files/shunlist.csv"
-"https://lists.blocklist.de/lists/all.txt"
+"http://lists.blocklist.de/lists/all.txt"
 "http://blocklist.greensnow.co/greensnow.txt"
 "https://www.stopforumspam.com/downloads/toxic_ip_cidr.txt"
-"https://raw.githubusercontent.com/firehol/blocklist-ipsets/master/firehol_level1.netset"
 )
 for i in "\${LIST[@]}"
 do
@@ -115,9 +114,9 @@ END
 chmod +x /etc/cron.daily/blocked-hosts
 
 # Fail2Ban
-tar xf ~/sources/mailcow/fail2ban/inst/0.9.4.tar -C ~/sources/mailcow/fail2ban/inst/
-rm -rf /etc/fail2ban/ >/dev/null 2>&1
-(cd ~/sources/mailcow/fail2ban/inst/0.9.4 ; python setup.py -q install >/dev/null 2>&1)
+tar xf ~/sources/mailcow/fail2ban/inst/0.9.5.tar -C ~/sources/mailcow/fail2ban/inst/
+rm -rf /etc/fail2ban/ >>/root/stderror.log 2>&1  >> /root/stdout.log
+(cd ~/sources/mailcow/fail2ban/inst/0.9.5 ; python setup.py -q install >>/root/stderror.log 2>&1  >> /root/stdout.log)
 mkdir -p /var/run/fail2ban
 cp ~/sources/mailcow/fail2ban/conf/fail2ban.service /etc/systemd/system/fail2ban.service
 [[ -f /lib/systemd/system/fail2ban.service ]] && rm /lib/systemd/system/fail2ban.service
@@ -130,9 +129,9 @@ if [[ ! -f /etc/fail2ban/jail.local ]]; then
 	cp ~/sources/mailcow/fail2ban/conf/jail.local /etc/fail2ban/jail.local
 fi
 cp ~/sources/mailcow/fail2ban/conf/jail.d/*.conf /etc/fail2ban/jail.d/
-rm -rf ~/sources/mailcow/fail2ban/inst/0.9.4
+rm -rf ~/sources/mailcow/fail2ban/inst/0.9.5
 [[ -z $(grep fail2ban /etc/rc.local) ]] && sed -i '/^exit 0/i\test -d /var/run/fail2ban || install -m 755 -d /var/run/fail2ban/' /etc/rc.local
-mkdir /var/run/fail2ban/ >/dev/null 2>&1
+mkdir /var/run/fail2ban/ >>/root/stderror.log 2>&1  >> /root/stdout.log
 
 
 # Restart all services

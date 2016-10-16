@@ -81,7 +81,7 @@ source ~/addonconfig.cfg
 			echo "${info} Repeat this check? Press $(textb ENTER) for yes or $(textb [N]) to skip" | awk '{ print strftime("[%H:%M:%S] |"), $0 }'
 			read -s -n 1 i
 			if [[ $i == "" ]]; then
-				echo >> /dev/null
+				echo > /dev/null
 			else
 				if [[ $i == "n" ]] || [[ $i == "N" ]]; then
 					break
@@ -109,7 +109,7 @@ source ~/addonconfig.cfg
 			echo "${info} Repeat this check? Press $(textb ENTER) for yes or $(textb [N]) to skip" | awk '{ print strftime("[%H:%M:%S] |"), $0 }'
 			read -s -n 1 i
 			if [[ $i == "" ]]; then
-				echo >> /dev/null
+				echo > /dev/null
 			else
 				if [[ $i == "n" ]] || [[ $i == "N" ]]; then
 					break
@@ -172,7 +172,7 @@ source ~/addonconfig.cfg
 			echo "${info} Repeat this check? Press $(textb ENTER) for yes or $(textb [N]) to skip" | awk '{ print strftime("[%H:%M:%S] |"), $0 }'
 			read -s -n 1 i
 			if [[ $i == "" ]]; then
-				echo >> /dev/null
+				echo > /dev/null
 			else
 				if [[ $i == "n" ]] || [[ $i == "N" ]]; then
 					break
@@ -243,7 +243,7 @@ source ~/addonconfig.cfg
 			echo "${info} Repeat this check? Press $(textb ENTER) for yes or $(textb [N]) to skip" | awk '{ print strftime("[%H:%M:%S] |"), $0 }'
 			read -s -n 1 i
 			if [[ $i == "" ]]; then
-				echo >> /dev/null
+				echo > /dev/null
 			else
 				if [[ $i == "n" ]] || [[ $i == "N" ]]; then
 					break

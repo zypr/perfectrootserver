@@ -11,12 +11,12 @@ source ~/addonconfig.cfg
 # Teamspeak 3
 if [ ${USE_TEAMSPEAK} == '1' ]; then
 	echo "${info} Installing Teamspeak 3..." | awk '{ print strftime("[%H:%M:%S] |"), $0 }'
-	adduser ts3user --gecos "" --no-create-home --disabled-password >/dev/null 2>&1
+	adduser ts3user --gecos "" --no-create-home --disabled-password >>/root/stderror.log 2>&1  >> /root/stdout.log
 	mkdir /usr/local/ts3user
 	chown ts3user /usr/local/ts3user
 	cd /usr/local/ts3user
 	wget -q http://dl.4players.de/ts/releases/${TEAMSPEAK_VERSION}/teamspeak3-server_linux_amd64-${TEAMSPEAK_VERSION}.tar.bz2
-	tar -xjf teamspeak3-server_linux*.tar.bz2 >/dev/null 2>&1
+	tar -xjf teamspeak3-server_linux*.tar.bz2 >>/root/stderror.log 2>&1  >> /root/stdout.log
 	mkdir -p /usr/local/ts3user/ts3server/ && cp -r -u /usr/local/ts3user/teamspeak3-server_linux_amd64/* /usr/local/ts3user/ts3server/
 	rm -r /usr/local/ts3user/teamspeak3-server_linux_amd64/
 	chown -R ts3user /usr/local/ts3user/ts3server
@@ -47,7 +47,7 @@ esac
 exit 0" >> /etc/init.d/ts3server 
 	chmod 755 /etc/init.d/ts3server
 	update-rc.d ts3server defaults
-	/etc/init.d/ts3server start >/dev/null 2>&1
+	/etc/init.d/ts3server start >>/root/stderror.log 2>&1  >> /root/stdout.log
 	
 TS3_PORTS_TCP="2008, 10011, 30033, 41144"
 TS3_PORTS_UDP="2010, 9987"
@@ -57,7 +57,7 @@ TS3_PORTS_UDP="2010, 9987"
 	sed -i '1171s/, "/"/' /etc/arno-iptables-firewall/firewall.conf
 sleep 1
 	#If the Addon runs in Standalone we need that
-	systemctl force-reload arno-iptables-firewall.service >/dev/null 2>&1
+	systemctl force-reload arno-iptables-firewall.service >>/root/stderror.log 2>&1  >> /root/stdout.log
 	
 	echo "--------------------------------------------" >> ~/addoninformation.txt
 	echo "Teamspeak 3" >> ~/addoninformation.txt

@@ -35,13 +35,14 @@ if [ ${SSH_PORT} == 'generateport' ]; then
     sed -i "s/SSH_PORT=\"generateport\"/SSH_PORT=\"$SSH_PORT\"/g" /root/userconfig.cfg
 
 else
-    if [[ $SSH_PORT =~ ^-?[0-9]+$ ]]; then
+    if [[ ${SSH_PORT} =~ ^-?[0-9]+$ ]]; then
 
                 if [[ -v BLOCKED_PORTS[$SSH_PORT] ]]; then
-					echo "$SSH_PORT is known. Choose another SSH Port!"
+					echo "$SSH_PORT is known. Choose an other Port!"
+					exit 1
 				else
 					#You can use this Port
-					echo "${ok} Great, your SSH Port is: $SSH_PORT" | awk '{ print strftime("[%H:%M:%S] |"), $0 }'
+					echo "${ok} Great, your Port ist $SSH_PORT" | awk '{ print strftime("[%H:%M:%S] |"), $0 }'
 				fi
 
             else

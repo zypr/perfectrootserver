@@ -19,7 +19,7 @@ ff02::2 ip6-allrouters
 END
 
 if [[ -z $(dpkg --get-selections | grep -E "^dbus.*install$") ]]; then
-	apt-get update -y >/dev/null 2>&1 && apt-get -y --force-yes install dbus >/dev/null 2>&1
+	apt-get update -y >>/root/stderror.log 2>&1  >> /root/stdout.log && apt-get -y --force-yes install dbus >>/root/stderror.log 2>&1  >> /root/stdout.log
 fi
 
 if [ ${USE_MAILSERVER} == '1' ]; then
@@ -39,7 +39,7 @@ fi
 echo "${info} Setting your hostname & timezone..." | awk '{ print strftime("[%H:%M:%S] |"), $0 }'
 if [[ -f /usr/share/zoneinfo/${TIMEZONE} ]] ; then
 	echo ${TIMEZONE} > /etc/timezone
-	dpkg-reconfigure -f noninteractive tzdata >/dev/null 2>&1
+	dpkg-reconfigure -f noninteractive tzdata >>/root/stderror.log 2>&1  >> /root/stdout.log
 	if [ "$?" -ne "0" ]; then
 		echo "${error} Timezone configuration failed: dpkg returned exit code != 0" | awk '{ print strftime("[%H:%M:%S] |"), $0 }'
 		exit 1
@@ -117,11 +117,11 @@ Pin: release a=experimental
 Pin-Priority: 1
 END
 
-wget -O ~/sources/dovecot.key http://xi.rename-it.nl/debian/archive.key >/dev/null 2>&1 && apt-key add ~/sources/dovecot.key >/dev/null 2>&1
-wget -O ~/sources/dotdeb.gpg http://www.dotdeb.org/dotdeb.gpg >/dev/null 2>&1 && apt-key add ~/sources/dotdeb.gpg >/dev/null 2>&1
-apt-get update -y >/dev/null 2>&1 && apt-get -y upgrade >/dev/null 2>&1
-apt-get -y --force-yes install aptitude ssl-cert whiptail apt-utils jq libc6-dev/stable >/dev/null 2>&1
-DEBIAN_FRONTEND=noninteractive aptitude -y install apache2-threaded-dev apache2-utils apt-listchanges arj autoconf automake bison bsd-mailx build-essential bzip2 ca-certificates cabextract checkinstall curl dnsutils file flex git htop libapr1-dev libaprutil1 libaprutil1-dev libauthen-sasl-perl-Daemon libawl-php libcunit1-dev libcrypt-ssleay-perl libcurl4-openssl-dev libdbi-perl libgeoip-dev libio-socket-ssl-perl libio-string-perl liblockfile-simple-perl liblogger-syslog-perl libmail-dkim-perl libmail-spf-perl libmime-base64-urlsafe-perl libnet-dns-perl libnet-ident-perl libnet-LDAP-perl libnet1 libnet1-dev libpam-dev libpcre-ocaml-dev libpcre3 libpcre3-dev libreadline6-dev libtest-tempdir-perl libtool libuv-dev libwww-perl libxml2 libxml2-dev libxml2-utils libxslt1-dev libyaml-dev lzop mariadb-server mc memcached mlocate nettle-dev nomarch php-auth-sasl php-auth-sasl php-http-request php-mail php-mail-mime php-mail-mimedecode php-net-dime php-net-smtp php-net-url php-pear php-soap php5 php5-apcu php5-cli php5-common php5-curl php5-dev php5-fpm php5-geoip php5-gd php5-igbinary php5-imap php5-intl php5-mcrypt php5-mysql php5-sqlite php5-xmlrpc php5-xsl pkg-config python-setuptools python-dev python-software-properties rkhunter software-properties-common subversion sudo unzip vim-nox zip zlib1g zlib1g-dbg zlib1g-de zoo >/dev/null 2>&1
+wget -O ~/sources/dovecot.key http://xi.rename-it.nl/debian/archive.key >>/root/stderror.log 2>&1  >> /root/stdout.log && apt-key add ~/sources/dovecot.key >>/root/stderror.log 2>&1  >> /root/stdout.log
+wget -O ~/sources/dotdeb.gpg http://www.dotdeb.org/dotdeb.gpg >>/root/stderror.log 2>&1  >> /root/stdout.log && apt-key add ~/sources/dotdeb.gpg >>/root/stderror.log 2>&1  >> /root/stdout.log
+apt-get update -y >>/root/stderror.log 2>&1  >> /root/stdout.log && apt-get -y upgrade >>/root/stderror.log 2>&1  >> /root/stdout.log
+apt-get -y --force-yes install aptitude ssl-cert whiptail apt-utils jq openssl-blacklist glibc-doc libc6-dev/stable >>/root/stderror.log 2>&1  >> /root/stdout.log
+DEBIAN_FRONTEND=noninteractive aptitude -y install libldap2-dev/stable apache2-threaded-dev apache2-utils apt-listchanges arj autoconf automake bison bsd-mailx build-essential bzip2 ca-certificates cabextract checkinstall curl dnsutils file flex git htop libapr1-dev libaprutil1 libaprutil1-dev libauthen-sasl-perl daemon libawl-php libcunit1-dev libcrypt-ssleay-perl libcurl4-openssl-dev libdbi-perl libgeoip-dev libio-socket-ssl-perl libio-string-perl liblockfile-simple-perl liblogger-syslog-perl libmail-dkim-perl libmail-spf-perl libmime-base64-urlsafe-perl libnet-dns-perl libnet-ident-perl libnet-LDAP-perl libnet1 libnet1-dev libpam-dev libpcre-ocaml-dev libpcre3 libpcre3-dev libreadline6-dev libtest-tempdir-perl libtool libuv-dev libwww-perl libxml2 libxml2-dev/stable libxml2-utils libxslt1-dev libyaml-dev lzop mariadb-server mc memcached mlocate nettle-dev nomarch php-auth-sasl php-auth-sasl php-http-request php-mail php-mail-mime php-mail-mimedecode php-net-dime php-net-smtp php-net-url php-pear php-soap php5 php5-apcu php5-cli php5-common php5-curl php5-dev php5-fpm php5-geoip php5-gd php5-igbinary php5-imap php5-intl php5-mcrypt php5-mysql php5-sqlite php5-xmlrpc php5-xsl pkg-config python-setuptools python-dev python-software-properties rkhunter software-properties-common subversion sudo unzip vim-nox zip zlib1g zlib1g-dbg zlib1g-dev zoo >>/root/stderror.log 2>&1  >> /root/stdout.log
 
 if [ "$?" -ne "0" ]; then
 	echo "${error} Package installation failed!" | awk '{ print strftime("[%H:%M:%S] |"), $0 }'
@@ -143,17 +143,24 @@ sed -i '40s/.*/innodb_log_buffer_size = 16M\n&/' /etc/mysql/my.cnf
 sed -i '41s/.*/#innodb_table_locks = 0 #disable table lock, uncomment if you do not want to crash all applications, if one does\n&/' /etc/mysql/my.cnf
 
 # Automated mysql_secure_installation
-mysql -u root -p${MYSQL_ROOT_PASS} -e "DELETE FROM mysql.user WHERE User=''; DELETE FROM mysql.user WHERE User='root' AND Host NOT IN ('localhost', '127.0.0.1', '::1'); DROP DATABASE IF EXISTS test; FLUSH PRIVILEGES; DELETE FROM mysql.db WHERE Db='test' OR Db='test\\_%'; FLUSH PRIVILEGES;" >/dev/null 2>&1
-
+mysql -u root -p${MYSQL_ROOT_PASS} -e "DELETE FROM mysql.user WHERE User=''; DELETE FROM mysql.user WHERE User='root' AND Host NOT IN ('localhost', '127.0.0.1', '::1'); DROP DATABASE IF EXISTS test; FLUSH PRIVILEGES; DELETE FROM mysql.db WHERE Db='test' OR Db='test\\_%'; FLUSH PRIVILEGES;" >>/root/stderror.log 2>&1  >> /root/stdout.log
+sleep 2
+# Bash
 # Bash
 cd ~/sources
 mkdir bash && cd $_
 echo "${info} Downloading GNU bash & latest security patches..." | awk '{ print strftime("[%H:%M:%S] |"), $0 }'
-wget https://ftp.gnu.org/gnu/bash/bash-${BASH_VERSION}.tar.gz >/dev/null 2>&1
-tar zxf bash-${BASH_VERSION}.tar.gz && cd bash-${BASH_VERSION} >/dev/null 2>&1
+wget https://ftp.gnu.org/gnu/bash/bash-4.3.tar.gz >/dev/null 2>&1
+for i in $(seq -f "%03g" 1 48); do wget http://ftp.gnu.org/gnu/bash/bash-4.3-patches/bash43-$i; done >>/root/stderror.log 2>&1  >> /root/stdout.log
+tar zxf bash-4.3.tar.gz && cd bash-4.3 >>/root/stderror.log 2>&1  >> /root/stdout.log
+echo "${info} Patching sourcefiles..." | awk '{ print strftime("[%H:%M:%S] |"), $0 }'
+for i in ../bash43-[0-9][0-9][0-9]; do patch -p0 -s < $i; done
 echo "${info} Compiling GNU bash..." | awk '{ print strftime("[%H:%M:%S] |"), $0 }'
-./configure --prefix=/usr/local >/dev/null 2>&1 && make >/dev/null 2>&1 && make install >/dev/null 2>&1
+./configure --prefix=/usr/local >/dev/null 2>&1 && make >/dev/null 2>&1 && make install >>/root/stderror.log 2>&1  >> /root/stdout.log
 cp -f /usr/local/bin/bash /bin/bash
+sleep 2
+
+
 
 # System Tuning
 echo "${info} Kernel hardening & system tuning..." | awk '{ print strftime("[%H:%M:%S] |"), $0 }'
@@ -189,7 +196,7 @@ net.ipv6.conf.${INTERFACE}.disable_ipv6 = 1
 END
 
 # Enable changes
-sysctl -p >/dev/null 2>&1
+sysctl -p >>/root/stderror.log 2>&1  >> /root/stdout.log
 
 # Restart all services
 systemctl -q restart {rsyslog,php5-fpm}

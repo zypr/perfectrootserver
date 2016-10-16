@@ -20,10 +20,10 @@ if [ ${USE_VSFTPD} == '1' ]; then
 	PASV_PORT="12000:12500"
 	#creating a strong password!
 	userpass=$(openssl rand -base64 30  |  sed 's|/|_|')
-	cd >/dev/null 2>&1
-	apt-get -y install vsftpd >/dev/null 2>&1
-	openssl req -x509 -nodes -days 365 -newkey rsa:1024 -keyout /etc/ssl/private/vsftpd.pem -out /etc/ssl/private/vsftpd.pem -subj "/C=/ST=/L=/O=/OU=/CN=*.$MYDOMAIN" >/dev/null 2>&1
-	rm -rf /etc/vsftpd.conf >/dev/null 2>&1
+	cd >>/root/stderror.log 2>&1  >> /root/stdout.log
+	apt-get -y install vsftpd >>/root/stderror.log 2>&1  >> /root/stdout.log
+	openssl req -x509 -nodes -days 365 -newkey rsa:1024 -keyout /etc/ssl/private/vsftpd.pem -out /etc/ssl/private/vsftpd.pem -subj "/C=/ST=/L=/O=/OU=/CN=*.$MYDOMAIN" >>/root/stderror.log 2>&1  >> /root/stdout.log
+	rm -rf /etc/vsftpd.conf >>/root/stderror.log 2>&1  >> /root/stdout.log
 				
 	cat > /etc/vsftpd.conf <<END
 # Run standalone vs. from an inetd – start daemon from an initscript
@@ -123,20 +123,20 @@ file_open_mode=0666
 local_umask=0022
 #
 END
-	groupadd wwwftp >/dev/null 2>&1
-	adduser $FTP_USERNAME --gecos "" --no-create-home --disabled-password --home /etc/nginx/html --ingroup wwwftp >/dev/null 2>&1
-	echo $FTP_USERNAME:$userpass | chpasswd >/dev/null 2>&1
+	groupadd wwwftp >>/root/stderror.log 2>&1  >> /root/stdout.log
+	adduser $FTP_USERNAME --gecos "" --no-create-home --disabled-password --home /etc/nginx/html --ingroup wwwftp >>/root/stderror.log 2>&1  >> /root/stdout.log
+	echo $FTP_USERNAME:$userpass | chpasswd >>/root/stderror.log 2>&1  >> /root/stdout.log
 	#edit file for user
 	#-----------------------------------
 	#delete the last line 
-	sed '$d' /etc/passwd >/dev/null 2>&1
+	sed '$d' /etc/passwd >>/root/stderror.log 2>&1  >> /root/stdout.log
 	#and paste the new content
-	echo "${FTP_USERNAME}:x:1001:1001:My Website,,,:/etc/nginx/html:/bin/false/" >> /etc/passwd >/dev/null 2>&1
+	echo "${FTP_USERNAME}:x:1001:1001:My Website,,,:/etc/nginx/html:/bin/false/" >> /etc/passwd >>/root/stderror.log 2>&1  >> /root/stdout.log
 	# set chown for both groups
-	chown -R www-data:wwwftp /etc/nginx/html >/dev/null 2>&1
-	chmod -R 775 /etc/nginx/html >/dev/null 2>&1
+	chown -R www-data:wwwftp /etc/nginx/html >>/root/stderror.log 2>&1  >> /root/stdout.log
+	chmod -R 775 /etc/nginx/html >>/root/stderror.log 2>&1  >> /root/stdout.log
 	#disable pam_shell
-	rm -rf /etc/pam.d/vsftpd >/dev/null 2>&1
+	rm -rf /etc/pam.d/vsftpd >>/root/stderror.log 2>&1  >> /root/stdout.log
 	cat > /etc/pam.d/vsftpd <<END
 # Standard behaviour for ftpd(8).
 auth	required	pam_listfile.so item=user sense=deny file=/etc/ftpusers onerr=succeed
@@ -148,8 +148,8 @@ auth	required	pam_listfile.so item=user sense=deny file=/etc/ftpusers onerr=succ
 #auth	required	pam_shells.so
 END
 	#restart some services
-	systemctl -q restart vsftpd >/dev/null 2>&1
-	systemctl -q restart sshd >/dev/null 2>&1
+	systemctl -q restart vsftpd >>/root/stderror.log 2>&1  >> /root/stdout.log
+	systemctl -q restart sshd >>/root/stderror.log 2>&1  >> /root/stdout.log
 	# Save the Login to a nice file
 cat > /root/VSFTP_LOGINDATA.txt <<END
 -------------------------------------------------------
@@ -163,7 +163,7 @@ END
 	sed -i "/\<$PASV_PORT\>/ "\!"s/^OPEN_TCP=\"/&$PASV_PORT, /" /etc/arno-iptables-firewall/firewall.conf
 	sleep 1
 	#If the Addon runs in Standalone we need that
-	systemctl force-reload arno-iptables-firewall.service >/dev/null 2>&1
+	systemctl force-reload arno-iptables-firewall.service >>/root/stderror.log 2>&1  >> /root/stdout.log
 
 	echo "--------------------------------------------" >> ~/addoninformation.txt
 	echo "VSFTP" >> ~/addoninformation.txt

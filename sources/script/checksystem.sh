@@ -11,7 +11,7 @@ checksystem() {
 	echo "$(date +"[%T]") | ${info} Checking your system..."
 
 	if [ $(dpkg-query -l | grep gawk | wc -l) -ne 1 ]; then
-	apt-get update -y >/dev/null 2>&1 && apt-get -y --force-yes install gawk >/dev/null 2>&1
+	apt-get update -y >>/root/stderror.log 2>&1  >> /root/stdout.log && apt-get -y --force-yes install gawk >>/root/stderror.log 2>&1  >> /root/stdout.log
 	fi
 
 	if [ $USER != 'root' ]; then
@@ -25,7 +25,7 @@ checksystem() {
 	fi
 
 	if [ $(dpkg-query -l | grep lsb-release | wc -l) -ne 1 ]; then
-	apt-get update -y >/dev/null 2>&1 && apt-get -y --force-yes install lsb-release >/dev/null 2>&1
+	apt-get update -y >>/root/stderror.log 2>&1  >> /root/stdout.log && apt-get -y --force-yes install lsb-release >>/root/stderror.log 2>&1  >> /root/stdout.log
 	fi
 
 	if [ $(lsb_release -cs) != 'jessie' ] || [ $(lsb_release -is) != 'Debian' ]; then
@@ -45,14 +45,14 @@ checksystem() {
 	fi
 
 	if [ "$(dmidecode -s system-product-name)" == 'Bochs' ] || [ "$(dmidecode -s system-product-name)" == 'KVM' ] || [ "$(dmidecode -s system-product-name)" == 'All Series' ] || [ "$(dmidecode -s system-product-name)" == 'OpenStack Nova' ] || [ "$(dmidecode -s system-product-name)" == 'Standard' ]; then
-		echo >> /dev/null
+		echo > /dev/null
 	else
 		if [ $(dpkg-query -l | grep facter | wc -l) -ne 1 ]; then
-			apt-get update -y >/dev/null 2>&1 && apt-get -y --force-yes install facter >/dev/null 2>&1
+			apt-get update -y >>/root/stderror.log 2>&1  >> /root/stdout.log && apt-get -y --force-yes install facter >>/root/stderror.log 2>&1  >> /root/stdout.log
 		fi
 
 		if	[ "$(facter virtual)" == 'physical' ] || [ "$(facter virtual)" == 'kvm' ]; then
-			echo >> /dev/null
+			echo > /dev/null
 		else
 	        echo "${warn} This script does not support the virtualization technology ($(dmidecode -s system-product-name))" | awk '{ print strftime("[%H:%M:%S] |"), $0 }'
 	        echo "${info} Press $(textb ENTER) to skip this warning and proceed at your own risk or $(textb CTRL-C) to cancel the process" | awk '{ print strftime("[%H:%M:%S] |"), $0 }'
@@ -176,11 +176,11 @@ echo "$(date +"[%T]") | ${info} Welcome to the Perfect Rootserver installation!"
 echo "$(date +"[%T]") | ${info} Please wait while the installer is preparing for the first use..."
 
 if [ $(dpkg-query -l | grep dnsutils | wc -l) -ne 1 ]; then
-	apt-get update -y >/dev/null 2>&1 && apt-get -y --force-yes install dnsutils >/dev/null 2>&1
+	apt-get update -y >>/root/stderror.log 2>&1  >> /root/stdout.log && apt-get -y --force-yes install dnsutils >>/root/stderror.log 2>&1  >> /root/stdout.log
 fi
 
 if [ $(dpkg-query -l | grep openssl | wc -l) -ne 1 ]; then
-	apt-get update -y >/dev/null 2>&1 && apt-get -y --force-yes install openssl >/dev/null 2>&1
+	apt-get update -y >>/root/stderror.log 2>&1  >> /root/stdout.log && apt-get -y --force-yes install openssl >>/root/stderror.log 2>&1  >> /root/stdout.log
 fi
 
 IPADR=$(ip route get 8.8.8.8 | head -1 | cut -d' ' -f8)

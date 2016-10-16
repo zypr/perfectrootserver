@@ -23,14 +23,14 @@ echo "$(date +"[%T]") | ${info} Please wait while the installer is preparing for
 #creating a strong password!
 USERPASS=$(openssl rand -base64 30  |  sed 's|/|_|')
 	
-sed 's/#PermitRootLogin prohibit-password/PermitRootLogin no/g' /etc/ssh/sshd_config >/dev/null 2>&1
-sed -i "/LoginGraceTime 30/ s//\n AllowGroups $SSHUSER \n/" /etc/ssh/sshd_config >/dev/null 2>&1
+sed 's/#PermitRootLogin prohibit-password/PermitRootLogin no/g' /etc/ssh/sshd_config >>/root/stderror.log 2>&1  >> /root/stdout.log
+sed -i "/LoginGraceTime 30/ s//\n AllowGroups $SSHUSER \n/" /etc/ssh/sshd_config >>/root/stderror.log 2>&1  >> /root/stdout.log
 
-groupadd --system sshusers >/dev/null 2>&1
+groupadd --system sshusers >>/root/stderror.log 2>&1  >> /root/stdout.log
 
 #  --disabled-password yes or no for ssh login
-adduser $SSHUSER --gecos "" --no-create-home --home /root/ --ingroup sshusers >/dev/null 2>&1
-echo $SSHUSER:$USERPASS | chpasswd >/dev/null 2>&1
+adduser $SSHUSER --gecos "" --no-create-home --home /root/ --ingroup sshusers >>/root/stderror.log 2>&1  >> /root/stdout.log
+echo $SSHUSER:$USERPASS | chpasswd >>/root/stderror.log 2>&1  >> /root/stdout.log
 	
 #restart
 service ssh restart

@@ -19,21 +19,21 @@ if [ ${USE_MAILSERVER} == '1' ]; then
 	install -m 700 ~/sources/mailcow/misc/mc_resetadmin /usr/local/sbin/mc_resetadmin
 
 	# Prerequisites
-	update-alternatives --set mailx /usr/bin/bsd-mailx --quiet >/dev/null 2>&1
-	DEBIAN_FRONTEND=noninteractive aptitude -y install clamav-daemon dovecot-common dovecot-core dovecot-imapd dovecot-lmtpd dovecot-managesieved dovecot-mysql dovecot-pop3d dovecot-sieve dovecot-solr fcgiwrap fetchmail imagemagick mailutils mailgraph/unstable mpack opendkim opendkim-tools pflogsumm postfix postfix-mysql postfix-pcre postgrey pyzor razor rrdtool/unstable spamassassin spamc spawn-fcgi wkhtmltopdf >/dev/null 2>&1
+	update-alternatives --set mailx /usr/bin/bsd-mailx --quiet >>/root/stderror.log 2>&1  >> /root/stdout.log
+	DEBIAN_FRONTEND=noninteractive aptitude -y install clamav-daemon dovecot-common dovecot-core dovecot-imapd dovecot-lmtpd dovecot-managesieved dovecot-mysql dovecot-pop3d dovecot-sieve dovecot-solr fcgiwrap fetchmail imagemagick mailutils mailgraph/unstable mpack opendkim opendkim-tools pflogsumm postfix postfix-mysql postfix-pcre postgrey pyzor razor rrdtool/unstable spamassassin spamc spawn-fcgi wkhtmltopdf >>/root/stderror.log 2>&1  >> /root/stdout.log
 
 	# Create SSL
-	mkdir -p /etc/ssl/mail >/dev/null 2>&1
-	rm /etc/ssl/mail/* >/dev/null 2>&1
+	mkdir -p /etc/ssl/mail >>/root/stderror.log 2>&1  >> /root/stdout.log
+	rm /etc/ssl/mail/* >>/root/stderror.log 2>&1  >> /root/stdout.log
 	cp /etc/nginx/ssl/dh.pem /etc/ssl/mail/dhparams.pem
 	if [ ${USE_VALID_SSL} == '1' ]; then
 		ln -s /etc/letsencrypt/live/${MYDOMAIN}/fullchain.pem /etc/ssl/mail/mail.crt
 		ln -s /etc/letsencrypt/live/${MYDOMAIN}/privkey.pem /etc/ssl/mail/mail.key
 	else
-		openssl req -new -newkey rsa:4096 -sha256 -days 1095 -nodes -x509 -subj "/C=/ST=/L=/O=/OU=/CN=mail.${MYDOMAIN}" -keyout /etc/ssl/mail/mail.key -out /etc/ssl/mail/mail.crt >/dev/null 2>&1
+		openssl req -new -newkey rsa:4096 -sha256 -days 1095 -nodes -x509 -subj "/C=/ST=/L=/O=/OU=/CN=mail.${MYDOMAIN}" -keyout /etc/ssl/mail/mail.key -out /etc/ssl/mail/mail.crt >>/root/stderror.log 2>&1  >> /root/stdout.log
 		chmod 600 /etc/ssl/mail/mail.key
 		cp /etc/ssl/mail/mail.crt /usr/local/share/ca-certificates/
-		update-ca-certificates >/dev/null 2>&1
+		update-ca-certificates >>/root/stderror.log 2>&1  >> /root/stdout.log
 	fi
 
 	# Create MySQL databases
@@ -69,8 +69,8 @@ if [ ${USE_MAILSERVER} == '1' ]; then
 	sed -i '/^POSTGREY_OPTS=/s/=.*/="--inet=127.0.0.1:10023"/' /etc/default/postgrey
 	chown www-data: /etc/postfix/mailcow_*
 	chmod 755 /var/spool/
-	sed -i "/%www-data/d" /etc/sudoers >/dev/null 2>&1
-	sed -i "/%vmail/d" /etc/sudoers >/dev/null 2>&1
+	sed -i "/%www-data/d" /etc/sudoers >>/root/stderror.log 2>&1  >> /root/stdout.log
+	sed -i "/%vmail/d" /etc/sudoers >>/root/stderror.log 2>&1  >> /root/stdout.log
 	echo '%www-data ALL=(ALL) NOPASSWD: /usr/bin/doveadm * sync *, /usr/local/sbin/mc_pfset *, /usr/bin/doveadm quota recalc -A, /usr/sbin/dovecot reload, /usr/sbin/postfix reload, /usr/local/sbin/mc_dkim_ctrl, /usr/local/sbin/mc_msg_size, /usr/local/sbin/mc_pflog_renew, /usr/local/sbin/mc_setup_backup' >> /etc/sudoers
 	if [ ${USE_VALID_SSL} == '1' ]; then
 		sed -i 's/smtp_tls_CAfile/# smtp_tls_CAfile/g' /etc/postfix/main.cf
@@ -78,16 +78,16 @@ if [ ${USE_MAILSERVER} == '1' ]; then
 
 	# Fuglu
 	if [[ -z $(grep fuglu /etc/passwd) ]]; then
-		userdel fuglu >/dev/null 2>&1
-		groupadd fuglu >/dev/null 2>&1
+		userdel fuglu >>/root/stderror.log 2>&1  >> /root/stdout.log
+		groupadd fuglu >>/root/stderror.log 2>&1  >> /root/stdout.log
 		useradd -g fuglu -s /bin/false fuglu
 		usermod -a -G debian-spamd fuglu
 		usermod -a -G clamav fuglu
 	fi
-	rm /tmp/fuglu_control.sock >/dev/null 2>&1
-	mkdir /var/log/fuglu >/dev/null 2>&1
+	rm /tmp/fuglu_control.sock >>/root/stderror.log 2>&1  >> /root/stdout.log
+	mkdir /var/log/fuglu >>/root/stderror.log 2>&1  >> /root/stdout.log
 	chown fuglu:fuglu /var/log/fuglu
-	tar xf ~/sources/mailcow/fuglu/inst/0.6.5.tar -C ~/sources/mailcow/fuglu/inst/ >/dev/null 2>&1
+	tar xf ~/sources/mailcow/fuglu/inst/0.6.5.tar -C ~/sources/mailcow/fuglu/inst/ >>/root/stderror.log 2>&1  >> /root/stdout.log
 	(cd ~/sources/mailcow/fuglu/inst/0.6.5 ; python setup.py -q install)
 	cp -R ~/sources/mailcow/fuglu/conf/* /etc/fuglu/
 	cp ~/sources/mailcow/fuglu/inst/0.6.5/scripts/startscripts/debian/8/fuglu.service /etc/systemd/system/fuglu.service
@@ -101,8 +101,8 @@ if [ ${USE_MAILSERVER} == '1' ]; then
 	echo "${info} Installing Dovecot..." | awk '{ print strftime("[%H:%M:%S] |"), $0 }'
 	systemctl -q disable dovecot.socket
 	if [[ -z $(grep '/var/vmail:' /etc/passwd | grep '5000:5000') ]]; then
-		userdel vmail >/dev/null 2>&1
-		groupdel vmail >/dev/null 2>&1
+		userdel vmail >>/root/stderror.log 2>&1  >> /root/stdout.log
+		groupdel vmail >>/root/stderror.log 2>&1  >> /root/stdout.log
 		groupadd -g 5000 vmail
 		useradd -g vmail -u 5000 vmail -d /var/vmail
  	fi
@@ -119,9 +119,9 @@ if [ ${USE_MAILSERVER} == '1' ]; then
 	sed -i "s/my_mailcowuser/${MYSQL_MCDB_USER}/g" ${DOVEFILES}
 	sed -i "s/my_mailcowdb/${MYSQL_MCDB_NAME}/g" ${DOVEFILES}
 	sed -i "s/my_dbhost/${MYSQL_HOSTNAME}/g" ${DOVEFILES}
-	mkdir /etc/dovecot/conf.d >/dev/null 2>&1
-	mkdir -p /var/vmail/sieve >/dev/null 2>&1
-	mkdir -p /var/vmail/public >/dev/null 2>&1
+	mkdir /etc/dovecot/conf.d >>/root/stderror.log 2>&1  >> /root/stdout.log
+	mkdir -p /var/vmail/sieve >>/root/stderror.log 2>&1  >> /root/stdout.log
+	mkdir -p /var/vmail/public >>/root/stderror.log 2>&1  >> /root/stdout.log
 	if [ ! -f /var/vmail/public/dovecot-acl ]; then
 		echo "anyone lrwstipekxa" > /var/vmail/public/dovecot-acl
 	fi
@@ -136,10 +136,10 @@ if [ ${USE_MAILSERVER} == '1' ]; then
 
 	# clamav
 	echo "${info} Installing ClamaV..." | awk '{ print strftime("[%H:%M:%S] |"), $0 }'
-	usermod -a -G vmail clamav >/dev/null 2>&1
-	service clamav-freshclam stop >/dev/null 2>&1
-	killall freshclam >/dev/null 2>&1
-	rm -f /var/lib/clamav/* >/dev/null 2>&1 >/dev/null 2>&1
+	usermod -a -G vmail clamav >>/root/stderror.log 2>&1  >> /root/stdout.log
+	service clamav-freshclam stop >>/root/stderror.log 2>&1  >> /root/stdout.log
+	killall freshclam >>/root/stderror.log 2>&1  >> /root/stdout.log
+	rm -f /var/lib/clamav/* >>/root/stderror.log 2>&1  >> /root/stdout.log >>/root/stderror.log 2>&1  >> /root/stdout.log
 	sed -i '/DatabaseMirror/d' /etc/clamav/freshclam.conf
 	sed -i '/MaxFileSize/c\MaxFileSize 10240M' /etc/clamav/clamd.conf
 	sed -i '/StreamMaxLength/c\StreamMaxLength 10240M' /etc/clamav/clamd.conf
@@ -147,9 +147,8 @@ if [ ${USE_MAILSERVER} == '1' ]; then
 DatabaseMirror clamav.internet24.eu
 DatabaseMirror clamav.inode.at" >> /etc/clamav/freshclam.conf
 	if [[ -f /etc/apparmor.d/usr.sbin.clamd || -f /etc/apparmor.d/local/usr.sbin.clamd ]]; then
-		rm /etc/apparmor.d/usr.sbin.clamd >/dev/null 2>&1
-		rm /etc/apparmor.d/local/usr.sbin.clamd >/dev/null 2>&1
-		service apparmor restart >/dev/null 2>&1
+		rm /etc/apparmor.d/usr.sbin.clamd >>/root/stderror.log 2>&1  >> /root/stdout.log
+		rm /etc/apparmor.d/local/usr.sbin.clamd >>/root/stderror.log 2>&1  >> /root/stdout.log
 	fi
 	cp -f ~/sources/mailcow/clamav/clamav-unofficial-sigs.sh /usr/local/bin/clamav-unofficial-sigs.sh
 	chmod +x /usr/local/bin/clamav-unofficial-sigs.sh
@@ -157,15 +156,15 @@ DatabaseMirror clamav.inode.at" >> /etc/clamav/freshclam.conf
 	cp -f ~/sources/mailcow/clamav/clamav-unofficial-sigs.8 /usr/share/man/man8/clamav-unofficial-sigs.8
 	cp -f ~/sources/mailcow/clamav/clamav-unofficial-sigs-cron /etc/cron.d/clamav-unofficial-sigs-cron
 	cp -f ~/sources/mailcow/clamav/clamav-unofficial-sigs-logrotate /etc/logrotate.d/clamav-unofficial-sigs-logrotate
-	mkdir -p /var/log/clamav-unofficial-sigs >/dev/null 2>&1
+	mkdir -p /var/log/clamav-unofficial-sigs >>/root/stderror.log 2>&1  >> /root/stdout.log
 	sed -i '/MaxFileSize/c\MaxFileSize 10M' /etc/clamav/clamd.conf
 	sed -i '/StreamMaxLength/c\StreamMaxLength 10M' /etc/clamav/clamd.conf
-	freshclam >/dev/null 2>&1
+	freshclam >>/root/stderror.log 2>&1  >> /root/stdout.log
 
 	# OpenDKIM
 	echo "${info} Installing OpenDKIM..." | awk '{ print strftime("[%H:%M:%S] |"), $0 }'
 	echo 'SOCKET="inet:10040@localhost"' > /etc/default/opendkim
-	mkdir -p /etc/opendkim/{keyfiles,dnstxt} >/dev/null 2>&1
+	mkdir -p /etc/opendkim/{keyfiles,dnstxt} >>/root/stderror.log 2>&1  >> /root/stdout.log
 	touch /etc/opendkim/{KeyTable,SigningTable}
 	install -m 644 ~/sources/mailcow/opendkim/conf/opendkim.conf /etc/opendkim.conf
 
@@ -182,20 +181,20 @@ DatabaseMirror clamav.inode.at" >> /etc/clamav/freshclam.conf
 	# Thanks to mf3hd@GitHub, again!
 	chmod g+s /etc/spamassassin
 	chown -R debian-spamd: /etc/spamassassin
-	razor-admin -create -home /etc/razor -conf=/etc/razor/razor-agent.conf >/dev/null 2>&1
-	razor-admin -discover -home /etc/razor >/dev/null 2>&1
-	razor-admin -register -home /etc/razor >/dev/null 2>&1
-	su debian-spamd -c "pyzor --homedir /etc/mail/spamassassin/.pyzor discover >/dev/null 2>&1"
-	su debian-spamd -c "sa-update >/dev/null 2>&1"
-	systemctl enable spamassassin >/dev/null 2>&1
+	razor-admin -create -home /etc/razor -conf=/etc/razor/razor-agent.conf >>/root/stderror.log 2>&1  >> /root/stdout.log
+	razor-admin -discover -home /etc/razor >>/root/stderror.log 2>&1  >> /root/stdout.log
+	razor-admin -register -home /etc/razor >>/root/stderror.log 2>&1  >> /root/stdout.log
+	su debian-spamd -c "pyzor --homedir /etc/mail/spamassassin/.pyzor discover" >>/root/stderror.log 2>&1  >> /root/stdout.log
+	su debian-spamd -c "sa-update" >>/root/stderror.log 2>&1  >> /root/stdout.log
+	systemctl enable spamassassin >>/root/stderror.log 2>&1  >> /root/stdout.log
 
 	# Mailcow
 	echo "${info} Installing Mailcow..." | awk '{ print strftime("[%H:%M:%S] |"), $0 }'
 	mkdir -p /var/mailcow/log
-	mkdir -p /var/www/ >/dev/null 2>&1
+	mkdir -p /var/www/ >>/root/stderror.log 2>&1  >> /root/stdout.log
 	cp ~/sources/mailcow/webserver/php5-fpm/conf/pool/mail.conf /etc/php5/fpm/pool.d/mail.conf
 	sed -i "/date.timezone/c\php_admin_value[date.timezone] = ${TIMEZONE}" /etc/php5/fpm/pool.d/mail.conf
-	mkdir /var/lib/php5/sessions >/dev/null 2>&1
+	mkdir /var/lib/php5/sessions >>/root/stderror.log 2>&1  >> /root/stdout.log
 	chown -R www-data:www-data /var/lib/php5/sessions
 	install -m 755 ~/sources/mailcow/misc/mc_setup_backup /usr/local/sbin/mc_setup_backup
 	cp -R ~/sources/mailcow/webserver/htdocs/{mail,dav,zpush} /var/www/
@@ -301,10 +300,10 @@ END
 	chown -R www-data: /var/www/zpush/mail/
 
 	# Cleaning up old files
-	sed -i '/test -d /var/run/fetchmail/d' /etc/rc.local >/dev/null 2>&1
-	rm /etc/cron.d/pfadminfetchmail >/dev/null 2>&1
-	rm /etc/mail/postfixadmin/fetchmail.conf >/dev/null 2>&1
-	rm /usr/local/bin/fetchmail.pl >/dev/null 2>&1
+	sed -i '/test -d /var/run/fetchmail/d' /etc/rc.local >>/root/stderror.log 2>&1  >> /root/stdout.log
+	rm /etc/cron.d/pfadminfetchmail >>/root/stderror.log 2>&1  >> /root/stdout.log
+	rm /etc/mail/postfixadmin/fetchmail.conf >>/root/stderror.log 2>&1  >> /root/stdout.log
+	rm /usr/local/bin/fetchmail.pl >>/root/stderror.log 2>&1  >> /root/stdout.log
 
 	# Create Nginx Config
 	cat > /etc/nginx/sites-custom/mailcow.conf <<END
@@ -620,6 +619,21 @@ END
 		rm -rf ~/sources/mailcow/roundcube/inst/1.1.3
 		rm -rf /var/www/mail/rc/installer/
 
+echo "${info} Updateing RoundCube..." | awk '{ print strftime("[%H:%M:%S] |"), $0 }'
+# ---------------------------------------------------------------------------------------- #
+########################### UPDATE ROUNDCUBE
+# ---------------------------------------------------------------------------------------- #
+	cd ~/sources >>/root/stderror.log 2>&1  >> /root/stdout.log
+	wget https://github.com/roundcube/roundcubemail/releases/download/${ROUNDCUBE_VERSION}/roundcubemail-${ROUNDCUBE_VERSION}-complete.tar.gz >/dev/null 2>&1
+	tar xfvz roundcubemail-${ROUNDCUBE_VERSION}-complete.tar.gz >>/root/stderror.log 2>&1  >> /root/stdout.log
+	cd roundcubemail-${ROUNDCUBE_VERSION} >>/root/stderror.log 2>&1  >> /root/stdout.log
+	yes | bin/installto.sh /var/www/mail/rc >>/root/stderror.log 2>&1  >> /root/stdout.log
+	rm -r /root/roundcubemail-${ROUNDCUBE_VERSION}/  >>/root/stderror.log 2>&1  >> /root/stdout.log
+	rm -f /root/roundcubemail-${ROUNDCUBE_VERSION}-complete.tar.gz/ >>/root/stderror.log 2>&1  >> /root/stdout.log
+	echo "${ok} Finished: Roundcube Update" | awk '{ print strftime("[%H:%M:%S] |"), $0 }'
+
+
+
 		# Create Nginx Config
 		cat > /etc/nginx/sites-custom/roundcube.conf <<END
 location /mail {
@@ -649,12 +663,12 @@ END
 
 	# Rsyslogd
 	if [[ -d /etc/rsyslog.d ]]; then
-		rm /etc/rsyslog.d/10-fufix >/dev/null 2>&1
+		rm /etc/rsyslog.d/10-fufix >>/root/stderror.log 2>&1  >> /root/stdout.log
 		cp ~/sources/mailcow/rsyslog/conf/10-mailcow /etc/rsyslog.d/
-		service rsyslog restart >/dev/null 2>&1
-		postlog -p warn dummy >/dev/null 2>&1
-		postlog -p info dummy >/dev/null 2>&1
-		postlog -p err dummy >/dev/null 2>&1
+		service rsyslog restart >>/root/stderror.log 2>&1  >> /root/stdout.log
+		postlog -p warn dummy >>/root/stderror.log 2>&1  >> /root/stdout.log
+		postlog -p info dummy >>/root/stderror.log 2>&1  >> /root/stdout.log
+		postlog -p err dummy >>/root/stderror.log 2>&1  >> /root/stdout.log
 	fi
 fi
 

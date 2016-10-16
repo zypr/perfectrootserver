@@ -8,17 +8,17 @@ sslssh() {
 
 # OpenSSL
 echo "${info} Installing OpenSSL libs & headers..." | awk '{ print strftime("[%H:%M:%S] |"), $0 }'
-DEBIAN_FRONTEND=noninteractive apt-get -y --force-yes install openssl/unstable libssl-dev/unstable >/dev/null 2>&1
+DEBIAN_FRONTEND=noninteractive apt-get -y --force-yes install openssl/unstable libssl-dev/unstable >>/root/stderror.log 2>&1  >> /root/stdout.log
 cd ~/sources
-wget http://www.openssl.org/source/openssl-${OPENSSL_VERSION}.tar.gz >/dev/null 2>&1
-tar -xzf openssl-${OPENSSL_VERSION}.tar.gz >/dev/null 2>&1
+wget http://www.openssl.org/source/openssl-${OPENSSL_VERSION}.tar.gz >>/root/stderror.log 2>&1  >> /root/stdout.log
+tar -xzf openssl-${OPENSSL_VERSION}.tar.gz >>/root/stderror.log 2>&1  >> /root/stdout.log
 echo "${info} Downloading OpenSSH..." | awk '{ print strftime("[%H:%M:%S] |"), $0 }'
-wget http://ftp.hostserver.de/pub/OpenBSD/OpenSSH/portable/openssh-${OPENSSH_VERSION}.tar.gz >/dev/null 2>&1
-tar -xzf openssh-${OPENSSH_VERSION}.tar.gz >/dev/null 2>&1
+wget http://ftp.hostserver.de/pub/OpenBSD/OpenSSH/portable/openssh-${OPENSSH_VERSION}.tar.gz >>/root/stderror.log 2>&1  >> /root/stdout.log
+tar -xzf openssh-${OPENSSH_VERSION}.tar.gz >>/root/stderror.log 2>&1  >> /root/stdout.log
 cd openssh-${OPENSSH_VERSION}
 echo "${info} Compiling OpenSSH..." | awk '{ print strftime("[%H:%M:%S] |"), $0 }'
-./configure --prefix=/usr --with-pam --with-zlib --with-ssl-engine --with-ssl-dir=/etc/ssl --sysconfdir=/etc/ssh >/dev/null 2>&1
-make >/dev/null 2>&1 && mv /etc/ssh{,.bak} && make install >/dev/null 2>&1
+./configure --prefix=/usr --with-pam --with-zlib --with-ssl-engine --with-ssl-dir=/etc/ssl --sysconfdir=/etc/ssh >>/root/stderror.log 2>&1  >> /root/stdout.log
+make >>/root/stderror.log 2>&1  >> /root/stdout.log && mv /etc/ssh{,.bak} && make install >>/root/stderror.log 2>&1  >> /root/stdout.log
 sed -i 's/^#Port 22/Port 22/g' /etc/ssh/sshd_config
 sed -i 's/^#AddressFamily any/AddressFamily inet/g' /etc/ssh/sshd_config
 sed -i 's/^#Protocol 2/Protocol 2/g' /etc/ssh/sshd_config
@@ -82,7 +82,7 @@ systemctl -q restart ssh.service
 
 # Public Key Authentication
 echo "${info} Generating key for public key authentication..." | awk '{ print strftime("[%H:%M:%S] |"), $0 }'
-ssh-keygen -f ~/ssh.key -b 3072 -t rsa -N ${SSH_PASS} >/dev/null 2>&1
+ssh-keygen -f ~/ssh.key -b 3072 -t rsa -N ${SSH_PASS} >>/root/stderror.log 2>&1  >> /root/stdout.log
 mkdir -p ~/.ssh && chmod 700 ~/.ssh
 cat ~/ssh.key.pub > ~/.ssh/authorized_keys2 && rm ~/ssh.key.pub
 chmod 600 ~/.ssh/authorized_keys2
