@@ -24,14 +24,14 @@ source sources/script/system.sh
 	fi
 	
 	if [ $(dpkg-query -l | grep libcrack2 | wc -l) -ne 1 ]; then
-		apt-get update -y >>/root/stderror.log 2>&1  >> /root/stdout.log && apt-get -y --force-yes install libcrack2 >>/root/stderror.log 2>&1  >> /root/stdout.log
+		apt-get update -y >>/root/stderror.log 2>&1 >>/root/stdout.log && apt-get -y --force-yes install libcrack2 >>/root/stderror.log 2>&1 >>/root/stdout.log
 	fi
 
 	for var in ${MAILCOW_ADMIN_PASS} ${PMA_HTTPAUTH_PASS} ${PMA_BFSECURE_PASS} ${SSH_PASS} ${MYSQL_ROOT_PASS} ${MYSQL_MCDB_PASS} ${MYSQL_RCDB_PASS} ${MYSQL_RCDB_PASS} ${MYSQL_PMADB_PASS}
 	do
-		if echo "${var}" | grep -P '(?=^.{8,255}$)(?=^[^\s]*$)(?=.*\d)(?=.*[A-Z])(?=.*[a-z])'; then
+		if echo "${var}" | grep -P '(?=^.{8,255}$)(?=^[^\s]*$)(?=.*\d)(?=.*[A-Z])(?=.*[a-z])' >>/root/stderror.log 2>&1 >>/root/stdout.log; then
 			if [[ "$(awk -F': ' '{ print $2}' <<<"$(cracklib-check <<<"${var}")")" == "OK" ]]; then
-				echo >>/root/stderror.log 2>&1  >> /root/stdout.log
+				echo >>/root/stderror.log 2>&1 >>/root/stdout.log
 			else
 				echo "${error} One of your passwords was rejected!" | awk '{ print strftime("[%H:%M:%S] |"), $0 }'
 				echo "${info} Your password must be a minimum of 8 characters and must include at least 1 number, 1 uppercase and 1 lowercase letter." | awk '{ print strftime("[%H:%M:%S] |"), $0 }'
@@ -39,12 +39,12 @@ source sources/script/system.sh
 				echo
 				while true; do
 					echo "${info} Press $(textb ENTER) to show the weak password or $(textb CTRL-C) to cancel the process" | awk '{ print strftime("[%H:%M:%S] |"), $0 }'
+					stopit="stop"
 					read -s -n 1 i
 					case $i in
 					* ) echo;echo "-----------------------" | awk '{ print strftime("[%H:%M:%S] |"), $0 }';echo "$(cracklib-check <<<\"${var}\")" | awk '{ print strftime("[%H:%M:%S] |"), $0 }';echo "-----------------------" | awk '{ print strftime("[%H:%M:%S] |"), $0 }';echo;break;;
 					esac
 				done
-				exit 1
 			fi
 		else
 			echo "${error} One of your passwords is too weak." | awk '{ print strftime("[%H:%M:%S] |"), $0 }'
@@ -53,14 +53,17 @@ source sources/script/system.sh
 			echo
 			while true; do
 				echo "${info} Press $(textb ENTER) to show the weak password or $(textb CTRL-C) to cancel the process" | awk '{ print strftime("[%H:%M:%S] |"), $0 }'
+				stopit="stop"
 				read -s -n 1 i
 				case $i in
 				* ) echo;echo "-----------------------" | awk '{ print strftime("[%H:%M:%S] |"), $0 }';echo "$(textb ${var})" | awk '{ print strftime("[%H:%M:%S] |"), $0 }';echo "-----------------------" | awk '{ print strftime("[%H:%M:%S] |"), $0 }';echo;break;;
 				esac
 				done
-				exit 1
 		fi
 	done
+		if [ $stopit=="stop" ]; then
+			exit 1
+		fi
 	
 	
 	if [ ${USE_VSFTPD} == '1' ]; then
