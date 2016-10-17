@@ -61,7 +61,7 @@ source sources/script/system.sh
 				done
 		fi
 	done
-		if [ $stopit=="stop" ]; then
+		if [ $stopit == "stop" ]; then
 			exit 1
 		fi
 	
