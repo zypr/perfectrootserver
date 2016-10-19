@@ -8,6 +8,8 @@ mailserver() {
 
 if [ ${USE_MAILSERVER} == '1' ]; then
 	echo "${info} Installing mailserver..." | awk '{ print strftime("[%H:%M:%S] |"), $0 }'
+			apt-get purge exim4*
+			apt-get install apparmor apparmor-profiles apparmor-utils
 			/usr/sbin/make-ssl-cert generate-default-snakeoil --force-overwrite
 			
 echo "${info} Point 1" | awk '{ print strftime("[%H:%M:%S] |"), $0 }'			
@@ -97,11 +99,11 @@ echo "${info} Point 7" | awk '{ print strftime("[%H:%M:%S] |"), $0 }'
 			install -m 644 ~/sources/mailcow/postfix/conf/smtp_dsn_filter.pcre /etc/postfix/smtp_dsn_filter.pcre
 			sed -i "s/sys_hostname.sys_domain/mail.${MYDOMAIN}/g" /etc/postfix/main.cf
 			sed -i "s/sys_domain/${MYDOMAIN}/g" /etc/postfix/main.cf
-			sed -i "s/my_mailcowpass/${MYSQL_MCDB_PASS}/g" /etc/postfix/sql/* /etc/cron.daily/mc_clean_spam_aliases
-			sed -i "s/my_mailcowuser/${MYSQL_MCDB_USER}/g" /etc/postfix/sql/* /etc/cron.daily/mc_clean_spam_aliases
-			sed -i "s/my_mailcowdb/${MYSQL_MCDB_NAME}/g" /etc/postfix/sql/* /etc/cron.daily/mc_clean_spam_aliases
-			sed -i "s/my_dbhost/${MYSQL_HOSTNAME}/g" /etc/postfix/sql/* /etc/cron.daily/mc_clean_spam_aliases
-			sed -i '/^POSTGREY_OPTS=/s/=.*/="--inet=127.0.0.1:10023"/' /etc/default/postgrey
+			sed -i "s/my_mailcowpass/${MYSQL_MCDB_PASS}/g" /etc/postfix/sql/*
+			sed -i "s/my_mailcowuser/${MYSQL_MCDB_USER}/g" /etc/postfix/sql/*
+			sed -i "s/my_mailcowdb/${MYSQL_MCDB_NAME}/g" /etc/postfix/sql/*
+			sed -i "s/my_dbhost/${MYSQL_HOSTNAME}/g" /etc/postfix/sql/*
+			sed -i '/^POSTGREY_OPTS=/s/=.*/="--inet=127.0.0.1:10023"/'
 			chmod 755 /var/spool/
 			sed -i "/%www-data/d" /etc/sudoers
 			sed -i "/%vmail/d" /etc/sudoers
@@ -234,7 +236,7 @@ echo "${info} Point 17" | awk '{ print strftime("[%H:%M:%S] |"), $0 }'
 		#webserver
 			mkdir -p /var/www/ 
 				# Some systems miss the default php fpm listener, reinstall it now
-				apt-get -o Dpkg::Options::="--force-confmiss" install -y --reinstall php5-fpm > /dev/null
+				#apt-get -o Dpkg::Options::="--force-confmiss" install -y --reinstall php5-fpm > /dev/null
 				rm /etc/nginx/sites-enabled/*mailcow* 2>/dev/null
 				cp ~/sources/mailcow/webserver/nginx/conf/sites-available/mailcow_rc /etc/nginx/sites-available/mailcow.conf
 				cp ~/sources/mailcow/webserver/php-fpm/conf/5/pool/mail.conf /etc/php5/fpm/pool.d/mail.conf
@@ -258,7 +260,10 @@ echo "${info} Point 17" | awk '{ print strftime("[%H:%M:%S] |"), $0 }'
 			sed -i "s/MAILCOW_HASHING/SHA512-CRYPT/g" /var/www/mail/inc/vars.inc.php
 			chown -R www-data: /var/www/mail/. /var/lib/php5/sessions
 			
-echo "${info} Point 18" | awk '{ print strftime("[%H:%M:%S] |"), $0 }'				
+echo "${info} Point 18" | awk '{ print strftime("[%H:%M:%S] |"), $0 }'	
+
+			hashing_method="SHA512-CRYPT"
+			
 			mysql --host ${MYSQL_HOSTNAME} -u root -p${MYSQL_ROOT_PASS} ${MYSQL_MCDB_NAME} < ~/sources/mailcow/webserver/htdocs/init.sql
 			if [[ -z $(mysql --host ${MYSQL_HOSTNAME} -u root -p${MYSQL_ROOT_PASS} ${MYSQL_MCDB_NAME} -e "SHOW COLUMNS FROM domain LIKE 'relay_all_recipients';" -N -B) ]]; then
 				mysql --host ${MYSQL_HOSTNAME} -u root -p${MYSQL_ROOT_PASS} ${MYSQL_MCDB_NAME} -e "ALTER TABLE domain ADD relay_all_recipients tinyint(1) NOT NULL DEFAULT '0';" -N -B
@@ -267,17 +272,18 @@ echo "${info} Point 18" | awk '{ print strftime("[%H:%M:%S] |"), $0 }'
 				mysql --host ${MYSQL_HOSTNAME} -u root -p${MYSQL_ROOT_PASS} ${MYSQL_MCDB_NAME} -e "ALTER TABLE mailbox ADD tls_enforce_in tinyint(1) NOT NULL DEFAULT '0';" -N -B
 				mysql --host ${MYSQL_HOSTNAME} -u root -p${MYSQL_ROOT_PASS} ${MYSQL_MCDB_NAME} -e "ALTER TABLE mailbox ADD tls_enforce_out tinyint(1) NOT NULL DEFAULT '0';" -N -B
 			fi
+echo "${info} Point 19" | awk '{ print strftime("[%H:%M:%S] |"), $0 }'				
 			mysql --host ${MYSQL_HOSTNAME} -u root -p${MYSQL_ROOT_PASS} ${MYSQL_MCDB_NAME} -e "DELETE FROM spamalias"
 			mysql --host ${MYSQL_HOSTNAME} -u root -p${MYSQL_ROOT_PASS} ${MYSQL_MCDB_NAME} -e "ALTER TABLE spamalias MODIFY COLUMN validity int(11) NOT NULL"
 			if [[ $(mysql --host ${MYSQL_HOSTNAME} -u root -p${MYSQL_ROOT_PASS} ${MYSQL_MCDB_NAME} -s -N -e "SELECT * FROM admin;" | wc -l) -lt 1 ]]; then
-				mailcow_admin_pass_hashed=$(doveadm pw -s SHA512-CRYPT -p ${mailcow_admin_pass})
+				mailcow_admin_pass_hashed=$(doveadm pw -s ${hashing_method} -p ${mailcow_admin_pass})
 				mysql --host ${MYSQL_HOSTNAME} -u root -p${MYSQL_ROOT_PASS} ${MYSQL_MCDB_NAME} -e "INSERT INTO admin VALUES ('$mailcow_admin_user','${mailcow_admin_pass_hashed}', '1', NOW(), NOW(), '1');"
 				mysql --host ${MYSQL_HOSTNAME} -u root -p${MYSQL_ROOT_PASS} ${MYSQL_MCDB_NAME} -e "INSERT INTO domain_admins (username, domain, created, active) VALUES ('$mailcow_admin_user', 'ALL', NOW(), '1');"
 			else
 				echo "$(textb [INFO]) - An administrator exists, will not create another mailcow administrator"
 			fi
 
-echo "${info} Point 19" | awk '{ print strftime("[%H:%M:%S] |"), $0 }'				
+echo "${info} Point 20" | awk '{ print strftime("[%H:%M:%S] |"), $0 }'				
 		#roundcube
 			mkdir -p /var/www/mail/rc
 			tar xf ~/sources/mailcow/roundcube/inst/1.2.1.tar -C ~/sources/mailcow/roundcube/inst/
@@ -294,7 +300,7 @@ echo "${info} Point 19" | awk '{ print strftime("[%H:%M:%S] |"), $0 }'
 			rm -rf roundcube/inst/1.2.1
 			rm -rf /var/www/mail/rc/installer/
 
-echo "${info} Point 20" | awk '{ print strftime("[%H:%M:%S] |"), $0 }'				
+echo "${info} Point 21" | awk '{ print strftime("[%H:%M:%S] |"), $0 }'				
 		#restartservices
 			[[ -f /lib/systemd/systemd ]] && echo "$(textb [INFO]) - Restarting services, this may take a few seconds..."
 			
