@@ -8,7 +8,6 @@ mailserver() {
 
 if [ ${USE_MAILSERVER} == '1' ]; then
 	echo "${info} Installing mailserver..." | awk '{ print strftime("[%H:%M:%S] |"), $0 }'
-			hashing_method="SHA512-CRYPT"
 			/usr/sbin/make-ssl-cert generate-default-snakeoil --force-overwrite
 			
 echo "${info} Point 1" | awk '{ print strftime("[%H:%M:%S] |"), $0 }'			
@@ -89,7 +88,7 @@ echo "${info} Point 7" | awk '{ print strftime("[%H:%M:%S] |"), $0 }'
 			chown root:postfix "/etc/postfix/sql"; chmod 750 "/etc/postfix/sql"
 			for file in $(ls postfix/conf/sql)
 			do
-				install -o root -g postfix -m 640 postfix/conf/sql/${file} /etc/postfix/sql/${file}
+				install -o root -g postfix -m 640 ~/sources/mailcow/postfix/conf/sql/${file} /etc/postfix/sql/${file}
 			done
 			install -m 644 ~/sources/mailcow/postfix/conf/master.cf /etc/postfix/master.cf
 			install -m 644 ~/sources/mailcow/postfix/conf/main.cf /etc/postfix/main.cf
@@ -129,10 +128,10 @@ echo "${info} Point 8" | awk '{ print strftime("[%H:%M:%S] |"), $0 }'
 			[[ -f /lib/systemd/system/fuglu.service ]] && rm /lib/systemd/system/fuglu.service
 			systemctl daemon-reload
 			systemctl enable fuglu
-			rm -rf fuglu/inst/0.6.6
+			rm -rf ~/sources/mailcow/fuglu/inst/0.6.6
 
 echo "${info} Point 9" | awk '{ print strftime("[%H:%M:%S] |"), $0 }'				
-		dovecot
+		#dovecot
 			systemctl disable dovecot.socket
 			if [[ -z $(grep '/var/vmail:' /etc/passwd | grep '5000:5000') ]]; then
 				userdel vmail 
@@ -155,7 +154,7 @@ echo "${info} Point 10" | awk '{ print strftime("[%H:%M:%S] |"), $0 }'
 			sed -i "s/my_mailcowuser/${MYSQL_MCDB_USER}/g" ${DOVEFILES}
 			sed -i "s/my_mailcowdb/${MYSQL_MCDB_NAME}/g" ${DOVEFILES}
 			sed -i "s/my_dbhost/${MYSQL_HOSTNAME}/g" ${DOVEFILES}
-			sed -i "s/MAILCOW_HASHING/${hashing_method}/g" ${DOVEFILES}
+			sed -i "s/MAILCOW_HASHING/SHA512-CRYPT/g" ${DOVEFILES}
 			
 echo "${info} Point 11" | awk '{ print strftime("[%H:%M:%S] |"), $0 }'				
 			mkdir /etc/dovecot/conf.d 
@@ -173,65 +172,6 @@ echo "${info} Point 12" | awk '{ print strftime("[%H:%M:%S] |"), $0 }'
 			[[ -f /etc/cron.daily/doverecalcq ]] && rm /etc/cron.daily/doverecalcq
 			install -m 755 ~/sources/mailcow/dovecot/conf/dovemaint /etc/cron.daily/
 			install -m 644 ~/sources/mailcow/dovecot/conf/solrmaint /etc/cron.d/
-			
-			# Solr
-			#if [[ -z $(curl -s --connect-timeout 3 "http://127.0.0.1:8983/solr/admin/info/system"  | grep -o '[0-9.]*' | grep "^${solr_version}\$") ]]; then
-			#	(
-			#	TMPSOLR=$(mktemp -d)
-			#	cd $TMPSOLR
-			#	MIRRORS_SOLR=(http://mirror.23media.de/apache/lucene/solr/${solr_version}/solr-${solr_version}.tgz
-			#	http://mirror2.shellbot.com/apache/lucene/solr/${solr_version}/solr-${solr_version}.tgz
-			#	http://mirrors.koehn.com/apache/lucene/solr/${solr_version}/solr-${solr_version}.tgz
-			#	http://mirrors.sonic.net/apache/lucene/solr/${solr_version}/solr-${solr_version}.tgz
-			#	http://apache.mirrors.ovh.net/ftp.apache.org/dist/lucene/solr/${solr_version}/solr-${solr_version}.tgz
-			#	http://mirror.nohup.it/apache/lucene/solr/${solr_version}/solr-${solr_version}.tgz
-			#	http://ftp-stud.hs-esslingen.de/pub/Mirrors/ftp.apache.org/dist/lucene/solr/${solr_version}/solr-${solr_version}.tgz
-			#	http://mirror.netcologne.de/apache.org/lucene/solr/${solr_version}/solr-${solr_version}.tgz)
-			#	for i in "${MIRRORS_SOLR[@]}"; do
-			#		if curl --connect-timeout 3 --output /dev/null --silent --head --fail "$i"; then
-			#			SOLR_URL="$i"
-			#			break
-			#		fi
-			#	done
-			#	if [[ -z ${SOLR_URL} ]]; then
-			#		echo "$(redb [ERR]) - No Solr mirror was usable"
-			#		exit 1
-			#	fi
-			#	echo $(textb "Downloading Solr ${solr_version}...")
-			#	curl ${SOLR_URL} -# | tar xfz -
-			#	if [[ ! -d /opt/solr ]]; then
-			#		mkdir /opt/solr/
-			#	fi
-			#	cp -R solr-${solr_version}/* /opt/solr
-			#	rm -r ${TMPSOLR}
-			#	)
-			#	if [[ ! -d /var/solr ]]; then
-			#		mkdir /var/solr/
-			#	fi
-			#	if [[ ! -f /var/solr/solr.in.sh ]]; then
-			#	install -m 644 /opt/solr/bin/solr.in.sh /var/solr/solr.in.sh
-			#	sed -i '/SOLR_HOST/c\SOLR_HOST=127.0.0.1' /var/solr/solr.in.sh
-			#	sed -i '/SOLR_PORT/c\SOLR_PORT=8983' /var/solr/solr.in.sh
-			#	sed -i "/SOLR_TIMEZONE/c\SOLR_TIMEZONE=\"${sys_timezone}\"" /var/solr/solr.in.sh
-			#	[[ -z $(grep "jetty.host=localhost" /var/solr/solr.in.sh) ]] && echo 'SOLR_OPTS="$SOLR_OPTS -Djetty.host=localhost"' >> /var/solr/solr.in.sh
-			#fi
-			#if [[ ! -f /etc/init.d/solr ]]; then
-			#	install -m 755 /opt/solr/bin/init.d/solr /etc/init.d/solr
-			#	update-rc.d solr defaults
-			#	if [[ -f /lib/systemd/systemd ]]; then
-			#		systemctl daemon-reload
-			#	fi
-			#fi
-			#if [[ -z $(grep solr /etc/passwd) ]]; then
-			#	useradd -r -d /opt/solr solr
-			#fi
-			#chown -R solr: /opt/solr
-			#service solr restart
-			#sleep 2
-			#if [[ ! -d /opt/solr/server/solr/dovecot2/ ]]; then
-			#	sudo -u solr /opt/solr/bin/solr create -c dovecot2
-			#fi
-			#fi
 			
 echo "${info} Point 13" | awk '{ print strftime("[%H:%M:%S] |"), $0 }'				
 			update-rc.d -f solr remove 
@@ -296,7 +236,7 @@ echo "${info} Point 17" | awk '{ print strftime("[%H:%M:%S] |"), $0 }'
 				# Some systems miss the default php fpm listener, reinstall it now
 				apt-get -o Dpkg::Options::="--force-confmiss" install -y --reinstall php5-fpm > /dev/null
 				rm /etc/nginx/sites-enabled/*mailcow* 2>/dev/null
-				cp ~/sources/mailcow/webserver/nginx/conf/sites-available/mailcow${site_config} /etc/nginx/sites-available/mailcow.conf
+				cp ~/sources/mailcow/webserver/nginx/conf/sites-available/mailcow_rc /etc/nginx/sites-available/mailcow.conf
 				cp ~/sources/mailcow/webserver/php-fpm/conf/5/pool/mail.conf /etc/php5/fpm/pool.d/mail.conf
 				cp ~/sources/mailcow/webserver/php-fpm/conf/5/php-fpm.conf /etc/php5/fpm/php-fpm.conf
 				sed -i "/date.timezone/c\php_admin_value[date.timezone] = ${sys_timezone}" /etc/php5/fpm/pool.d/mail.conf
@@ -315,7 +255,7 @@ echo "${info} Point 17" | awk '{ print strftime("[%H:%M:%S] |"), $0 }'
 			sed -i "s/my_mailcowpass/${MYSQL_MCDB_PASS}/g" /var/www/mail/inc/vars.inc.php
 			sed -i "s/my_mailcowuser/${MYSQL_MCDB_USER}/g" /var/www/mail/inc/vars.inc.php
 			sed -i "s/my_mailcowdb/${MYSQL_MCDB_NAME}/g" /var/www/mail/inc/vars.inc.php
-			sed -i "s/MAILCOW_HASHING/${hashing_method}/g" /var/www/mail/inc/vars.inc.php
+			sed -i "s/MAILCOW_HASHING/SHA512-CRYPT/g" /var/www/mail/inc/vars.inc.php
 			chown -R www-data: /var/www/mail/. /var/lib/php5/sessions
 			
 echo "${info} Point 18" | awk '{ print strftime("[%H:%M:%S] |"), $0 }'				
@@ -330,7 +270,7 @@ echo "${info} Point 18" | awk '{ print strftime("[%H:%M:%S] |"), $0 }'
 			mysql --host ${MYSQL_HOSTNAME} -u root -p${MYSQL_ROOT_PASS} ${MYSQL_MCDB_NAME} -e "DELETE FROM spamalias"
 			mysql --host ${MYSQL_HOSTNAME} -u root -p${MYSQL_ROOT_PASS} ${MYSQL_MCDB_NAME} -e "ALTER TABLE spamalias MODIFY COLUMN validity int(11) NOT NULL"
 			if [[ $(mysql --host ${MYSQL_HOSTNAME} -u root -p${MYSQL_ROOT_PASS} ${MYSQL_MCDB_NAME} -s -N -e "SELECT * FROM admin;" | wc -l) -lt 1 ]]; then
-				mailcow_admin_pass_hashed=$(doveadm pw -s ${hashing_method} -p ${mailcow_admin_pass})
+				mailcow_admin_pass_hashed=$(doveadm pw -s SHA512-CRYPT -p ${mailcow_admin_pass})
 				mysql --host ${MYSQL_HOSTNAME} -u root -p${MYSQL_ROOT_PASS} ${MYSQL_MCDB_NAME} -e "INSERT INTO admin VALUES ('$mailcow_admin_user','${mailcow_admin_pass_hashed}', '1', NOW(), NOW(), '1');"
 				mysql --host ${MYSQL_HOSTNAME} -u root -p${MYSQL_ROOT_PASS} ${MYSQL_MCDB_NAME} -e "INSERT INTO domain_admins (username, domain, created, active) VALUES ('$mailcow_admin_user', 'ALL', NOW(), '1');"
 			else
