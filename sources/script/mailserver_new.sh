@@ -86,7 +86,7 @@ echo "${info} Point 7" | awk '{ print strftime("[%H:%M:%S] |"), $0 }'
 		#postfix
 			mkdir -p /etc/postfix/sql
 			chown root:postfix "/etc/postfix/sql"; chmod 750 "/etc/postfix/sql"
-			for file in $(ls postfix/conf/sql)
+			for file in $(ls ~/sources/mailcow/postfix/conf/sql)
 			do
 				install -o root -g postfix -m 640 ~/sources/mailcow/postfix/conf/sql/${file} /etc/postfix/sql/${file}
 			done
@@ -247,7 +247,7 @@ echo "${info} Point 17" | awk '{ print strftime("[%H:%M:%S] |"), $0 }'
 				sed -i "s/MAILCOW_HOST.MAILCOW_DOMAIN;/${sys_hostname}.${sys_domain};/g" /etc/nginx/sites-available/mailcow.conf
 				sed -i "s/MAILCOW_DOMAIN;/${sys_domain};/g" /etc/nginx/sites-available/mailcow.conf
 			mkdir /var/lib/php5/sessions 
-			cp -R webserver/htdocs/mail /var/www/
+			cp -R ~/sources/mailcow/webserver/htdocs/mail /var/www/
 			find /var/www/mail -type d -exec chmod 755 {} \;
 			find /var/www/mail -type f -exec chmod 644 {} \;
 			echo none > /var/log/pflogsumm.log
@@ -259,7 +259,7 @@ echo "${info} Point 17" | awk '{ print strftime("[%H:%M:%S] |"), $0 }'
 			chown -R www-data: /var/www/mail/. /var/lib/php5/sessions
 			
 echo "${info} Point 18" | awk '{ print strftime("[%H:%M:%S] |"), $0 }'				
-			mysql --host ${MYSQL_HOSTNAME} -u root -p${MYSQL_ROOT_PASS} ${MYSQL_MCDB_NAME} < webserver/htdocs/init.sql
+			mysql --host ${MYSQL_HOSTNAME} -u root -p${MYSQL_ROOT_PASS} ${MYSQL_MCDB_NAME} < ~/sources/mailcow/webserver/htdocs/init.sql
 			if [[ -z $(mysql --host ${MYSQL_HOSTNAME} -u root -p${MYSQL_ROOT_PASS} ${MYSQL_MCDB_NAME} -e "SHOW COLUMNS FROM domain LIKE 'relay_all_recipients';" -N -B) ]]; then
 				mysql --host ${MYSQL_HOSTNAME} -u root -p${MYSQL_ROOT_PASS} ${MYSQL_MCDB_NAME} -e "ALTER TABLE domain ADD relay_all_recipients tinyint(1) NOT NULL DEFAULT '0';" -N -B
 			fi
@@ -287,7 +287,7 @@ echo "${info} Point 19" | awk '{ print strftime("[%H:%M:%S] |"), $0 }'
 				sed -i "s/my_rcuser/${MYSQL_RCDB_USER}/g" /var/www/mail/rc/config/config.inc.php
 				sed -i "s/my_rcpass/${MYSQL_RCDB_PASS}/g" /var/www/mail/rc/config/config.inc.php
 				sed -i "s/my_rcdb/${MYSQL_RCDB_NAME}/g" /var/www/mail/rc/config/config.inc.php
-				sed -i "s/conf_rcdeskey/$(genpasswd)/g" /var/www/mail/rc/config/config.inc.php
+				sed -i "s/conf_rcdeskey/$(generatepw)/g" /var/www/mail/rc/config/config.inc.php
 				sed -i "s/MAILCOW_HOST.MAILCOW_DOMAIN/mail.${MYDOMAIN}/g" /var/www/mail/rc/config/config.inc.php
 				mysql --host ${MYSQL_HOSTNAME} -u ${MYSQL_RCDB_USER} -p${MYSQL_RCDB_PASS} ${MYSQL_RCDB_NAME} < /var/www/mail/rc/SQL/mysql.initial.sql
 			chown -R www-data: /var/www/mail/rc
@@ -309,3 +309,4 @@ fi
 }
 
 source ~/userconfig.cfg
+source ~/checksystem.sh
