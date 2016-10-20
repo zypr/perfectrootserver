@@ -47,7 +47,6 @@ echo "${info} Point 4" | awk '{ print strftime("[%H:%M:%S] |"), $0 }'
 
 echo "${info} Point 5" | awk '{ print strftime("[%H:%M:%S] |"), $0 }'				
 		#mysql
-			if [[ ${mysql_useable} -ne 1 ]]; then
 				if [[ ! -z $(mysql --version | grep '5.7') ]]; then
 					# MySQL >= 5.7 uses auth_socket when installing without password (like we do)
 					for host in $(mysql --defaults-file=/etc/mysql/debian.cnf mysql -e "select Host from user where User='root';" -BN); do
@@ -236,7 +235,7 @@ echo "${info} Point 17" | awk '{ print strftime("[%H:%M:%S] |"), $0 }'
 				cp ~/sources/mailcow/webserver/nginx/conf/sites-available/mailcow_rc /etc/nginx/sites-available/mailcow.conf
 				cp ~/sources/mailcow/webserver/php-fpm/conf/5/pool/mail.conf /etc/php5/fpm/pool.d/mail.conf
 				cp ~/sources/mailcow/webserver/php-fpm/conf/5/php-fpm.conf /etc/php5/fpm/php-fpm.conf
-				sed -i "/date.timezone/c\php_admin_value[date.timezone] = ${sys_timezone}" /etc/php5/fpm/pool.d/mail.conf
+				sed -i "/date.timezone/c\php_admin_value[date.timezone] = ${TIMEZONE}" /etc/php5/fpm/pool.d/mail.conf
 				ln -s /etc/nginx/sites-available/mailcow.conf /etc/nginx/sites-enabled/mailcow.conf 2>/dev/null
 				[[ ! -z $(grep "server_names_hash_bucket_size" /etc/nginx/nginx.conf) ]] && \
 					sed -i "/server_names_hash_bucket_size/c\ \ \ \ \ \ \ \ server_names_hash_bucket_size 64;" /etc/nginx/nginx.conf || \
