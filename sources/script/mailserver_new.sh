@@ -8,7 +8,7 @@ mailserver() {
 
 if [ ${USE_MAILSERVER} == '1' ]; then
 	echo "${info} Installing mailserver..." | awk '{ print strftime("[%H:%M:%S] |"), $0 }'
-			apt-get purge exim4* >/dev/null
+			#############apt-get -y purge exim4* >/dev/null
 			/usr/sbin/make-ssl-cert generate-default-snakeoil --force-overwrite
 			
 echo "${info} Point 1" | awk '{ print strftime("[%H:%M:%S] |"), $0 }'			
@@ -41,7 +41,7 @@ echo "${info} Point 4" | awk '{ print strftime("[%H:%M:%S] |"), $0 }'
 		#ssl
 			mkdir /etc/ssl/mail 
 			echo "$(textb [INFO]) - Generating 2048 bit DH parameters, this may take a while, please wait..."
-			openssl dhparam -out /etc/ssl/mail/dhparams.pem 2048 
+			openssl dhparam -out /etc/ssl/mail/dhparams.pem 2048 >>/root/stderror.log 2>&1  >> /root/stdout.log
 			openssl req -new -newkey rsa:4096 -sha256 -days 1095 -nodes -x509 -subj "/C=ZZ/ST=mailcow/L=mailcow/O=mailcow/CN=mail.${MYDOMAIN}/subjectAltName=DNS.1=mail.${MYDOMAIN}" -keyout /etc/ssl/mail/mail.key -out /etc/ssl/mail/mail.crt
 			chmod 600 /etc/ssl/mail/mail.key
 			cp /etc/ssl/mail/mail.crt /usr/local/share/ca-certificates/
@@ -261,7 +261,7 @@ echo "${info} Point 17" | awk '{ print strftime("[%H:%M:%S] |"), $0 }'
 			
 echo "${info} Point 18" | awk '{ print strftime("[%H:%M:%S] |"), $0 }'	
 
-			hashing_method="SHA512-CRYPT"
+			##########hashing_method="SHA512-CRYPT"
 			
 			mysql --host ${MYSQL_HOSTNAME} -u root -p${MYSQL_ROOT_PASS} ${MYSQL_MCDB_NAME} < ~/sources/mailcow/webserver/htdocs/init.sql
 			if [[ -z $(mysql --host ${MYSQL_HOSTNAME} -u root -p${MYSQL_ROOT_PASS} ${MYSQL_MCDB_NAME} -e "SHOW COLUMNS FROM domain LIKE 'relay_all_recipients';" -N -B) ]]; then
@@ -275,9 +275,9 @@ echo "${info} Point 19" | awk '{ print strftime("[%H:%M:%S] |"), $0 }'
 			mysql --host ${MYSQL_HOSTNAME} -u root -p${MYSQL_ROOT_PASS} ${MYSQL_MCDB_NAME} -e "DELETE FROM spamalias"
 			mysql --host ${MYSQL_HOSTNAME} -u root -p${MYSQL_ROOT_PASS} ${MYSQL_MCDB_NAME} -e "ALTER TABLE spamalias MODIFY COLUMN validity int(11) NOT NULL"
 			if [[ $(mysql --host ${MYSQL_HOSTNAME} -u root -p${MYSQL_ROOT_PASS} ${MYSQL_MCDB_NAME} -s -N -e "SELECT * FROM admin;" | wc -l) -lt 1 ]]; then
-				mailcow_admin_pass_hashed=$(doveadm pw -s ${hashing_method} -p ${mailcow_admin_pass})
-				mysql --host ${MYSQL_HOSTNAME} -u root -p${MYSQL_ROOT_PASS} ${MYSQL_MCDB_NAME} -e "INSERT INTO admin VALUES ('$mailcow_admin_user','${mailcow_admin_pass_hashed}', '1', NOW(), NOW(), '1');"
-				mysql --host ${MYSQL_HOSTNAME} -u root -p${MYSQL_ROOT_PASS} ${MYSQL_MCDB_NAME} -e "INSERT INTO domain_admins (username, domain, created, active) VALUES ('$mailcow_admin_user', 'ALL', NOW(), '1');"
+				mailcow_admin_pass_hashed=$(doveadm pw -s SHA512-CRYPT -p ${MAILCOW_ADMIN_PASS})
+				mysql --host ${MYSQL_HOSTNAME} -u root -p${MYSQL_ROOT_PASS} ${MYSQL_MCDB_NAME} -e "INSERT INTO admin VALUES ('$MAILCOW_ADMIN_USER','${mailcow_admin_pass_hashed}', '1', NOW(), NOW(), '1');"
+				mysql --host ${MYSQL_HOSTNAME} -u root -p${MYSQL_ROOT_PASS} ${MYSQL_MCDB_NAME} -e "INSERT INTO domain_admins (username, domain, created, active) VALUES ('$MAILCOW_ADMIN_USER', 'ALL', NOW(), '1');"
 			else
 				echo "$(textb [INFO]) - An administrator exists, will not create another mailcow administrator"
 			fi
