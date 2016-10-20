@@ -112,13 +112,13 @@ echo "${info} Point 7" | awk '{ print strftime("[%H:%M:%S] |"), $0 }'
 echo "${info} Point 8" | awk '{ print strftime("[%H:%M:%S] |"), $0 }'				
 		#fuglu
 			if [[ -z $(grep fuglu /etc/passwd) ]]; then
-				userdel fuglu
-				groupadd fuglu 
+				userdel fuglu >>/root/stderror.log 2>&1  >> /root/stdout.log
+				groupadd fuglu  >>/root/stderror.log
 				useradd -g fuglu -s /bin/false fuglu
 				usermod -a -G debian-spamd fuglu
 				usermod -a -G clamav fuglu
 			fi
-			rm /tmp/fuglu_control.sock
+			rm /tmp/fuglu_control.sock >>/root/stderror.log 2>&1  >> /root/stdout.log
 			mkdir /var/log/fuglu
 			chown fuglu:fuglu /var/log/fuglu
 			tar xf ~/sources/mailcow/fuglu/inst/0.6.6.tar -C ~/sources/mailcow/fuglu/inst/ 
@@ -135,8 +135,8 @@ echo "${info} Point 9" | awk '{ print strftime("[%H:%M:%S] |"), $0 }'
 		#dovecot
 			systemctl disable dovecot.socket
 			if [[ -z $(grep '/var/vmail:' /etc/passwd | grep '5000:5000') ]]; then
-				userdel vmail 
-				groupdel vmail
+				userdel vmail >>/root/stderror.log 2>&1  >> /root/stdout.log
+				groupdel vmail >>/root/stderror.log 2>&1  >> /root/stdout.log
 				groupadd -g 5000 vmail
 				useradd -g vmail -u 5000 vmail -d /var/vmail
 			fi
@@ -158,7 +158,7 @@ echo "${info} Point 10" | awk '{ print strftime("[%H:%M:%S] |"), $0 }'
 			sed -i "s/MAILCOW_HASHING/SHA512-CRYPT/g" ${DOVEFILES}
 			
 echo "${info} Point 11" | awk '{ print strftime("[%H:%M:%S] |"), $0 }'				
-			mkdir /etc/dovecot/conf.d 
+			mkdir /etc/dovecot/conf.d  >>/root/stderror.log 2>&1  >> /root/stdout.log
 			mkdir -p /var/vmail/sieve 
 			mkdir -p /var/vmail/public 
 			if [ ! -f /var/vmail/public/dovecot-acl ]; then
@@ -247,7 +247,7 @@ echo "${info} Point 17" | awk '{ print strftime("[%H:%M:%S] |"), $0 }'
 					sed -i "/http {/a\ \ \ \ \ \ \ \ server_names_hash_bucket_size 64;" /etc/nginx/nginx.conf
 				sed -i "s/MAILCOW_HOST.MAILCOW_DOMAIN;/mail.${MYDOMAIN};/g" /etc/nginx/sites-available/mailcow.conf
 				sed -i "s/MAILCOW_DOMAIN;/${MYDOMAIN};/g" /etc/nginx/sites-available/mailcow.conf
-			mkdir /var/lib/php5/sessions 
+			mkdir /var/lib/php5/sessions >>/root/stderror.log 2>&1  >> /root/stdout.log
 			cp -R ~/sources/mailcow/webserver/htdocs/mail /var/www/
 			find /var/www/mail -type d -exec chmod 755 {} \;
 			find /var/www/mail -type f -exec chmod 644 {} \;
