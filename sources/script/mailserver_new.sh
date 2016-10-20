@@ -8,7 +8,6 @@ mailserver() {
 
 if [ ${USE_MAILSERVER} == '1' ]; then
 	echo "${info} Installing mailserver..." | awk '{ print strftime("[%H:%M:%S] |"), $0 }'
-			#############apt-get -y purge exim4* >/dev/null
 			/usr/sbin/make-ssl-cert generate-default-snakeoil --force-overwrite
 			
 echo "${info} Point 1" | awk '{ print strftime("[%H:%M:%S] |"), $0 }'			
@@ -40,12 +39,11 @@ echo "${info} Point 3" | awk '{ print strftime("[%H:%M:%S] |"), $0 }'
 echo "${info} Point 4" | awk '{ print strftime("[%H:%M:%S] |"), $0 }'				
 		#ssl
 			mkdir /etc/ssl/mail 
-			echo "$(textb [INFO]) - Generating 2048 bit DH parameters, this may take a while, please wait..."
 			openssl dhparam -out /etc/ssl/mail/dhparams.pem 2048 >>/root/stderror.log 2>&1  >> /root/stdout.log
-			openssl req -new -newkey rsa:4096 -sha256 -days 1095 -nodes -x509 -subj "/C=ZZ/ST=mailcow/L=mailcow/O=mailcow/CN=mail.${MYDOMAIN}/subjectAltName=DNS.1=mail.${MYDOMAIN}" -keyout /etc/ssl/mail/mail.key -out /etc/ssl/mail/mail.crt
+			openssl req -new -newkey rsa:4096 -sha256 -days 1095 -nodes -x509 -subj "/C=ZZ/ST=mailcow/L=mailcow/O=mailcow/CN=mail.${MYDOMAIN}/subjectAltName=DNS.1=mail.${MYDOMAIN}" -keyout /etc/ssl/mail/mail.key -out /etc/ssl/mail/mail.crt >>/root/stderror.log 2>&1  >> /root/stdout.log
 			chmod 600 /etc/ssl/mail/mail.key
 			cp /etc/ssl/mail/mail.crt /usr/local/share/ca-certificates/
-			update-ca-certificates
+			update-ca-certificates >>/root/stderror.log 2>&1  >> /root/stdout.log
 
 echo "${info} Point 5" | awk '{ print strftime("[%H:%M:%S] |"), $0 }'				
 		#mysql
@@ -234,8 +232,6 @@ echo "${info} Point 16" | awk '{ print strftime("[%H:%M:%S] |"), $0 }'
 echo "${info} Point 17" | awk '{ print strftime("[%H:%M:%S] |"), $0 }'				
 		#webserver
 			mkdir -p /var/www/ 
-				# Some systems miss the default php fpm listener, reinstall it now
-				#apt-get -o Dpkg::Options::="--force-confmiss" install -y --reinstall php5-fpm > /dev/null
 				rm /etc/nginx/sites-enabled/*mailcow* 2>/dev/null
 				cp ~/sources/mailcow/webserver/nginx/conf/sites-available/mailcow_rc /etc/nginx/sites-available/mailcow.conf
 				cp ~/sources/mailcow/webserver/php-fpm/conf/5/pool/mail.conf /etc/php5/fpm/pool.d/mail.conf
@@ -259,10 +255,7 @@ echo "${info} Point 17" | awk '{ print strftime("[%H:%M:%S] |"), $0 }'
 			sed -i "s/MAILCOW_HASHING/SHA512-CRYPT/g" /var/www/mail/inc/vars.inc.php
 			chown -R www-data: /var/www/mail/. /var/lib/php5/sessions
 			
-echo "${info} Point 18" | awk '{ print strftime("[%H:%M:%S] |"), $0 }'	
-
-			##########hashing_method="SHA512-CRYPT"
-			
+echo "${info} Point 18" | awk '{ print strftime("[%H:%M:%S] |"), $0 }'		
 			mysql --host ${MYSQL_HOSTNAME} -u root -p${MYSQL_ROOT_PASS} ${MYSQL_MCDB_NAME} < ~/sources/mailcow/webserver/htdocs/init.sql
 			if [[ -z $(mysql --host ${MYSQL_HOSTNAME} -u root -p${MYSQL_ROOT_PASS} ${MYSQL_MCDB_NAME} -e "SHOW COLUMNS FROM domain LIKE 'relay_all_recipients';" -N -B) ]]; then
 				mysql --host ${MYSQL_HOSTNAME} -u root -p${MYSQL_ROOT_PASS} ${MYSQL_MCDB_NAME} -e "ALTER TABLE domain ADD relay_all_recipients tinyint(1) NOT NULL DEFAULT '0';" -N -B
@@ -270,8 +263,7 @@ echo "${info} Point 18" | awk '{ print strftime("[%H:%M:%S] |"), $0 }'
 			if [[ -z $(mysql --host ${MYSQL_HOSTNAME} -u root -p${MYSQL_ROOT_PASS} ${MYSQL_MCDB_NAME} -e "SHOW COLUMNS FROM mailbox LIKE 'tls_enforce_in';" -N -B) ]]; then
 				mysql --host ${MYSQL_HOSTNAME} -u root -p${MYSQL_ROOT_PASS} ${MYSQL_MCDB_NAME} -e "ALTER TABLE mailbox ADD tls_enforce_in tinyint(1) NOT NULL DEFAULT '0';" -N -B
 				mysql --host ${MYSQL_HOSTNAME} -u root -p${MYSQL_ROOT_PASS} ${MYSQL_MCDB_NAME} -e "ALTER TABLE mailbox ADD tls_enforce_out tinyint(1) NOT NULL DEFAULT '0';" -N -B
-			fi
-echo "${info} Point 19" | awk '{ print strftime("[%H:%M:%S] |"), $0 }'				
+			fi			
 			mysql --host ${MYSQL_HOSTNAME} -u root -p${MYSQL_ROOT_PASS} ${MYSQL_MCDB_NAME} -e "DELETE FROM spamalias"
 			mysql --host ${MYSQL_HOSTNAME} -u root -p${MYSQL_ROOT_PASS} ${MYSQL_MCDB_NAME} -e "ALTER TABLE spamalias MODIFY COLUMN validity int(11) NOT NULL"
 			if [[ $(mysql --host ${MYSQL_HOSTNAME} -u root -p${MYSQL_ROOT_PASS} ${MYSQL_MCDB_NAME} -s -N -e "SELECT * FROM admin;" | wc -l) -lt 1 ]]; then
@@ -282,7 +274,7 @@ echo "${info} Point 19" | awk '{ print strftime("[%H:%M:%S] |"), $0 }'
 				echo "$(textb [INFO]) - An administrator exists, will not create another mailcow administrator"
 			fi
 
-echo "${info} Point 20" | awk '{ print strftime("[%H:%M:%S] |"), $0 }'				
+echo "${info} Point 19" | awk '{ print strftime("[%H:%M:%S] |"), $0 }'				
 		#roundcube
 			mkdir -p /var/www/mail/rc
 			tar xf ~/sources/mailcow/roundcube/inst/1.2.1.tar -C ~/sources/mailcow/roundcube/inst/
@@ -298,8 +290,7 @@ echo "${info} Point 20" | awk '{ print strftime("[%H:%M:%S] |"), $0 }'
 			chown -R www-data: /var/www/mail/rc
 			rm -rf roundcube/inst/1.2.1
 			rm -rf /var/www/mail/rc/installer/
-
-echo "${info} Point 21" | awk '{ print strftime("[%H:%M:%S] |"), $0 }'				
+			
 		#restartservices
 			[[ -f /lib/systemd/systemd ]] && echo "$(textb [INFO]) - Restarting services, this may take a few seconds..."
 			
