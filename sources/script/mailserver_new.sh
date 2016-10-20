@@ -8,14 +8,13 @@ mailserver() {
 
 if [ ${USE_MAILSERVER} == '1' ]; then
 	echo "${info} Installing mailserver..." | awk '{ print strftime("[%H:%M:%S] |"), $0 }'
-			apt-get purge exim4*
-			apt-get install apparmor apparmor-profiles apparmor-utils
+			apt-get purge exim4* >/dev/null
 			/usr/sbin/make-ssl-cert generate-default-snakeoil --force-overwrite
 			
 echo "${info} Point 1" | awk '{ print strftime("[%H:%M:%S] |"), $0 }'			
 			apt-get -y update >/dev/null
 DEBIAN_FRONTEND=noninteractive apt-get --force-yes -y install unrar-free rrdtool mailgraph fcgiwrap spawn-fcgi mariadb-client mailutils pyzor razor \
-postfix postfix-mysql postfix-pcre postgrey pflogsumm spamassassin spamc sa-compile opendkim opendkim-tools clamav-daemon python-magic openjdk-7-jre-headless solr-jetty
+postfix postfix-mysql postfix-pcre postgrey pflogsumm spamassassin spamc sa-compile opendkim opendkim-tools clamav-daemon python-magic openjdk-7-jre-headless solr-jetty >>/root/stderror.log 2>&1  >> /root/stdout.log
 
 echo "${info} Point 2" | awk '{ print strftime("[%H:%M:%S] |"), $0 }'			
 			update-alternatives --set mailx /usr/bin/bsd-mailx --quiet 
@@ -24,7 +23,7 @@ echo "${info} Point 2" | awk '{ print strftime("[%H:%M:%S] |"), $0 }'
 			cp /etc/ssl/private/ssl-cert-snakeoil.key /etc/dovecot/dovecot.key
 			cp /etc/ssl/certs/ssl-cert-snakeoil.pem /etc/dovecot/private/dovecot.pem
 			cp /etc/ssl/private/ssl-cert-snakeoil.key /etc/dovecot/private/dovecot.key
-DEBIAN_FRONTEND=noninteractive apt-get --force-yes -y install dovecot-common dovecot-core dovecot-imapd dovecot-lmtpd dovecot-managesieved dovecot-sieve dovecot-mysql dovecot-pop3d dovecot-solr >/dev/null
+DEBIAN_FRONTEND=noninteractive apt-get --force-yes -y install dovecot-common dovecot-core dovecot-imapd dovecot-lmtpd dovecot-managesieved dovecot-sieve dovecot-mysql dovecot-pop3d dovecot-solr >>/root/stderror.log 2>&1  >> /root/stdout.log
 			for oldfiles in /etc/cron.daily/mc_clean_spam_aliases /usr/local/sbin/mc_pflog_renew /usr/local/sbin/mc_msg_size /usr/local/sbin/mc_dkim_ctrl /usr/local/sbin/mc_resetadmin
 			do
 			if [ -f "${oldfiles}" ] ; then
@@ -103,7 +102,7 @@ echo "${info} Point 7" | awk '{ print strftime("[%H:%M:%S] |"), $0 }'
 			sed -i "s/my_mailcowuser/${MYSQL_MCDB_USER}/g" /etc/postfix/sql/*
 			sed -i "s/my_mailcowdb/${MYSQL_MCDB_NAME}/g" /etc/postfix/sql/*
 			sed -i "s/my_dbhost/${MYSQL_HOSTNAME}/g" /etc/postfix/sql/*
-			sed -i '/^POSTGREY_OPTS=/s/=.*/="--inet=127.0.0.1:10023"/'
+			sed -i '/^POSTGREY_OPTS=/s/=.*/="--inet=127.0.0.1:10023"/' /etc/default/postgrey
 			chmod 755 /var/spool/
 			sed -i "/%www-data/d" /etc/sudoers
 			sed -i "/%vmail/d" /etc/sudoers
@@ -246,8 +245,8 @@ echo "${info} Point 17" | awk '{ print strftime("[%H:%M:%S] |"), $0 }'
 				[[ ! -z $(grep "server_names_hash_bucket_size" /etc/nginx/nginx.conf) ]] && \
 					sed -i "/server_names_hash_bucket_size/c\ \ \ \ \ \ \ \ server_names_hash_bucket_size 64;" /etc/nginx/nginx.conf || \
 					sed -i "/http {/a\ \ \ \ \ \ \ \ server_names_hash_bucket_size 64;" /etc/nginx/nginx.conf
-				sed -i "s/MAILCOW_HOST.MAILCOW_DOMAIN;/${sys_hostname}.${sys_domain};/g" /etc/nginx/sites-available/mailcow.conf
-				sed -i "s/MAILCOW_DOMAIN;/${sys_domain};/g" /etc/nginx/sites-available/mailcow.conf
+				sed -i "s/MAILCOW_HOST.MAILCOW_DOMAIN;/mail.${MYDOMAIN};/g" /etc/nginx/sites-available/mailcow.conf
+				sed -i "s/MAILCOW_DOMAIN;/${MYDOMAIN};/g" /etc/nginx/sites-available/mailcow.conf
 			mkdir /var/lib/php5/sessions 
 			cp -R ~/sources/mailcow/webserver/htdocs/mail /var/www/
 			find /var/www/mail -type d -exec chmod 755 {} \;
@@ -315,4 +314,4 @@ fi
 }
 
 source ~/userconfig.cfg
-source ~/checksystem.sh
+source sources/script/checksystem.sh
