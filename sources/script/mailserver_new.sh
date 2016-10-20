@@ -59,7 +59,6 @@ echo "${info} Point 5" | awk '{ print strftime("[%H:%M:%S] |"), $0 }'
 					done
 					mysql --defaults-file=/etc/mysql/debian.cnf -e "FLUSH PRIVILEGES;"
 				fi
-			fi
 echo "${info} Point 6" | awk '{ print strftime("[%H:%M:%S] |"), $0 }'				
 			SQLCMDARRAY=(
 				"DROP DATABASE IF EXISTS ${MYSQL_MCDB_NAME}"
