@@ -120,7 +120,7 @@ ssl_ciphers=HIGH
 # http://en.gentoowiki.com/wiki/Vsftpd
 file_open_mode=0666
 # Default umask for local users is 077 – replace with 022
-local_umask=0022
+local_umask=0006
 #
 END
 	groupadd wwwftp >>/root/stderror.log 2>&1  >> /root/stdout.log
@@ -135,6 +135,14 @@ END
 	# set chown for both groups
 	chown -R www-data:wwwftp /etc/nginx/html >>/root/stderror.log 2>&1  >> /root/stdout.log
 	chmod -R 775 /etc/nginx/html >>/root/stderror.log 2>&1  >> /root/stdout.log
+	
+	#Nicht schön aber was solls
+	useradd -g wwwftp -d /etc/nginx/html $FTP_USERNAME
+	chown -R www-data:wwwftp /etc/nginx/html
+	chmod -R 775 /etc/nginx/html
+	
+	
+	
 	#disable pam_shell
 	rm -rf /etc/pam.d/vsftpd >>/root/stderror.log 2>&1  >> /root/stdout.log
 	cat > /etc/pam.d/vsftpd <<END
