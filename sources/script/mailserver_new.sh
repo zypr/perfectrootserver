@@ -9,11 +9,12 @@ mailserver() {
 if [ ${USE_MAILSERVER} == '1' ]; then
 	echo "${info} Installing mailserver..." | awk '{ print strftime("[%H:%M:%S] |"), $0 }'
 			/usr/sbin/make-ssl-cert generate-default-snakeoil --force-overwrite
+			hashing_method="SHA512-CRYPT"
 			
 echo "${info} Point 1" | awk '{ print strftime("[%H:%M:%S] |"), $0 }'			
 			apt-get -y update >/dev/null
 DEBIAN_FRONTEND=noninteractive apt-get --force-yes -y install unrar-free rrdtool mailgraph fcgiwrap spawn-fcgi mariadb-client mailutils pyzor razor \
-postfix postfix-mysql postfix-pcre postgrey pflogsumm spamassassin spamc sa-compile opendkim opendkim-tools clamav-daemon python-magic openjdk-7-jre-headless solr-jetty >>/root/stderror.log 2>&1  >> /root/stdout.log
+postfix postfix-mysql postfix-pcre postgrey pflogsumm spamassassin spamc sa-compile opendkim opendkim-tools clamav-daemon python-magic openjdk-7-jre-headless solr-jetty >>/root/stderror.log 2>&1  >>/root/stdout.log
 
 echo "${info} Point 2" | awk '{ print strftime("[%H:%M:%S] |"), $0 }'			
 			update-alternatives --set mailx /usr/bin/bsd-mailx --quiet 
@@ -22,7 +23,7 @@ echo "${info} Point 2" | awk '{ print strftime("[%H:%M:%S] |"), $0 }'
 			cp /etc/ssl/private/ssl-cert-snakeoil.key /etc/dovecot/dovecot.key
 			cp /etc/ssl/certs/ssl-cert-snakeoil.pem /etc/dovecot/private/dovecot.pem
 			cp /etc/ssl/private/ssl-cert-snakeoil.key /etc/dovecot/private/dovecot.key
-DEBIAN_FRONTEND=noninteractive apt-get --force-yes -y install dovecot-common dovecot-core dovecot-imapd dovecot-lmtpd dovecot-managesieved dovecot-sieve dovecot-mysql dovecot-pop3d dovecot-solr >>/root/stderror.log 2>&1  >> /root/stdout.log
+DEBIAN_FRONTEND=noninteractive apt-get --force-yes -y install dovecot-common dovecot-core dovecot-imapd dovecot-lmtpd dovecot-managesieved dovecot-sieve dovecot-mysql dovecot-pop3d dovecot-solr >>/root/stderror.log 2>&1  >>/root/stdout.log
 			for oldfiles in /etc/cron.daily/mc_clean_spam_aliases /usr/local/sbin/mc_pflog_renew /usr/local/sbin/mc_msg_size /usr/local/sbin/mc_dkim_ctrl /usr/local/sbin/mc_resetadmin
 			do
 			if [ -f "${oldfiles}" ] ; then
@@ -39,11 +40,11 @@ echo "${info} Point 3" | awk '{ print strftime("[%H:%M:%S] |"), $0 }'
 echo "${info} Point 4" | awk '{ print strftime("[%H:%M:%S] |"), $0 }'				
 		#ssl
 			mkdir /etc/ssl/mail 
-			openssl dhparam -out /etc/ssl/mail/dhparams.pem 2048 >>/root/stderror.log 2>&1  >> /root/stdout.log
-			openssl req -new -newkey rsa:4096 -sha256 -days 1095 -nodes -x509 -subj "/C=ZZ/ST=mailcow/L=mailcow/O=mailcow/CN=mail.${MYDOMAIN}/subjectAltName=DNS.1=mail.${MYDOMAIN}" -keyout /etc/ssl/mail/mail.key -out /etc/ssl/mail/mail.crt >>/root/stderror.log 2>&1  >> /root/stdout.log
+			openssl dhparam -out /etc/ssl/mail/dhparams.pem 2048 >>/root/stderror.log 2>&1  >>/root/stdout.log
+			openssl req -new -newkey rsa:4096 -sha256 -days 1095 -nodes -x509 -subj "/C=ZZ/ST=mailcow/L=mailcow/O=mailcow/CN=mail.${MYDOMAIN}/subjectAltName=DNS.1=mail.${MYDOMAIN}" -keyout /etc/ssl/mail/mail.key -out /etc/ssl/mail/mail.crt >>/root/stderror.log 2>&1  >>/root/stdout.log
 			chmod 600 /etc/ssl/mail/mail.key
 			cp /etc/ssl/mail/mail.crt /usr/local/share/ca-certificates/
-			update-ca-certificates >>/root/stderror.log 2>&1  >> /root/stdout.log
+			update-ca-certificates >>/root/stderror.log 2>&1  >>/root/stdout.log
 
 echo "${info} Point 5" | awk '{ print strftime("[%H:%M:%S] |"), $0 }'				
 		#mysql
@@ -108,13 +109,13 @@ echo "${info} Point 7" | awk '{ print strftime("[%H:%M:%S] |"), $0 }'
 echo "${info} Point 8" | awk '{ print strftime("[%H:%M:%S] |"), $0 }'				
 		#fuglu
 			if [[ -z $(grep fuglu /etc/passwd) ]]; then
-				userdel fuglu >>/root/stderror.log 2>&1  >> /root/stdout.log
+				userdel fuglu >>/root/stderror.log 2>&1  >>/root/stdout.log
 				groupadd fuglu  >>/root/stderror.log
 				useradd -g fuglu -s /bin/false fuglu
 				usermod -a -G debian-spamd fuglu
 				usermod -a -G clamav fuglu
 			fi
-			rm /tmp/fuglu_control.sock >>/root/stderror.log 2>&1  >> /root/stdout.log
+			rm /tmp/fuglu_control.sock >>/root/stderror.log 2>&1  >>/root/stdout.log
 			mkdir /var/log/fuglu
 			chown fuglu:fuglu /var/log/fuglu
 			tar xf ~/sources/mailcow/fuglu/inst/0.6.6.tar -C ~/sources/mailcow/fuglu/inst/ 
@@ -131,8 +132,8 @@ echo "${info} Point 9" | awk '{ print strftime("[%H:%M:%S] |"), $0 }'
 		#dovecot
 			systemctl disable dovecot.socket
 			if [[ -z $(grep '/var/vmail:' /etc/passwd | grep '5000:5000') ]]; then
-				userdel vmail >>/root/stderror.log 2>&1  >> /root/stdout.log
-				groupdel vmail >>/root/stderror.log 2>&1  >> /root/stdout.log
+				userdel vmail >>/root/stderror.log 2>&1  >>/root/stdout.log
+				groupdel vmail >>/root/stderror.log 2>&1  >>/root/stdout.log
 				groupadd -g 5000 vmail
 				useradd -g vmail -u 5000 vmail -d /var/vmail
 			fi
@@ -151,10 +152,10 @@ echo "${info} Point 10" | awk '{ print strftime("[%H:%M:%S] |"), $0 }'
 			sed -i "s/my_mailcowuser/${MYSQL_MCDB_USER}/g" ${DOVEFILES}
 			sed -i "s/my_mailcowdb/${MYSQL_MCDB_NAME}/g" ${DOVEFILES}
 			sed -i "s/my_dbhost/${MYSQL_HOSTNAME}/g" ${DOVEFILES}
-			sed -i "s/MAILCOW_HASHING/SHA512-CRYPT/g" ${DOVEFILES}
-			
+			sed -i "s/MAILCOW_HASHING/${hashing_method}/g" ${DOVEFILES}
+					
 echo "${info} Point 11" | awk '{ print strftime("[%H:%M:%S] |"), $0 }'				
-			mkdir /etc/dovecot/conf.d  >>/root/stderror.log 2>&1  >> /root/stdout.log
+			mkdir /etc/dovecot/conf.d  >>/root/stderror.log 2>&1  >>/root/stdout.log
 			mkdir -p /var/vmail/sieve 
 			mkdir -p /var/vmail/public 
 			if [ ! -f /var/vmail/public/dovecot-acl ]; then
@@ -241,7 +242,7 @@ echo "${info} Point 17" | awk '{ print strftime("[%H:%M:%S] |"), $0 }'
 					sed -i "/http {/a\ \ \ \ \ \ \ \ server_names_hash_bucket_size 64;" /etc/nginx/nginx.conf
 				sed -i "s/MAILCOW_HOST.MAILCOW_DOMAIN;/mail.${MYDOMAIN};/g" /etc/nginx/sites-available/mailcow.conf
 				sed -i "s/MAILCOW_DOMAIN;/${MYDOMAIN};/g" /etc/nginx/sites-available/mailcow.conf
-			mkdir /var/lib/php5/sessions >>/root/stderror.log 2>&1  >> /root/stdout.log
+			mkdir /var/lib/php5/sessions >>/root/stderror.log 2>&1  >>/root/stdout.log
 			cp -R ~/sources/mailcow/webserver/htdocs/mail /var/www/
 			find /var/www/mail -type d -exec chmod 755 {} \;
 			find /var/www/mail -type f -exec chmod 644 {} \;
@@ -250,8 +251,8 @@ echo "${info} Point 17" | awk '{ print strftime("[%H:%M:%S] |"), $0 }'
 			sed -i "s/my_mailcowpass/${MYSQL_MCDB_PASS}/g" /var/www/mail/inc/vars.inc.php
 			sed -i "s/my_mailcowuser/${MYSQL_MCDB_USER}/g" /var/www/mail/inc/vars.inc.php
 			sed -i "s/my_mailcowdb/${MYSQL_MCDB_NAME}/g" /var/www/mail/inc/vars.inc.php
-			sed -i "s/MAILCOW_HASHING/SHA512-CRYPT/g" /var/www/mail/inc/vars.inc.php
-			chown -R www-data: /var/www/mail/. /var/lib/php5/sessions
+			sed -i "s/MAILCOW_HASHING/${hashing_method}/g" /var/www/mail/inc/vars.inc.php
+			chown -R www-data: /var/www/mail/. /var/lib/php5/sessions		
 			
 echo "${info} Point 18" | awk '{ print strftime("[%H:%M:%S] |"), $0 }'		
 			mysql --host ${MYSQL_HOSTNAME} -u root -p${MYSQL_ROOT_PASS} ${MYSQL_MCDB_NAME} < ~/sources/mailcow/webserver/htdocs/init.sql
