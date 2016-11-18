@@ -3,6 +3,13 @@ logininformation() {
 source ~/userconfig.cfg
 source ~/addonconfig.cfg
 
+touch ~/addoninformation.txt
+echo "///////////////////////////////////////////////////////////////////////////" >> ~/addoninformation.txt
+echo "// Passwords, Usernames, Databases" >> ~/addoninformation.txt
+echo "///////////////////////////////////////////////////////////////////////////" >> ~/addoninformation.txt
+echo "" >> ~/addoninformation.txt
+echo "_______________________________________________________________________________________" >> ~/addoninformation.txt
+
 touch ~/credentials.txt
 echo "///////////////////////////////////////////////////////////////////////////" >> ~/credentials.txt
 echo "// Passwords, Usernames, Databases" >> ~/credentials.txt
