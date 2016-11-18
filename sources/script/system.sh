@@ -25,14 +25,10 @@ fi
 if [ ${USE_MAILSERVER} == '1' ]; then
 	echo -e "${IPADR} mail.${MYDOMAIN} mail" >> /etc/hosts
 	hostnamectl set-hostname mail
+	echo "mail.${MYDOMAIN}" > /etc/mailname
 else
 	echo -e "${IPADR} ${MYDOMAIN} $(echo ${MYDOMAIN} | cut -f 1 -d '.')" >> /etc/hosts
 	hostnamectl set-hostname $(echo ${MYDOMAIN} | cut -f 1 -d '.')
-fi
-
-if [ ${USE_MAILSERVER} == '1' ]; then
-	echo "mail.${MYDOMAIN}" > /etc/mailname
-else
 	echo "${MYDOMAIN}" > /etc/mailname
 fi
 
@@ -145,22 +141,20 @@ sed -i '41s/.*/#innodb_table_locks = 0 #disable table lock, uncomment if you do 
 # Automated mysql_secure_installation
 mysql -u root -p${MYSQL_ROOT_PASS} -e "DELETE FROM mysql.user WHERE User=''; DELETE FROM mysql.user WHERE User='root' AND Host NOT IN ('localhost', '127.0.0.1', '::1'); DROP DATABASE IF EXISTS test; FLUSH PRIVILEGES; DELETE FROM mysql.db WHERE Db='test' OR Db='test\\_%'; FLUSH PRIVILEGES;" >>/root/stderror.log 2>&1  >> /root/stdout.log
 sleep 2
-# Bash
+
 # Bash
 cd ~/sources
 mkdir bash && cd $_
 echo "${info} Downloading GNU bash & latest security patches..." | awk '{ print strftime("[%H:%M:%S] |"), $0 }'
-wget https://ftp.gnu.org/gnu/bash/bash-4.3.tar.gz >/dev/null 2>&1
-for i in $(seq -f "%03g" 1 48); do wget http://ftp.gnu.org/gnu/bash/bash-4.3-patches/bash43-$i; done >>/root/stderror.log 2>&1  >> /root/stdout.log
-tar zxf bash-4.3.tar.gz && cd bash-4.3 >>/root/stderror.log 2>&1  >> /root/stdout.log
+wget https://ftp.gnu.org/gnu/bash/bash-4.4.tar.gz >>/root/stderror.log 2>&1  >> /root/stdout.log
+for i in $(seq -f "%03g" 1 5); do wget https://ftp.gnu.org/gnu/bash/bash-4.4-patches/bash44-$i; done >>/root/stderror.log 2>&1  >> /root/stdout.log
+tar zxf bash-4.4.tar.gz && cd bash-4.4 >>/root/stderror.log 2>&1  >> /root/stdout.log
 echo "${info} Patching sourcefiles..." | awk '{ print strftime("[%H:%M:%S] |"), $0 }'
-for i in ../bash43-[0-9][0-9][0-9]; do patch -p0 -s < $i; done
+for i in ../bash44-[0-9][0-9][0-9]; do patch -p0 -s < $i; done
 echo "${info} Compiling GNU bash..." | awk '{ print strftime("[%H:%M:%S] |"), $0 }'
 ./configure --prefix=/usr/local >/dev/null 2>&1 && make >/dev/null 2>&1 && make install >>/root/stderror.log 2>&1  >> /root/stdout.log
 cp -f /usr/local/bin/bash /bin/bash
 sleep 2
-
-
 
 # System Tuning
 echo "${info} Kernel hardening & system tuning..." | awk '{ print strftime("[%H:%M:%S] |"), $0 }'
@@ -201,15 +195,6 @@ sysctl -p >>/root/stderror.log 2>&1  >> /root/stdout.log
 # Restart all services
 systemctl -q restart {rsyslog,php5-fpm}
 
-}
-
-addoninformation() {
-touch ~/addoninformation.txt
-echo "///////////////////////////////////////////////////////////////////////////" >> ~/addoninformation.txt
-echo "// Passwords, Usernames, Databases" >> ~/addoninformation.txt
-echo "///////////////////////////////////////////////////////////////////////////" >> ~/addoninformation.txt
-echo "" >> ~/addoninformation.txt
-echo "_______________________________________________________________________________________" >> ~/addoninformation.txt
 }
 
 source ~/userconfig.cfg
