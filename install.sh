@@ -37,7 +37,6 @@ sslssh
 nginx
 mailserver
 firewall
-addoninformation
 
 ajenti
 teamspeak3
