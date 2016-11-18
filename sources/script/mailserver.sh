@@ -30,7 +30,7 @@ if [ ${USE_MAILSERVER} == '1' ]; then
 		ln -s /etc/letsencrypt/live/${MYDOMAIN}/fullchain.pem /etc/ssl/mail/mail.crt
 		ln -s /etc/letsencrypt/live/${MYDOMAIN}/privkey.pem /etc/ssl/mail/mail.key
 	else
-		openssl req -new -newkey rsa:4096 -sha256 -days 1095 -nodes -x509 -subj "/C=/ST=/L=/O=/OU=/CN=mail.${MYDOMAIN}" -keyout /etc/ssl/mail/mail.key -out /etc/ssl/mail/mail.crt >>/root/stderror.log 2>&1  >> /root/stdout.log
+		openssl req -new -newkey rsa:4096 -sha256 -days 1095 -nodes -x509 -subj "/C=DE/ST=Private/L=Private/O=Private/OU=Private/CN=mail.${MYDOMAIN}" -keyout /etc/ssl/mail/mail.key -out /etc/ssl/mail/mail.crt >>/root/stderror.log 2>&1  >> /root/stdout.log
 		chmod 600 /etc/ssl/mail/mail.key
 		cp /etc/ssl/mail/mail.crt /usr/local/share/ca-certificates/
 		update-ca-certificates >>/root/stderror.log 2>&1  >> /root/stdout.log
