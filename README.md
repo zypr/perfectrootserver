@@ -1,3 +1,5 @@
+---> Doesnt work atm, please wait for a fix! <---
+
 This is a Fork from Zypr's perfectrootserver
 
 
