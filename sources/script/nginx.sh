@@ -19,11 +19,16 @@ cd ngx_pagespeed-${NPS_VERSION}-beta/ >>/root/stderror.log 2>&1  >> /root/stdout
 	#x64
 	wget https://dl.google.com/dl/page-speed/psol/${NPS_VERSION}-x64.tar.gz >>/root/stderror.log 2>&1  >> /root/stdout.log
 	tar -xzf ${NPS_VERSION}-x64.tar.gz >>/root/stderror.log 2>&1  >> /root/stdout.log
+
+	#x32
+	#wget https://dl.google.com/dl/page-speed/psol/${NPS_VERSION}-ia32.tar.gz >>/root/stderror.log 2>&1  >> /root/stdout.log
+	#tar -xzf ${NPS_VERSION}-ia32.tar.gz >>/root/stderror.log 2>&1  >> /root/stdout.log
+
 cd ~/sources
 echo "${info} Downloading Nginx..." | awk '{ print strftime("[%H:%M:%S] |"), $0 }'
 wget http://nginx.org/download/nginx-${NGINX_VERSION}.tar.gz >>/root/stderror.log 2>&1  >> /root/stdout.log
-tar -xzf nginx-${NGINX_VERSION}.tar.gz >>/root/stderror.log 2>&1  >> /root/stdout.log
-cd nginx-${NGINX_VERSION} >>/root/stderror.log 2>&1  >> /root/stdout.log
+tar -xzf nginx-${NGINX_VERSION}.tar.gz
+cd nginx-${NGINX_VERSION}
 
 echo "${info} Compiling Nginx..." | awk '{ print strftime("[%H:%M:%S] |"), $0 }'
 ./configure --prefix=/etc/nginx \
@@ -99,7 +104,7 @@ chown -R www-data:www-data /var/lib/nginx
 chown www-data:www-data /etc/nginx/logs
 
 # Install the Nginx service script
-wget -O /etc/init.d/nginx --no-check-certificate https://raw.githubusercontent.com/Fleshgrinder/nginx-sysvinit-script/master/init >>/root/stderror.log 2>&1  >> /root/stdout.log
+wget -O /etc/init.d/nginx --no-check-certificate https://raw.githubusercontent.com/Fleshgrinder/nginx-sysvinit-script/master/init >>/root/logs/stderror.log 2>&1 >>/root/logs/stdout.log
 chmod 0755 /etc/init.d/nginx
 chown root:root /etc/init.d/nginx
 update-rc.d nginx defaults
