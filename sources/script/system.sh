@@ -55,7 +55,7 @@ deb http://packages.dotdeb.org jessie all
 deb-src http://packages.dotdeb.org jessie all
 
 # Doveocot
-deb http://xi.rename-it.nl/debian/ stable-auto/dovecot-2.3 main
+deb http://xi.dovecot.fi/debian/ stable-auto/dovecot-2.3 main
 END
 
 cat > /etc/apt/sources.list.d/security.list <<END
@@ -113,7 +113,8 @@ Pin: release a=experimental
 Pin-Priority: 1
 END
 
-wget -O ~/sources/dovecot.key http://xi.rename-it.nl/debian/archive.key >>/root/stderror.log 2>&1  >> /root/stdout.log && apt-key add ~/sources/dovecot.key >>/root/stderror.log 2>&1  >> /root/stdout.log
+#wget -O ~/sources/dovecot.key http://xi.rename-it.nl/debian/archive.key >>/root/stderror.log 2>&1  >> /root/stdout.log && apt-key add ~/sources/dovecot.key >>/root/stderror.log 2>&1  >> /root/stdout.log
+wget -O - http://xi.dovecot.fi/debian/archive.key | apt-key add - >>/root/stderror.log 2>&1  >> /root/stdout.log 
 wget -O ~/sources/dotdeb.gpg http://www.dotdeb.org/dotdeb.gpg >>/root/stderror.log 2>&1  >> /root/stdout.log && apt-key add ~/sources/dotdeb.gpg >>/root/stderror.log 2>&1  >> /root/stdout.log
 apt-get update -y >>/root/stderror.log 2>&1  >> /root/stdout.log && apt-get -y upgrade >>/root/stderror.log 2>&1  >> /root/stdout.log
 apt-get -y --force-yes install aptitude ssl-cert whiptail apt-utils jq openssl-blacklist glibc-doc libc6-dev/stable >>/root/stderror.log 2>&1  >> /root/stdout.log
