@@ -9,11 +9,18 @@ nginx() {
 # Nginx
 cd ~/sources
 echo "${info} Downloading Nginx Pagespeed..." | awk '{ print strftime("[%H:%M:%S] |"), $0 }'
-wget https://github.com/pagespeed/ngx_pagespeed/archive/release-${NPS_VERSION}-beta.zip >>/root/stderror.log 2>&1  >> /root/stdout.log
-unzip -qq release-${NPS_VERSION}-beta.zip
-cd ngx_pagespeed-release-${NPS_VERSION}-beta/
-wget https://dl.google.com/dl/page-speed/psol/${NPS_VERSION}.tar.gz >>/root/stderror.log 2>&1  >> /root/stdout.log
-tar -xzf ${NPS_VERSION}.tar.gz
+wget https://github.com/pagespeed/ngx_pagespeed/archive/v${NPS_VERSION}-beta.zip >>/root/stderror.log 2>&1  >> /root/stdout.log
+unzip v${NPS_VERSION}-beta.zip >>/root/stderror.log 2>&1  >> /root/stdout.log
+
+echo "${info} Downloading Nginx Pagespeed psol..." | awk '{ print strftime("[%H:%M:%S] |"), $0 }'
+cd ngx_pagespeed-${NPS_VERSION}-beta/ >>/root/stderror.log 2>&1  >> /root/stdout.log
+
+#Todo: fix choice
+
+	wget https://dl.google.com/dl/page-speed/psol/${NPS_VERSION}-x64.tar.gz >>/root/stderror.log 2>&1  >> /root/stdout.log
+	tar -xzf ${NPS_VERSION}-x64.tar.gz >>/root/stderror.log 2>&1  >> /root/stdout.log
+
+
 cd ~/sources
 echo "${info} Downloading Nginx..." | awk '{ print strftime("[%H:%M:%S] |"), $0 }'
 wget http://nginx.org/download/nginx-${NGINX_VERSION}.tar.gz >>/root/stderror.log 2>&1  >> /root/stdout.log
