@@ -6,7 +6,6 @@
 
 nginx() {
 
-# Nginx
 cd ~/sources
 echo "${info} Downloading Nginx Pagespeed..." | awk '{ print strftime("[%H:%M:%S] |"), $0 }'
 wget https://github.com/pagespeed/ngx_pagespeed/archive/v${NPS_VERSION}-beta.zip >>/root/stderror.log 2>&1  >> /root/stdout.log
@@ -17,18 +16,16 @@ cd ngx_pagespeed-${NPS_VERSION}-beta/ >>/root/stderror.log 2>&1  >> /root/stdout
 
 #Todo: fix choice
 
+	#x64
 	wget https://dl.google.com/dl/page-speed/psol/${NPS_VERSION}-x64.tar.gz >>/root/stderror.log 2>&1  >> /root/stdout.log
 	tar -xzf ${NPS_VERSION}-x64.tar.gz >>/root/stderror.log 2>&1  >> /root/stdout.log
-
-
 cd ~/sources
 echo "${info} Downloading Nginx..." | awk '{ print strftime("[%H:%M:%S] |"), $0 }'
 wget http://nginx.org/download/nginx-${NGINX_VERSION}.tar.gz >>/root/stderror.log 2>&1  >> /root/stdout.log
-tar -xzf nginx-${NGINX_VERSION}.tar.gz
-cd nginx-${NGINX_VERSION}
+tar -xzf nginx-${NGINX_VERSION}.tar.gz >>/root/stderror.log 2>&1  >> /root/stdout.log
+cd nginx-${NGINX_VERSION} >>/root/stderror.log 2>&1  >> /root/stdout.log
 
 echo "${info} Compiling Nginx..." | awk '{ print strftime("[%H:%M:%S] |"), $0 }'
-
 ./configure --prefix=/etc/nginx \
 --sbin-path=/usr/sbin/nginx \
 --conf-path=/etc/nginx/nginx.conf \
@@ -67,11 +64,10 @@ echo "${info} Compiling Nginx..." | awk '{ print strftime("[%H:%M:%S] |"), $0 }'
 --with-mail_ssl_module \
 --with-file-aio \
 --with-ipv6 \
---with-debug \
 --with-pcre \
 --with-cc-opt='-O2 -g -pipe -Wall -Wformat -Werror=format-security -Wp,-D_FORTIFY_SOURCE=2 -fexceptions -fstack-protector --param=ssp-buffer-size=4 -m64 -mtune=generic' \
 --with-openssl=$HOME/sources/openssl-${OPENSSL_VERSION} \
---add-module=$HOME/sources/ngx_pagespeed-release-${NPS_VERSION}-beta >>/root/stderror.log 2>&1  >> /root/stdout.log
+--add-module=$HOME/sources/ngx_pagespeed-${NPS_VERSION}-beta >>/root/stderror.log 2>&1  >> /root/stdout.log
 
 # make the package
 make >>/root/stderror.log 2>&1  >> /root/stdout.log
