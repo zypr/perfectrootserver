@@ -1,3 +1,0 @@
-# The format is : <headername> <regex> <argument>
-# - Example: Reject mails with "Hello" in the subject
-# Subject Hello REJECT
