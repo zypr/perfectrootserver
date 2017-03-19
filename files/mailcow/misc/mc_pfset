@@ -1,0 +1,16 @@
+#!/bin/bash
+PATH=/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin
+
+SRR_PFCONF=($(postconf | sed -ne 's/^smtpd_recipient_restrictions = //p' | sed 's/, / /g'))
+
+if [[ -z "$1" && -z "$2" ]]; then
+        exit 1
+fi
+
+if [[ $1 == "get-srr" ]]; then
+        echo ${SRR_PFCONF[*]}
+elif [[ $1 == "set-srr" ]]; then
+        SET_PFCONF=("permit_sasl_authenticated" "permit_mynetworks" $2 "reject_unauth_destination")
+        postconf -e smtpd_recipient_restrictions="${SET_PFCONF[*]}"
+fi
+

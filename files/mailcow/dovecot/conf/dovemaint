@@ -1,0 +1,3 @@
+#!/bin/bash
+/bin/su vmail -c "/usr/bin/doveadm quota recalc -A"
+/bin/su vmail -c "/usr/bin/doveadm fts rescan -A"

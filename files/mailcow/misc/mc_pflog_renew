@@ -1,0 +1,3 @@
+#!/bin/bash
+PATH=/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin
+pflogsumm /var/log/mail.log > /var/mailcow/log/pflogsumm.log

@@ -1,0 +1,23 @@
+#!/bin/bash
+source /var/www/MAILBOX_BACKUP
+
+rm -f /etc/cron.{hourly,daily,monthly}/mailcow_backup
+cat > /etc/cron.$RUNTIME/mailcow_backup <<'EOF'
+#!/bin/bash
+source /var/www/MAILBOX_BACKUP
+if [[ $BACKUP != "on" ]]; then
+        exit 0
+fi
+DATE=$(date +"%d%m%Y_%H%M")
+[ ! -d $LOCATION ] && mkdir -p $LOCATION && chown vmail:vmail $LOCATION
+for i in "${MBOX[@]}"
+do
+        LOCALPART=${i/@/}
+        mkdir $LOCATION/$LOCALPART && chown vmail:vmail $LOCATION/$LOCALPART
+        doveadm backup -u $i maildir:$LOCATION/$LOCALPART
+        zip -qr $LOCATION/mail\_$LOCALPART\_$DATE.zip $LOCATION/$LOCALPART
+        rm -r $LOCATION/$LOCALPART
+done
+doveadm quota recalc -A
+EOF
+chmod +x /etc/cron.$RUNTIME/mailcow_backup

@@ -1,0 +1,7 @@
+# mysql_virtual_alias_maps.cf
+user = my_mailcowuser
+password = my_mailcowpass
+hosts = my_dbhost
+dbname = my_mailcowdb
+query = SELECT goto FROM spamalias WHERE address='%s' AND validity >= NOW()
+#expansion_limit = 100

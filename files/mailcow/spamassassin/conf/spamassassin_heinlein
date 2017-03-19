@@ -1,0 +1,7 @@
+#!/bin/bash
+if [[ ! -z $(/bin/su debian-spamd -c "/usr/bin/sa-update --nogpg --channel spamassassin.heinlein-support.de -v | /bin/grep 'no fresh updates were available'") ]]; then
+exit 0
+else
+/bin/su debian-spamd -c "/usr/bin/sa-compile --quiet"
+$(/bin/which service) spamassassin reload > /dev/null
+fi

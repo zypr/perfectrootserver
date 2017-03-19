@@ -1,0 +1,23 @@
+#!/bin/bash
+PATH=/usr/local/bin:/usr/local/sbin:/sbin:/usr/sbin:/bin:/usr/bin:/usr/bin/X11
+
+VMAILDIR="/var/vmail"
+SADB="/var/lib/spamassassin/.spamassassin"
+
+for domain in $(ls ${VMAILDIR}); do
+	if [[ $domain != "vfilter" && $domain != "sieve" && -d "${VMAILDIR}/${domain}" ]]; then
+		for user in $(ls ${VMAILDIR}/${domain}); do
+			# TODO: delete old emails in spam: find ${VMAILDIR}/${domain}/${user}/.Junk/cur -regex '.*' -ctime +28 -type f -delete
+			if [[ -d "${VMAILDIR}/${domain}/${user}/.Junk/cur" ]]; then
+				SPAMCOUNT=$(find ${VMAILDIR}/${domain}/${user}/.Junk/cur -regex '.*' -type f | wc -l)
+				[[ $SPAMCOUNT -ge 1 ]] && sa-learn --dbpath ${SADB} --no-sync --spam ${VMAILDIR}/${domain}/${user}/.Junk/cur > /dev/null
+			fi
+			if [[ -d "${VMAILDIR}/${domain}/${user}/cur" ]]; then
+				HAMCOUNT=$(find ${VMAILDIR}/${domain}/${user}/cur -regex '.*' -type f | wc -l)
+				[[ $HAMCOUNT -ge 1 ]] && sa-learn --dbpath ${SADB} --no-sync --ham ${VMAILDIR}/${domain}/${user}/cur > /dev/null
+			fi
+		done
+	fi
+done
+sa-learn --dbpath ${SADB} --sync > /dev/null
+chown -R debian-spamd: ${SADB}
