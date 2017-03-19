@@ -353,6 +353,9 @@ location ~ \.cgi\$ {
 	fastcgi_pass unix:/var/run/fcgiwrap.socket;
 }
 END
+if [ ${USE_PHP7} == '1' ]; then
+	sed -i 's/fastcgi_pass unix:\/var\/run\/php5-fpm.sock\;/fastcgi_pass unix:\/var\/run\/php\/php7.0-fpm.sock\;/g' /etc/nginx/sites-custom/mailcow.conf
+fi
 
 	cat > /etc/nginx/sites-available/mailgraph.conf <<END
 server {
@@ -484,6 +487,9 @@ server {
 
 }
 END
+if [ ${USE_PHP7} == '1' ]; then
+	sed -i 's/fastcgi_pass unix:\/var\/run\/php5-fpm.sock\;/fastcgi_pass unix:\/var\/run\/php\/php7.0-fpm.sock\;/g' /etc/nginx/sites-available/autodiscover.${MYDOMAIN}.conf
+fi
 
 	cat > /etc/nginx/sites-available/dav.${MYDOMAIN}.conf <<END
 server {
@@ -600,6 +606,9 @@ server {
             }
 }
 END
+if [ ${USE_PHP7} == '1' ]; then
+	sed -i 's/fastcgi_pass unix:\/var\/run\/php5-fpm.sock\;/fastcgi_pass unix:\/var\/run\/php\/php7.0-fpm.sock\;/g' /etc/nginx/sites-available/dav.${MYDOMAIN}.conf
+fi
 
 	if [ ${CLOUDFLARE} == '0' ] && [ ${USE_VALID_SSL} == '1' ]; then
 		sed -i 's/#ssl/ssl/g' /etc/nginx/sites-available/autodiscover.${MYDOMAIN}.conf /etc/nginx/sites-available/dav.${MYDOMAIN}.conf
@@ -673,6 +682,9 @@ location ~ ^/(mail/temp|mail/SQL|mail/config|mail/logs)/ {
     return 301 /mail;
 }
 END
+if [ ${USE_PHP7} == '1' ]; then
+	sed -i 's/fastcgi_pass unix:\/var\/run\/php5-fpm.sock\;/fastcgi_pass unix:\/var\/run\/php\/php7.0-fpm.sock\;/g' /etc/nginx/sites-custom/roundcube.conf
+fi
 	fi
 	
 	# Rsyslogd
