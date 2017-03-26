@@ -1,5 +1,0 @@
-include ChangeLog COPYING DEVELOP FILTERS README.* THANKS TODO CONTRIBUTING* Vagrantfile
-graft doc
-graft files
-recursive-include config *.conf *.py
-recursive-include config/filter.d/ignorecommands *

@@ -1,4 +1,0 @@
-mail.info     -/var/log/mail.info
-mail.warn      /var/log/mail.warn
-mail.err       /var/log/mail.err
-& ~
