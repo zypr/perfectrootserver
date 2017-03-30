@@ -10,7 +10,7 @@
 #################################
 
 #Enable debug:
-#set -x
+set -x
 vimbadmin() {
 echo "${info} Installing Vimbadmin..." | awk '{ print strftime("[%H:%M:%S] |"), $0 }'
 
