@@ -9,6 +9,8 @@
 ##  DO NOT MODIFY, JUST DON'T! ##
 #################################
 
+#Enable debug:
+#set -x
 vimbadmin() {
 echo "${info} Installing Vimbadmin..." | awk '{ print strftime("[%H:%M:%S] |"), $0 }'
 
@@ -31,21 +33,68 @@ ln -s /srv/vimbadmin/public/ /etc/nginx/html/${MYDOMAIN}/admin >>/root/logs/stde
 
 #Ändere Werte in der Vimbadmin Conf
 cp /srv/vimbadmin/application/configs/application.ini.dist /srv/vimbadmin/application/configs/application.ini
-sed -i 's/resources.doctrine2.connection.options.password = "xxx"/resources.doctrine2.connection.options.password = "${VIMB_MYSQL_PASS}"/g' /srv/vimbadmin/application/configs/application.ini
+
+
+#EMPTY!
+#In der dovecot.sh wird das passwort eingetragen /etc/dovecot/dovecot-mysql.conf
+#In der Mailfilter.sh auch /etc/amavis/conf.d/50-user
+# In der postfix.sh wird es auch richtig eingetragen /etc/postfix/mysql/postfix-mysql-virtual_alias_maps.cf
+echo "Vimbadmin passwort:" 
+echo ${VIMB_MYSQL_PASS}
+echo $VIMB_MYSQL_PASS
+#sed -i "s/resources.doctrine2.connection.options.password = \"xxx\"/resources.doctrine2.connection.options.password = \"${VIMB_MYSQL_PASS}\"/g" /srv/vimbadmin/application/configs/application.ini
+
+sed -i "s/xxx/${VIMB_MYSQL_PASS}/g" /srv/vimbadmin/application/configs/application.ini
+
+
+# Passt, die line gibt es aber jetzt 2x
 sed -i 's/defaults.mailbox.uid = 2000/defaults.mailbox.uid = 5000/g' /srv/vimbadmin/application/configs/application.ini
-sed -i 's/defaults.mailbox.gid = 2000/defaults.mailbox.uid = 5000/g' /srv/vimbadmin/application/configs/application.ini
+
+
+#gibt es nicht!
+#Muss eingefügt werden
+#sed -i 's/defaults.mailbox.gid = 2000/defaults.mailbox.uid = 5000/g' /srv/vimbadmin/application/configs/application.ini
+echo -e 'defaults.mailbox.uid = 5000' >> /srv/vimbadmin/application/configs/application.ini
+
+
+# Ausgabe in der File: defaults.mailbox.maildir = "maildir:/var/vmail/%d/%u/Maildir:LAYOUT=fs"
 sed -i 's/defaults.mailbox.maildir = "maildir:\/srv\/vmail\/%d\/%u\/mail:LAYOUT=fs"/defaults.mailbox.maildir = "maildir:\/var\/vmail\/%d\/%u\/Maildir:LAYOUT=fs"/g' /srv/vimbadmin/application/configs/application.ini
+
+#Ausgabe in der file: defaults.mailbox.homedir = "/var/vmail/%d/%u"
 sed -i 's/defaults.mailbox.homedir = "\/srv\/vmail\/%d\/%u"/defaults.mailbox.homedir = "\/var\/vmail\/%d\/%u"/g' /srv/vimbadmin/application/configs/application.ini
+
+#Ausgabe in der file: defaults.mailbox.password_scheme = "dovecot:SHA512-CRYPT"
 sed -i 's/defaults.mailbox.password_scheme = "dovecot:BLF-CRYPT"/defaults.mailbox.password_scheme = "dovecot:SHA512-CRYPT"/g' /srv/vimbadmin/application/configs/application.ini
+
+#Ausgabe in der File: mailbox_deletion_fs_enabled = true
 sed -i 's/mailbox_deletion_fs_enabled = false/mailbox_deletion_fs_enabled = true/g' /srv/vimbadmin/application/configs/application.ini
+
+#Ausagbe in der File: server.smtp.port    = "587" ----> Port in firewall nötig?
 sed -i 's/server.smtp.port    = "465"/server.smtp.port    = "587"/g' /srv/vimbadmin/application/configs/application.ini
-sed -i 's/server.smtp.crypt   = "SSL"/server.imap.crypt = "TLS"/g' /srv/vimbadmin/application/configs/application.ini
+
+#gibt es nicht!
+#Muss eingefügt werden
+#sed -i 's/server.smtp.crypt   = "SSL"/server.imap.crypt = "TLS"/g' /srv/vimbadmin/application/configs/application.ini
+echo -e 'server.imap.crypt = "TLS"' >> /srv/vimbadmin/application/configs/application.ini
+#Ausgabe in der File: server.imap.host  = "mail.%d" -------------> Passt!
 sed -i 's/server.imap.host  = "gpo.%d"/server.imap.host  = "mail.%d"/g' /srv/vimbadmin/application/configs/application.ini
+
+#Ausgabe in der file: server.imap.port  = "143" -------------> Passt!
 sed -i 's/server.imap.port  = "993"/server.imap.port  = "143"/g' /srv/vimbadmin/application/configs/application.ini
+
+#Ausgabe in der file: server.imap.crypt = "TLS" -------------> Passt!
 sed -i 's/server.imap.crypt = "SSL"/server.imap.crypt = "TLS"/g' /srv/vimbadmin/application/configs/application.ini
-sed -i 's/server.webmail.host  = "https:\/\/webmail.%d"/server.webmail.host  = "https:\/\/mail.%d\/webmail"/g' /srv/vimbadmin/application/configs/application.ini
-sed -i 's/server.pop3.enabled = 1/server.pop3.enabled = 0/g' /srv/vimbadmin/application/configs/application.ini
-sed -i 's/defaults.domain.transport = "virtual"\/defaults.domain.transport = "lmtps:unix:private\/dovecot-lmtp"/g' /srv/vimbadmin/application/configs/application.ini
+
+# Ausgabe in der File: server.webmail.host  = "https://mail.%d/webmail" ------> da muss wohl noch ${MYDOMAIN} dazu oder?
+sed -i "s/server.webmail.host  = \"https:\/\/webmail.%d\"/server.webmail.host  = \"https:\/\/mail.%d\/webmail\"/g" /srv/vimbadmin/application/configs/application.ini
+
+#Ausgabe in der file: server.pop3.enabled = 0 -------------> Passt!
+sed -i "s/server.pop3.enabled = 1/server.pop3.enabled = 0/g" /srv/vimbadmin/application/configs/application.ini
+
+#Ausgabe in der file: defaults.domain.transport = "virtual" -------------> Passt!
+sed -i "s/defaults.domain.transport = \"virtual\"\/defaults.domain.transport = \"lmtps:unix:private\/dovecot-lmtp\"/g" /srv/vimbadmin/application/configs/application.ini
+
+
 sed -i "s/example.com/${MYDOMAIN}/g" /srv/vimbadmin/application/configs/application.ini
 
 mkdir -p /srv/archives
