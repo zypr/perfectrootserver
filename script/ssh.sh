@@ -71,13 +71,6 @@ echo -e "" >> /etc/ssh/sshd_config
 echo -e "# MAC algorithms">> /etc/ssh/sshd_config
 echo -e "MACs hmac-sha2-512-etm@openssh.com,hmac-sha2-256-etm@openssh.com,hmac-ripemd160-etm@openssh.com,umac-128-etm@openssh.com,hmac-sha2-512,hmac-sha2-256,hmac-ripemd160,umac-128@openssh.com">> /etc/ssh/sshd_config
 
-if [ ${ENABLE_PUBLICKEY_FILE} == '0' ]; then
-sed -i 's/^#PasswordAuthentication yes/PasswordAuthentication yes/g' /etc/ssh/sshd_config
-echo -e "PermitRootLogin yes" >> /etc/ssh/sshd_config
-
-fi
-
-
 rm -rf /etc/nginx/nginx.conf
 cat > /etc/issue <<END
 ####################################################################
