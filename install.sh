@@ -25,7 +25,7 @@ if [ ${USE_PHP7} == '1' ] && [ ${USE_PHP5} == '0' ]; then
 fi
 
 if [ ${USE_PHP7} == '0' ] && [ ${USE_PHP5} == '1' ]; then
-		source script/php.sh
+		source script/php5.sh
 fi
 
 
