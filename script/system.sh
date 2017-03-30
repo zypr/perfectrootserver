@@ -114,7 +114,10 @@ Pin: release a=experimental
 Pin-Priority: 1
 END
 
-wget -O ~/sources/dotdeb.gpg http://www.dotdeb.org/dotdeb.gpg >>/root/logs/stderror.log 2>&1 >>/root/logs/stdout.log && apt-key add ~/sources/dotdeb.gpg >>/root/logs/stderror.log 2>&1 >>/root/logs/stdout.log
+wget https://www.dotdeb.org/dotdeb.gpg >>/root/logs/stderror.log 2>&1 >>/root/logs/stdout.log
+apt-key add dotdeb.gpg >>/root/logs/stderror.log 2>&1 >>/root/logs/stdout.log
+
+mkdir -p /root/sources
 
 apt-get update -y >>/root/logs/stderror.log 2>&1 >>/root/logs/stdout.log && apt-get -y upgrade >>/root/logs/stderror.log 2>&1 >>/root/logs/stdout.log
 

@@ -62,11 +62,6 @@ checksystem() {
 	        read -s -n 1 i
         fi
 	fi
-	#Set TCP Alife
-	#echo -e "TCPKeepAlive yes" >> /etc/ssh/sshd_config
-	echo -e "ClientAliveInterval 120" >> /etc/ssh/sshd_config
-	echo -e "ClientAliveCountMax 15" >> /etc/ssh/sshd_config
-	service sshd restart
 
 	#Check CPU System and set RSA Size
 	unset $RSA_KEY_SIZE
