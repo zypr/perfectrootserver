@@ -9,7 +9,7 @@
 ##  DO NOT MODIFY, JUST DON'T! ##
 #################################
 
-php() {
+php5() {
 echo "${info} Installing PHP5.x..." | awk '{ print strftime("[%H:%M:%S] |"), $0 }'
 DEBIAN_FRONTEND=noninteractive aptitude -y install ca-certificates php-auth-sasl php-auth-sasl php-http-request php-mail php-mail-mime php-mail-mimedecode php-net-dime php-net-smtp php-net-url php-pear php-soap php5 php5-apcu php5-cli php5-common php5-curl php5-dev php5-fpm php5-geoip php5-gd php5-igbinary php5-imap php5-intl php5-mcrypt php5-mysql php5-sqlite php5-xmlrpc php5-xsl >>/root/logs/stderror.log 2>&1 >>/root/logs/stdout.log
 
