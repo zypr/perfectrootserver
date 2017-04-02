@@ -32,7 +32,7 @@ sed -i 's/^#KeyRegenerationInterval 1h/KeyRegenerationInterval 1800/g' /etc/ssh/
 sed -i 's/^#SyslogFacility AUTH/SyslogFacility AUTH/g' /etc/ssh/sshd_config
 sed -i 's/^#LoginGraceTime 2m/LoginGraceTime 30/g' /etc/ssh/sshd_config
 sed -i 's/^#MaxAuthTries 6/MaxAuthTries 20/g' /etc/ssh/sshd_config
-sed -i 's/^#PermitRootLogin yes/PermitRootLogin yes/g' /etc/ssh/sshd_config # Gibt es nicht
+sed -i 's/^#PermitRootLogin yes/PermitRootLogin yes/g' /etc/ssh/sshd_config
 sed -i 's/^#StrictModes yes/StrictModes yes/g' /etc/ssh/sshd_config
 sed -i 's/^#RSAAuthentication yes/RSAAuthentication yes/g' /etc/ssh/sshd_config
 sed -i 's/^#PubkeyAuthentication yes/PubkeyAuthentication yes/g' /etc/ssh/sshd_config
@@ -49,10 +49,6 @@ sed -i 's/^#PrintLastLog yes/PrintLastLog yes/g' /etc/ssh/sshd_config
 # sed -i 's/^#TCPKeepAlive yes/TCPKeepAlive yes/g' /etc/ssh/sshd_config
 # sed -i 's/^#ClientAliveInterval 0/ClientAliveInterval 30/g' /etc/ssh/sshd_config
 # sed -i 's/^#ClientAliveCountMax 3/ClientAliveCountMax 3000/g' /etc/ssh/sshd_config
-
-echo -e "ClientAliveInterval 120" >> /etc/ssh/sshd_config
-echo -e "ClientAliveCountMax 15" >> /etc/ssh/sshd_config
-	
 sed -i 's/^#UsePAM no/UsePAM yes/g' /etc/ssh/sshd_config
 sed -i 's/^#Banner none/Banner \/etc\/issue/g' /etc/ssh/sshd_config
 sed -i 's/^#MaxStartups 10:30:100/MaxStartups 2/g' /etc/ssh/sshd_config
@@ -70,12 +66,6 @@ echo -e "Ciphers chacha20-poly1305@openssh.com,aes256-gcm@openssh.com,aes128-gcm
 echo -e "" >> /etc/ssh/sshd_config
 echo -e "# MAC algorithms">> /etc/ssh/sshd_config
 echo -e "MACs hmac-sha2-512-etm@openssh.com,hmac-sha2-256-etm@openssh.com,hmac-ripemd160-etm@openssh.com,umac-128-etm@openssh.com,hmac-sha2-512,hmac-sha2-256,hmac-ripemd160,umac-128@openssh.com">> /etc/ssh/sshd_config
-
-if [ ${ENABLE_PUBLICKEY_FILE} == '0' ]; then
-sed -i 's/^#PasswordAuthentication yes/PasswordAuthentication yes/g' /etc/ssh/sshd_config
-echo -e "PermitRootLogin yes" >> /etc/ssh/sshd_config
-
-fi
 
 
 rm -rf /etc/nginx/nginx.conf

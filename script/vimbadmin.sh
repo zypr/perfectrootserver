@@ -29,7 +29,8 @@ composer create-project opensolutions/vimbadmin /srv/vimbadmin -s dev -n --keep-
 
 chown -R www-data: /srv/vimbadmin/public
 chown -R www-data: /srv/vimbadmin/var
-ln -s /srv/vimbadmin/public/ /etc/nginx/html/${MYDOMAIN}/admin >>/root/logs/stderror.log 2>&1 >>/root/logs/stdout.log
+chown -R www-data: /srv/vimbadmin/
+ln -s /srv/vimbadmin/public/ /etc/nginx/html/${MYDOMAIN}/vma >>/root/logs/stderror.log 2>&1 >>/root/logs/stdout.log
 
 #Ändere Werte in der Vimbadmin Conf
 cp /srv/vimbadmin/application/configs/application.ini.dist /srv/vimbadmin/application/configs/application.ini
@@ -41,7 +42,6 @@ cp /srv/vimbadmin/application/configs/application.ini.dist /srv/vimbadmin/applic
 # In der postfix.sh wird es auch richtig eingetragen /etc/postfix/mysql/postfix-mysql-virtual_alias_maps.cf
 echo "Vimbadmin passwort:" 
 echo ${VIMB_MYSQL_PASS}
-echo $VIMB_MYSQL_PASS
 #sed -i "s/resources.doctrine2.connection.options.password = \"xxx\"/resources.doctrine2.connection.options.password = \"${VIMB_MYSQL_PASS}\"/g" /srv/vimbadmin/application/configs/application.ini
 
 sed -i "s/xxx/${VIMB_MYSQL_PASS}/g" /srv/vimbadmin/application/configs/application.ini
@@ -119,67 +119,26 @@ echo "${info} Installing Crontabs..." | awk '{ print strftime("[%H:%M:%S] |"), $
 
 # Wohin das cert?
 # Neu erstellen oder bei nginx dazu packen, wenn mailserver?
-cat >> /etc/nginx/sites-available/mailserver.conf << 'EOF1'
-server {
-	server_name mail.${MYDOMAIN};
-	listen 443 ssl;
-	listen [::]:443 ssl;
-	ssl on;
-	ssl_certificate         /etc/ssl/mail.${MYDOMAIN}.cer;
-	ssl_certificate_key     /etc/ssl/mail.${MYDOMAIN}.key;
-	# Einige Optionen nach Bettercrypto
-	ssl_prefer_server_ciphers on;
-	ssl_protocols TLSv1 TLSv1.1 TLSv1.2;
-	ssl_ciphers 'EDH+CAMELLIA:EDH+aRSA:EECDH+aRSA+AESGCM:EECDH+aRSA+SHA384:EECDH+aRSA+SHA256:EECDH:+CAMELLIA256:+AES256:+CAMELLIA128:+AES128:+SSLv3:!aNULL:!eNULL:!LOW:!3DES:!MD5:!EXP:!PSK:!DSS:!RC4:!SEED:!ECDSA:CAMELLIA256-SHA:AES256-SHA:CAMELLIA128-SHA:AES128-SHA';
-	add_header Strict-Transport-Security max-age=15768000;
-	ssl_session_cache shared:SSL:5m;
-	ssl_session_timeout 30m;
-	client_max_body_size 0;
-	root /srv/vimbadmin/public;
-	index index.html index.htm index.php;
-	location / {
-		try_files $uri $uri/ index.php;
-	}
-	# Zugriff auf Roundcube Logs, sollte von außerhalb nicht möglich sein
-	location ~ ^/webmail/logs/ {
-		deny all;
-	}
-	location ~ \.php$ {
-		include snippets/fastcgi-php.conf;
-		fastcgi_read_timeout 630;
-		fastcgi_keep_conn on;
-		# Dient ViMbAdmin, da Nginx keine htaccess-Datei einlesen wird
-		fastcgi_param APP_ENV production;
-		fastcgi_pass unix:/var/run/php5-fpm.sock;
-	}
-	# Können sensible Daten enthalten, Nginx verwertet sie nicht
-	location ~ /\.ht {
-		deny all;
-	}
-	location = /favicon.ico {
-		log_not_found off;
-		access_log off;
-	}
-	# Keine Notwendigkeit
-	location = /robots.txt {
-		deny all;
-		log_not_found off;
-		access_log off;
-	}
-	location /admin {
-		# Rewrite fix für ViMbAdmin
-		try_files $uri $uri/ /admin/index.php?$args;
-	}
+cat > /etc/nginx/sites-custom/vimbadmin.conf <<END
+location ~ ^/vma {
+    alias /srv/vimbadmin/public;
+
+    location ~ ^/vma/(.*\.(js|css|gif|jpg|png|ico))$ {
+        alias /srv/vimbadmin/public/$1;
+    }
+
+    rewrite ^/vma(.*)$ /vma/index.php last;
+
+    location ~ ^/vma(.+\.php)$ {
+        alias /srv/vimbadmin/public$1;
+        fastcgi_pass unix:/var/run/php7.0-fpm.sock;
+        fastcgi_index index.php;
+        charset utf8;
+        include fastcgi_params;
+        fastcgi_param DOCUMENT_ROOT /srv/vimbadmin/public;
+    }
 }
-EOF1
-
-sed -i "s/domain.tld/${MYDOMAIN}/g" /etc/nginx/sites-available/mailserver.conf
-if [ ${USE_PHP7} == '1' ]; then
-		sed -i 's/fastcgi_pass unix:\/var\/run\/php5-fpm.sock\;/fastcgi_pass unix:\/var\/run\/php\/php7.0-fpm.sock\;/g' /etc/nginx/sites-available/mailserver.conf
-fi
-
-ln -s /etc/nginx/sites-available/mailserver /etc/nginx/sites-enabled/ >>/root/logs/stderror.log 2>&1 >>/root/logs/stdout.log
-
+END
 
 #Restarting Services
 echo "${info} Restarting Services..." | awk '{ print strftime("[%H:%M:%S] |"), $0 }'

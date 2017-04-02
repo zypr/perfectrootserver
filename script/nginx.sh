@@ -230,6 +230,7 @@ mkdir -p /etc/nginx/html/${MYDOMAIN}
 rm -rf /etc/nginx/sites-available/${MYDOMAIN}.conf
 if [ ${ALLOWHTTPCONNECTIONS} == '1' ]; then
 # Create server config
+
 cat > /etc/nginx/sites-available/${MYDOMAIN}.conf <<END
 server {
 			listen 				80 default_server;
