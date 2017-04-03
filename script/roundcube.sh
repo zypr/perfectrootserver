@@ -14,13 +14,14 @@ echo "${info} Installing Roundcube..." | awk '{ print strftime("[%H:%M:%S] |"), 
 
 mysql --defaults-file=/etc/mysql/debian.cnf -e "CREATE DATABASE roundcube; GRANT ALL ON roundcube.* TO 'roundcube'@'localhost' IDENTIFIED BY '$ROUNDCUBE_MYSQL_PASS'; FLUSH PRIVILEGES;" >>/root/logs/stderror.log 2>&1 >>/root/logs/stdout.log
 
-mkdir -p /var/www/mail/rc
-cd /var/www/mail/rc
+cd /var/www/html
 wget https://github.com/roundcube/roundcubemail/releases/download/${ROUNDCUBE_VERSION}/roundcubemail-${ROUNDCUBE_VERSION}-complete.tar.gz >>/root/logs/stderror.log 2>&1 >>/root/logs/stdout.log
-tar zxvf roundcubemail-${ROUNDCUBE_VERSION}-complete.tar.gz -C /var/www/mail/rc/ >>/root/logs/stderror.log 2>&1 >>/root/logs/stdout.log
-mv /var/www/mail/rc/roundcubemail*/* /var/www/mail/rc/
+mkdir -p /var/www/html/webmail
+tar zxvf roundcubemail-${ROUNDCUBE_VERSION}-complete.tar.gz -C /var/www/html/webmail >>/root/logs/stderror.log 2>&1 >>/root/logs/stdout.log
+mv /var/www/html/webmail/roundcubemail*/* /var/www/html/webmail
+rm roundcubemail-${ROUNDCUBE_VERSION}-complete.tar.gz
 
-cat >> /var/www/mail/rc/config/config.inc.php << 'EOF1'
+cat >> /var/www/html/webmail/config/config.inc.php << 'EOF1'
 <?php
 $config = array();
 $config['db_dsnw'] = 'mysql://roundcube:changeme@localhost/roundcube';
@@ -60,29 +61,26 @@ $config['smtp_conn_options'] = array(
    ),
 );
 EOF1
-sed -i "s/changeme/${ROUNDCUBE_MYSQL_PASS}/g" /var/www/mail/rc/config/config.inc.php
-sed -i "s/domain.tld/${MYDOMAIN}/g" /var/www/mail/rc/config/config.inc.php
+sed -i "s/changeme/${ROUNDCUBE_MYSQL_PASS}/g" /var/www/html/webmail/config/config.inc.php
+sed -i "s/domain.tld/${MYDOMAIN}/g" /var/www/html/webmail/config/config.inc.php
 
-mysql --defaults-file=/etc/mysql/debian.cnf roundcube < /var/www/mail/rc/SQL/mysql.initial.sql >>/root/logs/stderror.log 2>&1 >>/root/logs/stdout.log
-
-
-#ln -s /var/www/mail/rc /etc/nginx/html/${MYDOMAIN}/webmail
+mysql --defaults-file=/etc/mysql/debian.cnf roundcube < /var/www/html/webmail/SQL/mysql.initial.sql >>/root/logs/stderror.log 2>&1 >>/root/logs/stdout.log
  
 cat > /etc/nginx/sites-custom/roundcube.conf <<END
 location /webmail {
     #auth_basic "Restricted";
-    alias /var/www/mail/rc;
+    alias /var/www/html/webmail;
     index index.php;
     location ~ ^/webmail/(.+\.php)$ {
-        alias /var/www/mail/rc/\$1;
+        alias /var/www/html/webmail/\$1;
         fastcgi_split_path_info ^(.+\.php)(/.+)$;
         include fastcgi_params;
         fastcgi_index index.php;
-        fastcgi_param SCRIPT_FILENAME /var/www/mail/rc/\$1;
+        fastcgi_param SCRIPT_FILENAME /var/www/html/webmail/\$1;
         fastcgi_pass unix:/var/run/php5-fpm.sock;
     }
     location ~* ^/webmail/(.+\.(jpg|jpeg|gif|css|png|js|ico|html|xml|txt))$ {
-        alias /var/www/mail/rc/\$1;
+        alias /var/www/html/webmail/\$1;
     }
     #location ~ ^/webmail/save/ {
     #    deny all;
@@ -97,11 +95,8 @@ END
 if [ ${USE_PHP7} == '1' ]; then
 	sed -i 's/fastcgi_pass unix:\/var\/run\/php5-fpm.sock\;/fastcgi_pass unix:\/var\/run\/php\/php7.0-fpm.sock\;/g' /etc/nginx/sites-custom/roundcube.conf
 fi
-#chown -R 777 www-data /var/www/mail/rc/
-chown -R www-data:www-data /var/www/mail/rc/
-service nginx reload
-service nginx stop
-service nginx start
+chown -R www-data: /var/www/html
+chown -R vmail:vmail /var/vmail/ #fix???
 }
 source ~/configs/userconfig.cfg
 source ~/configs/versions.cfg

@@ -107,6 +107,6 @@ amavisd-new showkey ${MYDOMAIN} >>/root/logs/stderror.log 2>&1 >>/root/logs/stdo
 
 adduser clamav amavis >>/root/logs/stderror.log 2>&1 >>/root/logs/stdout.log
 # ACHTUNG, Ab 0.99.2 startet ClamAV mit diesem Parameter nicht mehr, da er entfernt wurde. Vielen Dank für den Hinweis!
-sed -i 's/AllowSupplementaryGroups false/AllowSupplementaryGroups true/g' /etc/clamav/clamd.conf
+#sed -i 's/AllowSupplementaryGroups false/AllowSupplementaryGroups true/g' /etc/clamav/clamd.conf
 }
 source ~/configs/userconfig.cfg
