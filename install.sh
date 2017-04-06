@@ -31,7 +31,6 @@ if [ ${USE_PHP7} == '0' ] && [ ${USE_PHP5} == '1' ]; then
 		source script/php.sh
 fi
 
-
 source script/ssl.sh
 source script/ssh.sh
 source script/publickey.sh
@@ -41,17 +40,21 @@ source script/phpmyadmin.sh
 
 source script/dovecot.sh
 source script/postfix.sh
-source script/roundcube.sh
+if [ ${USE_WEBMAIL} == '1' ]; then
+		source script/roundcube.sh
+fi
 source script/vimbadmin.sh
 source script/mailfilter.sh
+#source script/policydweight.sh
 
 source script/firewall.sh
 
+#source script/finischer.sh
 
-source addons/ajenti.sh
-source addons/teamspeak3.sh
-source addons/minecraft.sh
-source addons/vsftpd.sh
+# source addons/ajenti.sh
+# source addons/teamspeak3.sh
+# source addons/minecraft.sh
+# source addons/vsftpdinstall.sh
 
 
 #source addons/openvpn.sh
@@ -70,6 +73,7 @@ bashinstall
 ssl
 ssh
 nginx
+
 if [ ${USE_PHP7} == '1' ] && [ ${USE_PHP5} == '0' ]; then
 		php7
 fi
@@ -81,13 +85,16 @@ fi
 dovecot
 postfix
 mailfilter
-roundcube
+if [ ${USE_WEBMAIL} == '1' ]; then
+		roundcube
+fi
 vimbadmin
 
+# Special harding
+#policydweight
 
 firewall
 fail2ban
-
 phpmyadmin
 publickey
 
@@ -95,13 +102,14 @@ publickey
 #Kann doch weg..
 #addoninformation
 
-ajenti
-teamspeak3
-minecraft
-vsftpd
+#ajenti
+#teamspeak3
+#minecraft
+#vsftpd
 #openvpn
 #disablelogin
 #addnewsite
+#finischer
 
 logininformation
 instructions

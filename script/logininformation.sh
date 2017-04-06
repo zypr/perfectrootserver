@@ -41,7 +41,7 @@ if [ ${USE_MAILSERVER} == '1' ]; then
 			echo "--------------------------------------------" >> ~/credentials.txt
 			echo "database = roundcube" >> ~/credentials.txt
 			echo "username = roundcube" >> ~/credentials.txt
-			echo "password = ${$ROUNDCUBE_MYSQL_PASS}" >> ~/credentials.txt
+			echo "password = ${ROUNDCUBE_MYSQL_PASS}" >> ~/credentials.txt
 			echo "" >> ~/credentials.txt
 			echo "" >> ~/credentials.txt
 		fi
