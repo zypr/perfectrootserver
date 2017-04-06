@@ -108,14 +108,7 @@ instructions() {
 		echo
 		echo "${info} In the next step you have to set three DNS TXT records for your domain." | awk '{ print strftime("[%H:%M:%S] |"), $0 }'
 		echo
-		yellow "The first record sould look like this:" | awk '{ print strftime("[%H:%M:%S] |"), $0 }'
-		echo
-		echo "NAME         TYPE      VALUE" | awk '{ print strftime("[%H:%M:%S] |"), $0 }'
-		echo "----------------------------------------------------------" | awk '{ print strftime("[%H:%M:%S] |"), $0 }'
-		echo " @     		 TXT       \"mailconf=https://autoconfig.${MYDOMAIN}/mail/config-v1.1.xml\"" | awk '{ print strftime("[%H:%M:%S] |"), $0 }'
-		echo
-		echo
-		yellow "The second record should look like this:" | awk '{ print strftime("[%H:%M:%S] |"), $0 }'
+		yellow "The first record should look like this:" | awk '{ print strftime("[%H:%M:%S] |"), $0 }'
 		echo
 		echo "NAME       TYPE          VALUE" | awk '{ print strftime("[%H:%M:%S] |"), $0 }'
 		echo "-----------------------------------------" | awk '{ print strftime("[%H:%M:%S] |"), $0 }'
@@ -126,41 +119,39 @@ instructions() {
 		fi
 		echo
 		echo
-		yellow "The third record sould look like this:" | awk '{ print strftime("[%H:%M:%S] |"), $0 }'
+		yellow "The second record sould look like this:" | awk '{ print strftime("[%H:%M:%S] |"), $0 }'
 		echo
 		echo "      NAME           TYPE              VALUE" | awk '{ print strftime("[%H:%M:%S] |"), $0 }'
 		echo "----------------------------------------------------------" | awk '{ print strftime("[%H:%M:%S] |"), $0 }'
 		echo " mail._domainkey     TXT     \"v=DKIM1; k=rsa; t=s; s=email; p=DKIMPUBLICKEY\"" | awk '{ print strftime("[%H:%M:%S] |"), $0 }'
 		echo
-		echo "Visit https://${MYDOMAIN}/admin and login with username = ${MCAU} and password = ${MCAP}" | awk '{ print strftime("[%H:%M:%S] |"), $0 }'
-		echo "Generate your DKIMPUBLICKEY (mailcow admin -> DKMIM signing)" | awk '{ print strftime("[%H:%M:%S] |"), $0 }'
-		echo "Domain:   ${MYDOMAIN}" | awk '{ print strftime("[%H:%M:%S] |"), $0 }'
-		echo "Selector: mail" | awk '{ print strftime("[%H:%M:%S] |"), $0 }'
-		while true; do
-			echo
-			echo
-			if [[ -z $CHECKSPF ]]; then
-				echo "${warn} TXT record for SPF was not found!" | awk '{ print strftime("[%H:%M:%S] |"), $0 }'
-			else
-				echo "${ok} TXT record for SPF was found!" | awk '{ print strftime("[%H:%M:%S] |"), $0 }'	
-			fi
-			sleep 1
-			if [[ -z $CHECKDKIM ]]; then
-				echo "${warn} TXT record for DKIM was not found!" | awk '{ print strftime("[%H:%M:%S] |"), $0 }'
-			else
-				echo "${ok} TXT record for DKIM was found!" | awk '{ print strftime("[%H:%M:%S] |"), $0 }'	
-			fi
-			echo
-			echo "${info} Repeat this check? Press $(textb ENTER) for yes or $(textb [N]) to skip" | awk '{ print strftime("[%H:%M:%S] |"), $0 }'
-			read -s -n 1 i
-			if [[ $i == "" ]]; then
-				echo > /dev/null
-			else
-				if [[ $i == "n" ]] || [[ $i == "N" ]]; then
-					break
-				fi
-			fi
-		done
+		echo "Visit https://${MYDOMAIN}/vma and copy the salts to /srv/vimbadmin/application/configs/application.ini" | awk '{ print strftime("[%H:%M:%S] |"), $0 }'
+		echo "Now create an admin account" | awk '{ print strftime("[%H:%M:%S] |"), $0 }'
+		#while true; do
+		#	echo
+		#	echo
+		#	if [[ -z $CHECKSPF ]]; then
+		#		echo "${warn} TXT record for SPF was not found!" | awk '{ print strftime("[%H:%M:%S] |"), $0 }'
+		#	else
+		#		echo "${ok} TXT record for SPF was found!" | awk '{ print strftime("[%H:%M:%S] |"), $0 }'	
+		#	fi
+		#	sleep 1
+		#	if [[ -z $CHECKDKIM ]]; then
+		#		echo "${warn} TXT record for DKIM was not found!" | awk '{ print strftime("[%H:%M:%S] |"), $0 }'
+		#	else
+		#		echo "${ok} TXT record for DKIM was found!" | awk '{ print strftime("[%H:%M:%S] |"), $0 }'	
+		#	fi
+		#	echo
+		#	echo "${info} Repeat this check? Press $(textb ENTER) for yes or $(textb [N]) to skip" | awk '{ print strftime("[%H:%M:%S] |"), $0 }'
+		#	read -s -n 1 i
+		#	if [[ $i == "" ]]; then
+		#		echo > /dev/null
+		#	else
+		#		if [[ $i == "n" ]] || [[ $i == "N" ]]; then
+		#			break
+		#		fi
+		#	fi
+		#done
 		echo
 		echo
 	fi

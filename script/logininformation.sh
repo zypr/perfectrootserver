@@ -34,6 +34,18 @@ echo "username = root" >> ~/credentials.txt
 echo "password = ${MYSQL_ROOT_PASS}" >> ~/credentials.txt
 echo "" >> ~/credentials.txt
 echo "" >> ~/credentials.txt
+if [ ${USE_MAILSERVER} == '1' ]; then
+		if [ ${USE_WEBMAIL} == '1' ]; then
+			echo "--------------------------------------------" >> ~/credentials.txt
+			echo "roundcube database" >> ~/credentials.txt
+			echo "--------------------------------------------" >> ~/credentials.txt
+			echo "database = roundcube" >> ~/credentials.txt
+			echo "username = roundcube" >> ~/credentials.txt
+			echo "password = ${$ROUNDCUBE_MYSQL_PASS}" >> ~/credentials.txt
+			echo "" >> ~/credentials.txt
+			echo "" >> ~/credentials.txt
+		fi
+fi
 if [ ${USE_PMA} == '1' ]; then
 	echo "--------------------------------------------" >> ~/credentials.txt
 	echo "phpMyAdmin database" >> ~/credentials.txt
@@ -69,6 +81,22 @@ echo "--------------------------------------------" >> ~/credentials.txt
 echo "https://${MYDOMAIN}" >> ~/credentials.txt
 echo "" >> ~/credentials.txt
 echo "" >> ~/credentials.txt
+if [ ${USE_MAILSERVER} == '1' ]; then
+	echo "--------------------------------------------" >> ~/credentials.txt
+	echo "Vimbadmin " >> ~/credentials.txt
+	echo "--------------------------------------------" >> ~/credentials.txt
+	echo "https://${MYDOMAIN}/vma" >> ~/credentials.txt
+	echo "" >> ~/credentials.txt
+	echo "" >> ~/credentials.txt
+	if [ ${USE_WEBMAIL} == '1' ]; then
+		echo "--------------------------------------------" >> ~/credentials.txt
+		echo "roundcube (webmail)" >> ~/credentials.txt
+		echo "--------------------------------------------" >> ~/credentials.txt
+		echo "https://${MYDOMAIN}/webmail" >> ~/credentials.txt
+		echo "" >> ~/credentials.txt
+		echo "" >> ~/credentials.txt
+	fi
+fi
 if [ ${USE_PMA} == '1' ]; then
 	echo "--------------------------------------------" >> ~/credentials.txt
 	echo "phpMyAdmin" >> ~/credentials.txt
@@ -83,19 +111,25 @@ echo "" >> ~/credentials.txt
 echo "--------------------------------------------" >> ~/credentials.txt
 echo "open ports" >> ~/credentials.txt
 echo "--------------------------------------------" >> ~/credentials.txt
-
-echo "TCP = 80 (HTTP), 443 (HTTPS), ${SSH_PORT} (SSH)" >> ~/credentials.txt
-echo "UDP = All ports are closed" >> ~/credentials.txt
-echo "" >> ~/credentials.txt
-echo "" >> ~/credentials.txt
-
+if [ ${USE_MAILSERVER} == '1' ]; then
+		echo "TCP = 25 (SMTP), 80 (HTTP), 110 (POP3), 143(IMAP), 443 (HTTPS), 465 (SMPTS)" >> ~/credentials.txt 
+		echo "TCP = 587 (Submission), 993 (IMAPS), 995 (POP3S), ${SSH_PORT} (SSH)" >> ~/credentials.txt
+		echo "UDP = All ports are closed" >> ~/credentials.txt
+		echo "" >> ~/credentials.txt
+		echo "" >> ~/credentials.txt
+else
+		echo "TCP = 80 (HTTP), 443 (HTTPS), ${SSH_PORT} (SSH)" >> ~/credentials.txt
+		echo "UDP = All ports are closed" >> ~/credentials.txt
+		echo "" >> ~/credentials.txt
+		echo "" >> ~/credentials.txt
+fi
 
 echo "You can add additional ports, just edit \"/etc/arno-iptables-firewall/firewall.conf\" (lines 1164 & 1165)" >> ~/credentials.txt
 echo "and restart your firewall -> \"systemctl force-reload arno-iptables-firewall\"" >> ~/credentials.txt
 echo "" >> ~/credentials.txt
 echo "" >> ~/credentials.txt
 echo "_______________________________________________________________________________________" >> ~/credentials.txt
-echo "${ok} Done! The credentials are located in the file $(textb /root/credentials.txt)!" | awk '{ print strftime("[%H:%M:%S] |"), $0 }'
-echo "${ok} Done! The add on credentials are located in the file $(textb /root/configs/addoninformation.txt)!" | awk '{ print strftime("[%H:%M:%S] |"), $0 }'
+echo "${ok} Done! The credentials are located in the file $(textb ~/root/credentials.txt)!" | awk '{ print strftime("[%H:%M:%S] |"), $0 }'
+echo "${ok} Done! The add on credentials are located in the file $(textb ~/root/addoninformation.txt)!" | awk '{ print strftime("[%H:%M:%S] |"), $0 }'
 }
 source ~/configs/userconfig.cfg

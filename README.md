@@ -1,7 +1,7 @@
 This is a Fork from Zypr's perfectrootserver
 
 
-Please download only versions tagged with Latest release!
+Please download only versions tagged with latest release!
 
 
 #Short instructions:
