@@ -9,12 +9,10 @@
 ##  DO NOT MODIFY, JUST DON'T! ##
 #################################
 
-#Enable debug:
-set -x
 vimbadmin() {
 echo "${info} Installing Vimbadmin..." | awk '{ print strftime("[%H:%M:%S] |"), $0 }'
 
-#Erstelle Datenbank
+#Create Database
 mysql --defaults-file=/etc/mysql/debian.cnf -e "CREATE DATABASE vimbadmin; GRANT ALL ON vimbadmin.* TO 'vimbadmin'@'localhost' IDENTIFIED BY '${VIMB_MYSQL_PASS}'; FLUSH PRIVILEGES;" >>/root/logs/stderror.log 2>&1 >>/root/logs/stdout.log
 
 #Download Vimbadmin via Composer
@@ -31,44 +29,34 @@ chown -R www-data: /srv/vimbadmin/public
 chown -R www-data: /srv/vimbadmin/var
 ln -s /srv/vimbadmin/public/ /etc/nginx/html/${MYDOMAIN}/vma >>/root/logs/stderror.log 2>&1 >>/root/logs/stdout.log
 
-#Ändere Werte in der Vimbadmin Conf
+#Changes in Vimbadmin Conf
 cp /srv/vimbadmin/application/configs/application.ini.dist /srv/vimbadmin/application/configs/application.ini
 
-#EMPTY!
-#In der dovecot.sh wird das passwort eingetragen /etc/dovecot/dovecot-mysql.conf
-#In der Mailfilter.sh auch /etc/amavis/conf.d/50-user
-# In der postfix.sh wird es auch richtig eingetragen /etc/postfix/mysql/postfix-mysql-virtual_alias_maps.cf
 sed -i "s/xxx/${VIMB_MYSQL_PASS}/g" /srv/vimbadmin/application/configs/application.ini
-# Passt, die line gibt es aber jetzt 2x
-sed -i 's/defaults.mailbox.uid = 2000/defaults.mailbox.uid = 5000/g' /srv/vimbadmin/application/configs/application.ini
-#Muss eingefügt werden
-#sed -i 's/defaults.mailbox.gid = 2000/defaults.mailbox.uid = 5000/g' /srv/vimbadmin/application/configs/application.ini
-echo -e 'defaults.mailbox.uid = 5000' >> /srv/vimbadmin/application/configs/application.ini
-sed -i 's/defaults.mailbox.maildir = "maildir:\/srv\/vmail\/%d\/%u\/mail:LAYOUT=fs"/defaults.mailbox.maildir = "maildir:\/var\/vmail\/%d\/%u\/Maildir:LAYOUT=fs"/g' /srv/vimbadmin/application/configs/application.ini
-sed -i 's/defaults.mailbox.homedir = "\/srv\/vmail\/%d\/%u"/defaults.mailbox.homedir = "\/var\/vmail\/%d\/%u"/g' /srv/vimbadmin/application/configs/application.ini
-sed -i 's/defaults.mailbox.password_scheme = "dovecot:BLF-CRYPT"/defaults.mailbox.password_scheme = "crypt:sha512"/g' /srv/vimbadmin/application/configs/application.ini
-sed -i 's/mailbox_deletion_fs_enabled = false/mailbox_deletion_fs_enabled = true/g' /srv/vimbadmin/application/configs/application.ini
-#Ausagbe in der File: server.smtp.port    = "587" ----> Port in firewall nötig?
-sed -i 's/server.smtp.port    = "465"/server.smtp.port    = "587"/g' /srv/vimbadmin/application/configs/application.ini
-echo -e 'server.imap.crypt = "TLS"' >> /srv/vimbadmin/application/configs/application.ini
-sed -i 's/server.imap.host  = "gpo.%d"/server.imap.host  = "mail.%d"/g' /srv/vimbadmin/application/configs/application.ini
-sed -i 's/server.imap.port  = "993"/server.imap.port  = "143"/g' /srv/vimbadmin/application/configs/application.ini
-sed -i 's/server.imap.crypt = "SSL"/server.imap.crypt = "TLS"/g' /srv/vimbadmin/application/configs/application.ini
-sed -i "s/server.webmail.host  = \"https:\/\/webmail.%d\"/server.webmail.host  = \"https:\/\/mail.%d\/webmail\"/g" /srv/vimbadmin/application/configs/application.ini
-sed -i "s/server.pop3.enabled = 1/server.pop3.enabled = 0/g" /srv/vimbadmin/application/configs/application.ini
-
-#fiiiiiiiiiiiiiiix me
+sed -i "s/defaults.mailbox.uid = 2000/defaults.mailbox.uid = 5000/g" /srv/vimbadmin/application/configs/application.ini
+sed -i "s/defaults.mailbox.gid = 2000/defaults.mailbox.gid = 5000/g" /srv/vimbadmin/application/configs/application.ini
+sed -i "s/defaults.mailbox.maildir = \"maildir:\/srv\/vmail\/%d\/%u\/mail:LAYOUT=fs\"/defaults.mailbox.maildir = \"maildir:\/var\/vmail\/%d\/%u\/Maildir:LAYOUT=fs\"/g" /srv/vimbadmin/application/configs/application.ini
+sed -i "s/defaults.mailbox.homedir = \"\/srv\/vmail\/%d\/%u\"/defaults.mailbox.homedir = \"\/var\/vmail\/%d\/%u\"/g" /srv/vimbadmin/application/configs/application.ini
 sed -i "s/defaults.domain.transport = \"virtual\"/defaults.domain.transport = \"lmtps:unix:private\/dovecot-lmtp\"/g" /srv/vimbadmin/application/configs/application.ini
-
+sed -i "s/mailbox_deletion_fs_enabled = false/mailbox_deletion_fs_enabled = true/g" /srv/vimbadmin/application/configs/application.ini
+sed -i "s/defaults.mailbox.password_scheme = \"dovecot:BLF-CRYPT\"/defaults.mailbox.password_scheme = \"crypt:sha512\"/g" /srv/vimbadmin/application/configs/application.ini
+sed -i "s/defaults.mailbox.dovecot_pw_binary = \"\/usr\/bin\/doveadm pw\"/defaults.mailbox.dovecot_pw_binary = \"\/usr\/bin\/doveadm pw\"/g" /srv/vimbadmin/application/configs/application.ini
+sed -i "s/server.smtp.port    = \"465\"/server.smtp.port    = \"587\"/g" /srv/vimbadmin/application/configs/application.ini
+sed -i "s/server.smtp.crypt   = \"SSL\"/server.smtp.crypt   = \"TLS\"/g" /srv/vimbadmin/application/configs/application.ini
+sed -i "s/server.pop3.enabled = 1/server.pop3.enabled = 0/g" /srv/vimbadmin/application/configs/application.ini
+sed -i "s/server.imap.host  = \"gpo.%d\"/server.imap.host  = \"mail.%d\"/g" /srv/vimbadmin/application/configs/application.ini
+sed -i "s/server.imap.port  = \"993\"/server.imap.port  = \"143\"/g" /srv/vimbadmin/application/configs/application.ini
+sed -i "s/server.imap.crypt = \"SSL\"/server.imap.crypt = \"TLS\"/g" /srv/vimbadmin/application/configs/application.ini
+sed -i "s/server.webmail.host  = \"https:\/\/webmail.%d\"/server.webmail.host  = \"https:\/\/mail.%d\/webmail\"/g" /srv/vimbadmin/application/configs/application.ini
 sed -i "s/example.com/${MYDOMAIN}/g" /srv/vimbadmin/application/configs/application.ini
-
+#sed -i "s/SEARCH/REPLACE/g" /srv/vimbadmin/application/configs/application.ini
 mkdir -p /srv/archives
 cp /srv/vimbadmin/public/.htaccess.dist /srv/vimbadmin/public/.htaccess
 
 cd /srv/vimbadmin/
 ./bin/doctrine2-cli.php orm:schema-tool:create >>/root/logs/stderror.log 2>&1 >>/root/logs/stdout.log
 
-echo "${info} Installing Crontabs..." | awk '{ print strftime("[%H:%M:%S] |"), $0 }'
+#Crontabs
 (crontab -l && echo "# Die 10. Minute jeder 2. Stunde") | crontab -
 (crontab -l && echo "10 */2 * * * /srv/vimbadmin/bin/vimbtool.php -a archive.cli-archive-pendings") | crontab -
 (crontab -l && echo "# Die 30. Minute jeder 2. Stunde") | crontab -
@@ -78,6 +66,7 @@ echo "${info} Installing Crontabs..." | awk '{ print strftime("[%H:%M:%S] |"), $
 (crontab -l && echo "# 3:15 AM") | crontab -
 (crontab -l && echo "15 3 * * * /srv/vimbadmin/bin/vimbtool.php -a mailbox.cli-delete-pending") | crontab -
 
+#Nginx custom site config
 cat >> /etc/nginx/sites-custom/vimbadmin.conf << 'EOF1'
 location ~ ^/vma {
     alias /srv/vimbadmin/public/$1;
@@ -99,8 +88,7 @@ if [ ${USE_PHP7} == '1' ]; then
 	sed -i 's/fastcgi_pass unix:\/var\/run\/php5-fpm.sock\;/fastcgi_pass unix:\/var\/run\/php\/php7.0-fpm.sock\;/g' /etc/nginx/sites-custom/vimbadmin.conf
 fi
 
-#Restarting Services
-echo "${info} Restarting Services..." | awk '{ print strftime("[%H:%M:%S] |"), $0 }'
+#Restarting services
 if [ ${USE_PHP7} == '1' ]; then
 		systemctl restart {dovecot,postfix,amavis,spamassassin,clamav-daemon,nginx,php7.0-fpm,mysql} >>/root/logs/stderror.log 2>&1 >>/root/logs/stdout.log
 fi

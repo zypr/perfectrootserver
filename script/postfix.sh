@@ -80,8 +80,8 @@ readme_directory = /usr/share/doc/postfix
 html_directory = /usr/share/doc/postfix/html
 
 # Certificates
-smtpd_tls_cert_file = /etc/nginx/ssl/domain.tld.pem
-smtpd_tls_key_file = /etc/nginx/ssl/domain.tld.key.pem
+smtpd_tls_cert_file = /etc/ssl/mail.domain.tld.cer
+smtpd_tls_key_file = /etc/ssl/mail.domain.tld.key
 
 # Opportunistic TLS. TLS auth only.
 smtpd_tls_security_level=may
@@ -145,8 +145,8 @@ smtpd_data_restrictions =
 smtpd_sender_login_maps = proxy:mysql:/etc/postfix/mysql/postfix-mysql-virtual_alias_maps.cf
 
 # Certificates
-smtp_tls_cert_file = /etc/nginx/ssl/domain.tld.pem
-smtp_tls_key_file = /etc/nginx/ssl/domain.tld.key.pem
+smtp_tls_cert_file = /etc/ssl/mail.domain.tld.cer
+smtp_tls_key_file = /etc/ssl/mail.domain.tld.key
 
 # Opportunistic TLS. Use TLS if this is supported by the remote SMTP server, otherwise use plaintext.
 smtp_tls_security_level=may

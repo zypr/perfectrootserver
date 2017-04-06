@@ -12,8 +12,10 @@
 roundcube() {
 echo "${info} Installing Roundcube..." | awk '{ print strftime("[%H:%M:%S] |"), $0 }'
 
+#Create Database
 mysql --defaults-file=/etc/mysql/debian.cnf -e "CREATE DATABASE roundcube; GRANT ALL ON roundcube.* TO 'roundcube'@'localhost' IDENTIFIED BY '$ROUNDCUBE_MYSQL_PASS'; FLUSH PRIVILEGES;" >>/root/logs/stderror.log 2>&1 >>/root/logs/stdout.log
 
+#Download from source 
 cd /var/www/html
 wget https://github.com/roundcube/roundcubemail/releases/download/${ROUNDCUBE_VERSION}/roundcubemail-${ROUNDCUBE_VERSION}-complete.tar.gz >>/root/logs/stderror.log 2>&1 >>/root/logs/stdout.log
 mkdir -p /var/www/html/webmail
@@ -21,6 +23,7 @@ tar zxvf roundcubemail-${ROUNDCUBE_VERSION}-complete.tar.gz -C /var/www/html/web
 mv /var/www/html/webmail/roundcubemail*/* /var/www/html/webmail
 rm roundcubemail-${ROUNDCUBE_VERSION}-complete.tar.gz
 
+#Add config
 cat >> /var/www/html/webmail/config/config.inc.php << 'EOF1'
 <?php
 $config = array();
@@ -64,8 +67,10 @@ EOF1
 sed -i "s/changeme/${ROUNDCUBE_MYSQL_PASS}/g" /var/www/html/webmail/config/config.inc.php
 sed -i "s/domain.tld/${MYDOMAIN}/g" /var/www/html/webmail/config/config.inc.php
 
+#Create Roundcube MYSQl Tables
 mysql --defaults-file=/etc/mysql/debian.cnf roundcube < /var/www/html/webmail/SQL/mysql.initial.sql >>/root/logs/stderror.log 2>&1 >>/root/logs/stdout.log
- 
+
+#Nginx custom site config 
 cat > /etc/nginx/sites-custom/roundcube.conf <<END
 location /webmail {
     #auth_basic "Restricted";
@@ -90,11 +95,10 @@ location /webmail {
     #}
 }
 END
-
-
 if [ ${USE_PHP7} == '1' ]; then
 	sed -i 's/fastcgi_pass unix:\/var\/run\/php5-fpm.sock\;/fastcgi_pass unix:\/var\/run\/php\/php7.0-fpm.sock\;/g' /etc/nginx/sites-custom/roundcube.conf
 fi
+
 chown -R www-data: /var/www/html
 chown -R vmail:vmail /var/vmail/ #fix???
 }

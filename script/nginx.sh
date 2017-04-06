@@ -91,21 +91,14 @@ echo "${info} Compiling Nginx..." | awk '{ print strftime("[%H:%M:%S] |"), $0 }'
 # Use the available Release binaries? [Y/n]
 #
 # ToDo: Autimatic installer maybe....
-
-sleep 2
 # make the package
 make >>/root/logs/make.log 2>&1
-sleep 2
 # Create a .deb package
 checkinstall --install=no -y >>/root/logs/stderror.log 2>&1 >>/root/logs/stdout.log
-sleep 2
 # Install the package
 echo "${info} Installing Nginx..." | awk '{ print strftime("[%H:%M:%S] |"), $0 }'
 dpkg -i nginx_${NGINX_VERSION}-1_amd64.deb >>/root/logs/stderror.log 2>&1 >>/root/logs/stdout.log
-sleep 2
 mv nginx_${NGINX_VERSION}-1_amd64.deb ../
-sleep 2
-
 
 # Create directories
 mkdir -p /var/lib/nginx/body && cd $_
@@ -205,7 +198,7 @@ if [ ${CLOUDFLARE} == '0' ] && [ ${USE_VALID_SSL} == '1' ]; then
 	echo "${info} Creating valid SSL certificates..." | awk '{ print strftime("[%H:%M:%S] |"), $0 }'
 	git clone https://github.com/letsencrypt/letsencrypt ~/sources/letsencrypt -q
 	cd ~/sources/letsencrypt
-	
+
 	./letsencrypt-auto --agree-tos --renew-by-default --non-interactive --standalone --email ${SSLMAIL} --rsa-key-size ${RSA_KEY_SIZE} -d ${MYDOMAIN} -d www.${MYDOMAIN} certonly >>/root/logs/stderror.log 2>&1 >>/root/logs/stdout.log
 
 	ln -s /etc/letsencrypt/live/${MYDOMAIN}/fullchain.pem /etc/nginx/ssl/${MYDOMAIN}.pem
@@ -226,7 +219,7 @@ openssl dhparam -out /etc/nginx/ssl/dh.pem ${RSA_KEY_SIZE} >>/root/logs/stderror
 mkdir -p /etc/nginx/html/${MYDOMAIN}
 
 #ToDo
-# Ne bessere Abfrage 
+# Ne bessere Abfrage
 rm -rf /etc/nginx/sites-available/${MYDOMAIN}.conf
 if [ ${ALLOWHTTPCONNECTIONS} == '1' ]; then
 # Create server config
@@ -536,9 +529,9 @@ fi
 if [ ${USE_PHP7} == '1' ] && [ ${USE_PHP5} == '0' ]; then
 
 	sed -i 's/fastcgi_pass unix:\/var\/run\/php5-fpm.sock\;/fastcgi_pass unix:\/var\/run\/php\/php7.0-fpm.sock\;/g' /etc/nginx/sites-available/${MYDOMAIN}.conf
-	
+
 	#fastcgi_pass unix:\/var\/run\/php5-fpm.sock;
-	
+
 	#fastcgi_pass unix:\/var\/run\/php\/php7.0-fpm.sock;
 fi
 

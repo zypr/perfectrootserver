@@ -12,10 +12,15 @@
 dovecot() {
 echo "${info} Installing Dovecot..." | awk '{ print strftime("[%H:%M:%S] |"), $0 }'
 
-echo 'deb http://xi.dovecot.fi/debian/ stable-auto/dovecot-2.3 main' > /etc/apt/sources.list.d/dovecot.list
-wget -q http://xi.dovecot.fi/debian/archive.key -O- | apt-key add - >>/root/logs/stderror.log 2>&1 >>/root/logs/stdout.log
-apt-get -qq update >>/root/logs/stderror.log 2>&1 >>/root/logs/stdout.log
-apt-get -q -y --force-yes install dovecot-common dovecot-core dovecot-imapd dovecot-lmtpd dovecot-managesieved dovecot-sieve dovecot-mysql >>/root/logs/stderror.log 2>&1 >>/root/logs/stdout.log
+openssl req -new -newkey rsa:4096 -sha256 -days 1095 -nodes -x509 -subj "/C=DE/ST=STATE/L=CITY/O=MAIL/CN=`hostname -f`" -keyout /etc/ssl/`hostname -f`.key  -out /etc/ssl/`hostname -f`.cer >>/root/logs/stderror.log 2>&1 >>/root/logs/stdout.log
+chmod 600 /etc/ssl/`hostname -f`.key >>/root/logs/stderror.log 2>&1 >>/root/logs/stdout.log
+cp /etc/ssl/`hostname -f`.cer /usr/local/share/ca-certificates/ >>/root/logs/stderror.log 2>&1 >>/root/logs/stdout.log
+update-ca-certificates >>/root/logs/stderror.log 2>&1 >>/root/logs/stdout.log
+
+touch /etc/apt/sources.list.d/jessie-backports.list
+echo "deb http://ftp.debian.org/debian jessie-backports main" >> /etc/apt/sources.list.d/jessie-backports.list
+apt-get update >>/root/logs/stderror.log 2>&1 >>/root/logs/stdout.log
+apt-get -y -t jessie-backports install dovecot-common dovecot-core dovecot-imapd dovecot-lmtpd dovecot-managesieved dovecot-sieve dovecot-mysql >>/root/logs/stderror.log 2>&1 >>/root/logs/stdout.log
 
 groupadd -g 5000 vmail >>/root/logs/stderror.log 2>&1 >>/root/logs/stdout.log
 useradd -g vmail -u 5000 vmail -d /var/vmail >>/root/logs/stderror.log 2>&1 >>/root/logs/stdout.log
@@ -143,8 +148,8 @@ service lmtp {
   user = vmail
 }
 listen = *
-ssl_cert = </etc/nginx/ssl/$MYDOMAIN.pem
-ssl_key = </etc/nginx/ssl/$MYDOMAIN.key.pem
+ssl_cert = </etc/ssl/mail.domain.tld.cer
+ssl_key = </etc/ssl/mail.domain.tld.key
 userdb {
   args = /etc/dovecot/dovecot-mysql.conf
   driver = sql
@@ -155,14 +160,14 @@ protocol imap {
 protocol lmtp {
   mail_plugins = quota sieve acl notify
   auth_socket_path = /var/run/dovecot/auth-master
-  postmaster_address = postmaster@$MYDOMAIN
+  postmaster_address = postmaster@domain.tld
 }
 protocol sieve {
   managesieve_logout_format = bytes=%i/%o
 }
 protocol lda {
   mail_plugins = sieve quota acl notify
-  postmaster_address = postmaster@$MYDOMAIN
+  postmaster_address = postmaster@domain.tld
 }
 plugin {
   mail_log_events = delete undelete expunge
@@ -200,6 +205,7 @@ service quota-status {
   client_limit = 1
 }
 END
+sed -i "s/domain.tld/${MYDOMAIN}/g" /etc/dovecot/dovecot.conf
 
 cat > /etc/dovecot/dovecot-mysql.conf <<END
 driver = mysql

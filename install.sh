@@ -9,6 +9,9 @@
 ##  DO NOT MODIFY, JUST DON'T! ##
 #################################
 
+#Enable debug:
+#set -x
+
 source script/security.sh
 source script/functions.sh
 source script/checksystem.sh
@@ -48,6 +51,7 @@ source addons/ajenti.sh
 source addons/teamspeak3.sh
 source addons/minecraft.sh
 source addons/vsftpd.sh
+
 
 #source addons/openvpn.sh
 #source addons/disablelogin.sh
