@@ -25,10 +25,6 @@ nano ~/config/userconfig.cfg
 nano ~/config/addonconfig.cfg
 ```
 
-```
-cd ..
-```
-
 Start the installation script:
 ```
 bash ~/install.sh
