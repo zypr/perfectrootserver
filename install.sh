@@ -10,7 +10,7 @@
 #################################
 
 #Enable debug:
-set -x
+#set -x
 
 source script/security.sh
 source script/functions.sh
