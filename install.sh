@@ -28,7 +28,7 @@ if [ ${USE_PHP7} == '1' ] && [ ${USE_PHP5} == '0' ]; then
 fi
 
 if [ ${USE_PHP7} == '0' ] && [ ${USE_PHP5} == '1' ]; then
-		source script/php.sh
+		source script/php5.sh
 fi
 
 source script/ssl.sh
@@ -51,10 +51,10 @@ source script/firewall.sh
 
 #source script/finischer.sh
 
-# source addons/ajenti.sh
-# source addons/teamspeak3.sh
-# source addons/minecraft.sh
-# source addons/vsftpdinstall.sh
+ source addons/ajenti.sh
+ source addons/teamspeak3.sh
+ source addons/minecraft.sh
+ source addons/vsftpdinstall.sh
 
 
 #source addons/openvpn.sh
@@ -79,7 +79,7 @@ if [ ${USE_PHP7} == '1' ] && [ ${USE_PHP5} == '0' ]; then
 fi
 
 if [ ${USE_PHP7} == '0' ] && [ ${USE_PHP5} == '1' ]; then
-		php
+		php5
 fi
 
 dovecot
@@ -95,17 +95,15 @@ vimbadmin
 
 firewall
 fail2ban
+if [ ${USE_PMA} == '1' ]; then
 phpmyadmin
+fi
 publickey
 
-#Was ist das?
-#Kann doch weg..
-#addoninformation
-
-#ajenti
-#teamspeak3
-#minecraft
-#vsftpd
+ajenti
+teamspeak3
+minecraft
+vsftpd
 #openvpn
 #disablelogin
 #addnewsite

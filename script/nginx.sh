@@ -218,17 +218,21 @@ openssl dhparam -out /etc/nginx/ssl/dh.pem ${RSA_KEY_SIZE} >>/root/logs/stderror
 
 mkdir -p /etc/nginx/html/${MYDOMAIN}
 
-#ToDo
-# Ne bessere Abfrage
 rm -rf /etc/nginx/sites-available/${MYDOMAIN}.conf
-
-if [ ${ALLOWHTTPCONNECTIONS} == '1' ]; then
-# Create server config
 cat > /etc/nginx/sites-available/${MYDOMAIN}.conf <<END
 server {
 			listen 				80 default_server;
+			server_name 		${IPADR} ${MYDOMAIN};
+			return 301 			https://${MYDOMAIN}\$request_uri;
+}
+server {
+			listen 				443;
+			server_name 		${IPADR} www.${MYDOMAIN} mail.${MYDOMAIN};
+			return 301 			https://${MYDOMAIN}\$request_uri;
+}
+server {
 			listen 				443 ssl http2 default deferred;
-			server_name 		${MYDOMAIN} www.${MYDOMAIN} mail.${MYDOMAIN};
+			server_name 		${MYDOMAIN};
 			root 				/etc/nginx/html/${MYDOMAIN};
 			index 				index.php index.html index.htm;
 			charset 			utf-8;
@@ -367,162 +371,31 @@ server {
 }
 END
 
-else
+if [ ${ALLOWHTTPCONNECTIONS} == '1' ]; then
+# Delte first N lines we dont need
+sed -i "1,15d" /etc/nginx/sites-available/${MYDOMAIN}.conf
 
-# Create server config
-cat > /etc/nginx/sites-available/${MYDOMAIN}.conf <<END
-server {
-			listen 				80 default_server;
-			server_name 		${IPADR} ${MYDOMAIN};
-			return 301 			https://${MYDOMAIN}\$request_uri;
-}
-server {
-			listen 				443;
-			server_name 		${IPADR} www.${MYDOMAIN} mail.${MYDOMAIN};
-			return 301 			https://${MYDOMAIN}\$request_uri;
-}
-server {
-			listen 				443 ssl http2 default deferred;
-			server_name 		${MYDOMAIN};
-			root 				/etc/nginx/html;
-			index 				index.php index.html index.htm;
-			charset 			utf-8;
-			error_page 404 		/index.php;
-			ssl_certificate 	ssl/${MYDOMAIN}.pem;
-			ssl_certificate_key ssl/${MYDOMAIN}.key.pem;
-			#ssl_trusted_certificate ssl/${MYDOMAIN}.pem;
-			ssl_dhparam	     	ssl/dh.pem;
-			ssl_ecdh_curve		secp384r1;
-			ssl_session_cache   shared:SSL:10m;
-			ssl_session_timeout 10m;
-			ssl_session_tickets off;
-			ssl_protocols       TLSv1 TLSv1.1 TLSv1.2;
-			ssl_prefer_server_ciphers on;
-			ssl_buffer_size 	1400;
-			#ssl_stapling 		on;
-			#ssl_stapling_verify on;
-			#resolver 			8.8.8.8 8.8.4.4 208.67.222.222 208.67.220.220 valid=60s;
-			#resolver_timeout 	2s;
-			ssl_ciphers 		"ECDHE-RSA-AES128-GCM-SHA256:ECDHE-ECDSA-AES128-GCM-SHA256:ECDHE-RSA-AES256-GCM-SHA384:ECDHE-ECDSA-AES256-GCM-SHA384:DHE-RSA-AES128-GCM-SHA256:DHE-DSS-AES128-GCM-SHA256:kEDH+AESGCM:ECDHE-RSA-AES128-SHA256:ECDHE-ECDSA-AES128-SHA256:ECDHE-RSA-AES128-SHA:ECDHE-ECDSA-AES128-SHA:ECDHE-RSA-AES256-SHA384:ECDHE-ECDSA-AES256-SHA384:ECDHE-RSA-AES256-SHA:ECDHE-ECDSA-AES256-SHA:DHE-RSA-AES128-SHA256:DHE-RSA-AES128-SHA:DHE-DSS-AES128-SHA256:DHE-RSA-AES256-SHA256:DHE-DSS-AES256-SHA:DHE-RSA-AES256-SHA:!aNULL:!eNULL:!EXPORT:!DES:!RC4:!3DES:!MD5:!PSK";
-			#add_header 		Strict-Transport-Security "max-age=63072000; includeSubdomains; preload";
-			##add_header 		Public-Key-Pins 'pin-sha256="PIN1"; pin-sha256="PIN2"; max-age=5184000; includeSubDomains';
-			add_header 			Cache-Control "public";
-			add_header 			X-Frame-Options SAMEORIGIN;
-			add_header 			Alternate-Protocol  443:npn-http/2;
-			add_header 			X-Content-Type-Options nosniff;
-			add_header 			X-XSS-Protection "1; mode=block";
-			add_header 			X-Permitted-Cross-Domain-Policies "master-only";
-			add_header 			"X-UA-Compatible" "IE=Edge";
-			add_header 			"Access-Control-Allow-Origin" "*";
-			add_header 			Content-Security-Policy "script-src 'self' 'unsafe-inline' 'unsafe-eval' *.youtube.com maps.gstatic.com *.googleapis.com *.google-analytics.com cdnjs.cloudflare.com assets.zendesk.com connect.facebook.net; frame-src 'self' *.youtube.com assets.zendesk.com *.facebook.com s-static.ak.facebook.com tautt.zendesk.com; object-src 'self'";
-			pagespeed 			on;
-			pagespeed 			EnableFilters collapse_whitespace;
-			pagespeed 			EnableFilters canonicalize_javascript_libraries;
-			pagespeed 			EnableFilters combine_css;
-			pagespeed 			EnableFilters combine_javascript;
-			pagespeed 			EnableFilters elide_attributes;
-			pagespeed 			EnableFilters extend_cache;
-			pagespeed 			EnableFilters flatten_css_imports;
-			pagespeed 			EnableFilters lazyload_images;
-			pagespeed 			EnableFilters rewrite_javascript;
-			pagespeed 			EnableFilters rewrite_images;
-			pagespeed 			EnableFilters insert_dns_prefetch;
-			pagespeed 			EnableFilters prioritize_critical_css;
-			pagespeed 			FetchHttps enable,allow_self_signed;
-			pagespeed 			FileCachePath /var/lib/nginx/nps_cache;
-			pagespeed 			RewriteLevel CoreFilters;
-			pagespeed 			CssFlattenMaxBytes 5120;
-			pagespeed 			LogDir /var/log/pagespeed;
-			pagespeed 			EnableCachePurge on;
-			pagespeed 			PurgeMethod PURGE;
-			pagespeed 			DownstreamCachePurgeMethod PURGE;
-			pagespeed 			DownstreamCachePurgeLocationPrefix http://127.0.0.1:80/;
-			pagespeed 			DownstreamCacheRewrittenPercentageThreshold 95;
-			pagespeed 			LazyloadImagesAfterOnload on;
-			pagespeed 			LazyloadImagesBlankUrl "data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7";
-			pagespeed 			MemcachedThreads 1;
-			pagespeed 			MemcachedServers "localhost:11211";
-			pagespeed 			MemcachedTimeoutUs 100000;
-			pagespeed 			RespectVary on;
-			pagespeed 			Disallow "*/pma/*";
-			# This will correctly rewrite your subresources with https:// URLs and thus avoid mixed content warnings.
-			# Note, that you should only enable this option if you are behind a load-balancer that will set this header,
-			# otherwise your users will be able to set the protocol PageSpeed uses to interpret the request.
-			#
-			#pagespeed 			RespectXForwardedProto on;
-			auth_basic_user_file htpasswd/.htpasswd;
-			location ~ \.php\$ {
-				fastcgi_split_path_info ^(.+\.php)(/.+)\$;
-				if (!-e \$document_root\$fastcgi_script_name) {
-					return 404;
-			  	}
-				try_files \$fastcgi_script_name =404;
-				fastcgi_param PATH_INFO \$fastcgi_path_info;
-				fastcgi_param PATH_TRANSLATED \$document_root\$fastcgi_path_info;
-				fastcgi_param APP_ENV production;
-				fastcgi_pass unix:/var/run/php5-fpm.sock;
-				fastcgi_index index.php;
-				include fastcgi.conf;
-				fastcgi_intercept_errors off;
-				fastcgi_ignore_client_abort off;
-				fastcgi_buffers 256 16k;
-				fastcgi_buffer_size 128k;
-				fastcgi_connect_timeout 3s;
-				fastcgi_send_timeout 120s;
-				fastcgi_read_timeout 120s;
-				fastcgi_busy_buffers_size 256k;
-				fastcgi_temp_file_write_size 256k;
-			}
-			include /etc/nginx/sites-custom/*.conf;
-			location / {
-			   	# Uncomment, if you need to remove index.php from the
-				# URL. Usefull if you use Codeigniter, Zendframework, etc.
-				# or just need to remove the index.php
-				#
-			   	#try_files \$uri \$uri/ /index.php?\$args;
-			}
-			location ~* /\.(?!well-known\/) {
-			    deny all;
-			    access_log off;
-				log_not_found off;
-			}
-			location ~* (?:\.(?:bak|conf|dist|fla|in[ci]|log|psd|sh|sql|sw[op])|~)$ {
-			    deny all;
-			    access_log off;
-				log_not_found off;
-			}
-			location = /favicon.ico {
-				access_log off;
-				log_not_found off;
-			}
+# Add new lines at the
+sed -i "1s/^/server {\n/" /etc/nginx/sites-available/${MYDOMAIN}.conf
+sed -i "2s/^/\t\t\t listen\t\t\t\t 80 default_server;\n/" /etc/nginx/sites-available/${MYDOMAIN}.conf
+sed -i "3s/^/\t\t\t listen\t\t\t\t 443 ssl http2 default deferred;\n/" /etc/nginx/sites-available/${MYDOMAIN}.conf
+sed -i "4s/^/\t\t\t server_name\t\t\t\t $IPADR $MYDOMAIN www.$MYDOMAIN mail.$MYDOMAIN;\n/" /etc/nginx/sites-available/${MYDOMAIN}.conf
+sed -i "5s/^/\t\t\t root\t\t\t\t \/etc\/nginx\/html\/$MYDOMAIN;\n/" /etc/nginx/sites-available/${MYDOMAIN}.conf
+sed -i "6s/^/\t\t\t index\t\t\t\t index.php index.html index.htm;/n" /etc/nginx/sites-available/${MYDOMAIN}.conf
 
-			location = /robots.txt {
-				allow all;
-				access_log off;
-				log_not_found off;
-			}
-			location ~* ^.+\.(css|js)\$ {
-				rewrite ^(.+)\.(\d+)\.(css|js)\$ \$1.\$3 last;
-				expires 30d;
-				access_log off;
-				log_not_found off;
-				add_header Pragma public;
-				add_header Cache-Control "max-age=2592000, public";
-			}
-			location ~* \.(asf|asx|wax|wmv|wmx|avi|bmp|class|divx|doc|docx|eot|exe|gif|gz|gzip|ico|jpg|jpeg|jpe|mdb|mid|midi|mov|qt|mp3|m4a|mp4|m4v|mpeg|mpg|mpe|mpp|odb|odc|odf|odg|odp|ods|odt|ogg|ogv|otf|pdf|png|pot|pps|ppt|pptx|ra|ram|svg|svgz|swf|tar|t?gz|tif|tiff|ttf|wav|webm|wma|woff|wri|xla|xls|xlsx|xlt|xlw|zip)\$ {
-				expires 30d;
-				access_log off;
-				log_not_found off;
-				add_header Pragma public;
-				add_header Cache-Control "max-age=2592000, public";
-			}
-			if (\$http_user_agent ~* "FeedDemon|JikeSpider|Indy Library|Alexa Toolbar|AskTbFXTV|AhrefsBot|CrawlDaddy|CoolpadWebkit|Java|Feedly|UniversalFeedParser|ApacheBench|Microsoft URL Control|Swiftbot|ZmEu|oBot|jaunty|Python-urllib|lightDeckReports Bot|YYSpider|DigExt|YisouSpider|HttpClient|MJ12bot|heritrix|EasouSpider|Ezooms|Scrapy") {
-            	return 403;
-            }
-}
-END
+
+#server {
+#			listen 				80 default_server;
+#			listen 				443 ssl http2 default deferred;
+#			server_name 		${IPADR} ${MYDOMAIN} www.${MYDOMAIN} mail.${MYDOMAIN};
+#			root 				/etc/nginx/html/${MYDOMAIN};
+#			index 				index.php index.html index.htm;
 
 fi
+
+
+
+
 
 
 

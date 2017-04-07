@@ -16,6 +16,54 @@ if [ "$ADDONCONFIG_COMPLETED" != '1' ]; then
       exit 1
 fi
 
+echo "${info} Checking your configuration..." | awk '{ print strftime("[%H:%M:%S] |"), $0 }'
+	for var in MYOTHERDOMAIN ADD_NEW_SITE DISABLE_ROOT_LOGIN SSHUSER USE_TEAMSPEAK USE_MINECRAFT USE_AJENTI AJENTI_PASS USE_VSFTPD FTP_USERNAME 
+	do
+		if [[ -z ${!var} ]]; then
+			echo "${error} Parameter $(textb ${var}) must not be empty." | awk '{ print strftime("[%H:%M:%S] |"), $0 }'
+			exit 1
+		fi
+	done
+
+for var in ${AJENTI_PASS}
+	do
+		if echo "${var}" | grep -P '(?=^.{8,255}$)(?=^[^\s]*$)(?=.*\d)(?=.*[A-Z])(?=.*[a-z])' >>/root/logs/stderror.log 2>&1 >>/root/logs/stdout.log; then
+			if [[ "$(awk -F': ' '{ print $2}' <<<"$(cracklib-check <<<"${var}")")" == "OK" ]]; then
+				echo >>/root/logs/stderror.log 2>&1 >>/root/logs/stdout.log
+			else
+				echo "${error} One of your passwords was rejected!" | awk '{ print strftime("[%H:%M:%S] |"), $0 }'
+				echo "${info} Your password must be a minimum of 8 characters and must include at least 1 number, 1 uppercase and 1 lowercase letter." | awk '{ print strftime("[%H:%M:%S] |"), $0 }'
+				echo "${info} Recommended password settings: Leave \`generatepw\` to generate a strong password." | awk '{ print strftime("[%H:%M:%S] |"), $0 }'
+				echo
+				while true; do
+					echo "${info} Press $(textb ENTER) to show the weak password or $(textb CTRL-C) to cancel the process" | awk '{ print strftime("[%H:%M:%S] |"), $0 }'
+					stopit="stop"
+					read -s -n 1 i
+					case $i in
+					* ) echo;echo "-----------------------" | awk '{ print strftime("[%H:%M:%S] |"), $0 }';echo "$(cracklib-check <<<\"${var}\")" | awk '{ print strftime("[%H:%M:%S] |"), $0 }';echo "-----------------------" | awk '{ print strftime("[%H:%M:%S] |"), $0 }';echo;break;;
+					esac
+				done
+			fi
+		else
+			echo "${error} One of your passwords is too weak." | awk '{ print strftime("[%H:%M:%S] |"), $0 }'
+			echo "${info} Your password must be a minimum of 8 characters and must include at least 1 number, 1 uppercase and 1 lowercase letter." | awk '{ print strftime("[%H:%M:%S] |"), $0 }'
+			echo "${info} Recommended password settings: Leave \`generatepw\` to generate a strong password." | awk '{ print strftime("[%H:%M:%S] |"), $0 }'
+			echo
+			while true; do
+				echo "${info} Press $(textb ENTER) to show the weak password or $(textb CTRL-C) to cancel the process" | awk '{ print strftime("[%H:%M:%S] |"), $0 }'
+				stopit="stop"
+				read -s -n 1 i
+				case $i in
+				* ) echo;echo "-----------------------" | awk '{ print strftime("[%H:%M:%S] |"), $0 }';echo "$(textb ${var})" | awk '{ print strftime("[%H:%M:%S] |"), $0 }';echo "-----------------------" | awk '{ print strftime("[%H:%M:%S] |"), $0 }';echo;break;;
+				esac
+				done
+		fi
+	done
+	if [ "$stopit" == "stop" ]; then
+		exit 1
+	fi
+		
+
 if [ ${USE_VSFTPD} == '1' ]; then
 	#Check for username
         	if [[ "$FTP_USERNAME" =~ [^a-z] ]]; then
@@ -30,6 +78,11 @@ if [ ${USE_VSFTPD} == '1' ]; then
 		sed -i '/^FTP_USERNAME=/d' /root/configs/addonconfig.cfg
 		sleep 1
 		sed -i "/^USE_VSFTPD=*/a FTP_USERNAME=\"$FTP_USERNAME\" " /root/configs/addonconfig.cfg
+fi
+
+if [ ${USE_AJENTI} == '1' ] && [ ${USE_VALID_SSL} == '0' ]; then
+	echo "${error} Use Ajenti only with a Let's Encrypt certificate" | awk '{ print strftime("[%H:%M:%S] |"), $0 }'
+	exit 1
 fi
 
 echo "${ok} Addonconfig is correct." | awk '{ print strftime("[%H:%M:%S] |"), $0 }'

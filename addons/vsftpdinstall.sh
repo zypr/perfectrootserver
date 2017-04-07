@@ -2,7 +2,7 @@
 # by shoujii | BoBBer446
 # This is an standalone addonscript for 
 # https://github.com/shoujii/perfectrootserver
-
+if [ ${USE_VSFTPD} == '1' ]; then
 SSL_PATH_VSFTPD="/etc/ssl/private"
 RSA_KEY_VSFTPD="2048"
 MYDOMAIN="meinedomain.tld"
@@ -327,3 +327,5 @@ END
 	sed -i "/\<$PASV_PORT\>/ "\!"s/^OPEN_TCP=\"/&$PASV_PORT, /" /etc/arno-iptables-firewall/firewall.conf
 	sleep 1
 	systemctl force-reload arno-iptables-firewall.service
+	
+fi

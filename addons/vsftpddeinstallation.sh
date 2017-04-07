@@ -1,8 +1,10 @@
 #!/bin/bash
 # The perfect rootserver
 # by shoujii | BoBBer446
-# This is an standalone addonscript for 
+# This is an standalone addonscript for
 # https://github.com/shoujii/perfectrootserver
+
+if [ ${USE_VSFTPD} == '1' ]; then
 
 SSL_PATH_VSFTPD="/etc/ssl/private"
 RSA_KEY_VSFTPD="2048"
@@ -62,3 +64,5 @@ groupdel $FTP_USER_GROUP
 echo "${info} Restart Services." | awk '{ print strftime("[%H:%M:%S] |"), $0 }'
 	systemctl -q restart sshd
 	systemctl force-reload arno-iptables-firewall.service
+
+fi

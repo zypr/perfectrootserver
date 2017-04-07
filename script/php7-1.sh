@@ -9,10 +9,10 @@
 ##  DO NOT MODIFY, JUST DON'T! ##
 #################################
 
-php7() {
+php71() {
 
 PHPVERSION7="7.1"
-echo "${info} Installing PHP7..." | awk '{ print strftime("[%H:%M:%S] |"), $0 }'
+echo "${info} Installing PHP7.1...." | awk '{ print strftime("[%H:%M:%S] |"), $0 }'
 #Note CHECK PHP_FPM SOCK PATH
 
 # apt-get -q -y --force-yes install libtinfo5

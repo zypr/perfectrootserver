@@ -124,6 +124,8 @@ instructions() {
 		echo "      NAME           TYPE              VALUE" | awk '{ print strftime("[%H:%M:%S] |"), $0 }'
 		echo "----------------------------------------------------------" | awk '{ print strftime("[%H:%M:%S] |"), $0 }'
 		echo " mail._domainkey     TXT     \"v=DKIM1; k=rsa; t=s; s=email; p=DKIMPUBLICKEY\"" | awk '{ print strftime("[%H:%M:%S] |"), $0 }'
+		echo "Here is your DKIM Key:"
+		amavisd-new showkey ${MYDOMAIN}
 		echo
 		echo "Visit https://${MYDOMAIN}/vma and copy the salts to /srv/vimbadmin/application/configs/application.ini" | awk '{ print strftime("[%H:%M:%S] |"), $0 }'
 		echo "Now create an admin account" | awk '{ print strftime("[%H:%M:%S] |"), $0 }'

@@ -12,7 +12,7 @@
 checkconfig() {
 
 	echo "${info} Checking your configuration..." | awk '{ print strftime("[%H:%M:%S] |"), $0 }'
-	for var in NGINX_VERSION OPENSSL_VERSION OPENSSH_VERSION NPS_VERSION TIMEZONE MYDOMAIN SSH_PORT USE_PMA PMA_HTTPAUTH_USER PMA_RESTRICT MYSQL_PMADB_NAME MYSQL_PMADB_USER MYSQL_HOSTNAME CLOUDFLARE
+	for var in TIMEZONE MYDOMAIN SSH_PORT SSH_PASS USE_VALID_SSL SSLMAIL USE_MAILSERVER USE_PHP5 USE_PHP7 USE_WEBMAIL POSTFIX_ADMIN_PASS VIMB_MYSQL_PASS ROUNDCUBE_MYSQL_PASS USE_PMA PMA_HTTPAUTH_USER PMA_HTTPAUTH_PASS PMA_BFSECURE_PASS PMA_RESTRICT MYSQL_ROOT_PASS MYSQL_PMADB_NAME MYSQL_PMADB_USER MYSQL_PMADB_PASS MYSQL_HOSTNAME CLOUDFLARE SET_UP_RSA_KEY ALLOWHTTPCONNECTIONS DEBUG_IS_SET                 
 	do
 		if [[ -z ${!var} ]]; then
 			echo "${error} Parameter $(textb ${var}) must not be empty." | awk '{ print strftime("[%H:%M:%S] |"), $0 }'
@@ -24,12 +24,17 @@ checkconfig() {
         echo "${error} Please check the userconfig and set a valid value for the variable \"$(textb CONFIG_COMPLETED)\" to continue." | awk '{ print strftime("[%H:%M:%S] |"), $0 }'
         exit 1
 	fi
+	
+	if [ ${MYDOMAIN} == 'domain.tld' ]; then
+		echo "${error} Please enter a valid Domain!" | awk '{ print strftime("[%H:%M:%S] |"), $0 }'
+		exit 1
+		fi
 
 	if [ $(dpkg-query -l | grep libcrack2 | wc -l) -ne 1 ]; then
 		apt-get update -y >>/root/logs/stderror.log 2>&1 >>/root/logs/stdout.log && apt-get -y --force-yes install libcrack2 >>/root/logs/stderror.log 2>&1 >>/root/logs/stdout.log
 	fi
 
-	for var in ${PMA_HTTPAUTH_PASS} ${PMA_BFSECURE_PASS} ${SSH_PASS} ${MYSQL_ROOT_PASS} ${MYSQL_MCDB_PASS} ${MYSQL_RCDB_PASS} ${MYSQL_RCDB_PASS} ${MYSQL_PMADB_PASS}
+	for var in ${SSH_PASS} ${POSTFIX_ADMIN_PASS} ${VIMB_MYSQL_PASS} ${ROUNDCUBE_MYSQL_PASS} ${PMA_HTTPAUTH_PASS} ${PMA_BFSECURE_PASS} ${MYSQL_ROOT_PASS} ${MYSQL_PMADB_PASS}
 	do
 		if echo "${var}" | grep -P '(?=^.{8,255}$)(?=^[^\s]*$)(?=.*\d)(?=.*[A-Z])(?=.*[a-z])' >>/root/logs/stderror.log 2>&1 >>/root/logs/stdout.log; then
 			if [[ "$(awk -F': ' '{ print $2}' <<<"$(cracklib-check <<<"${var}")")" == "OK" ]]; then
@@ -74,7 +79,7 @@ checkconfig() {
 		fi
 		
 		if [ ${USE_PHP5} == '0' ] && [ ${USE_PHP7} == '0' ]; then
-		echo "${error} You have to choose an PHP Version" | awk '{ print strftime("[%H:%M:%S] |"), $0 }'
+		echo "${error} You have to choose a PHP Version" | awk '{ print strftime("[%H:%M:%S] |"), $0 }'
 		exit 1
 		fi
 
