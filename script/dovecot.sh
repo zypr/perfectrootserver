@@ -148,8 +148,8 @@ service lmtp {
   user = vmail
 }
 listen = *
-ssl_cert = </etc/ssl/mail.domain.tld.cer
-ssl_key = </etc/ssl/mail.domain.tld.key
+ssl_cert = </etc/nginx/ssl/domain.tld.pem
+ssl_key = </etc/nginx/ssl/domain.tld.key.pem
 userdb {
   args = /etc/dovecot/dovecot-mysql.conf
   driver = sql

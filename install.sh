@@ -10,7 +10,7 @@
 #################################
 
 #Enable debug:
-#set -x
+set -x
 
 source script/security.sh
 source script/functions.sh
@@ -99,6 +99,7 @@ if [ ${USE_PMA} == '1' ]; then
 phpmyadmin
 fi
 publickey
+logininformation
 
 ajenti
 teamspeak3
@@ -109,5 +110,4 @@ vsftpd
 #addnewsite
 #finischer
 
-logininformation
 instructions

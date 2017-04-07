@@ -80,8 +80,8 @@ readme_directory = /usr/share/doc/postfix
 html_directory = /usr/share/doc/postfix/html
 
 # Certificates
-smtpd_tls_cert_file = /etc/ssl/mail.domain.tld.cer
-smtpd_tls_key_file = /etc/ssl/mail.domain.tld.key
+smtpd_tls_cert_file = /etc/nginx/ssl/domain.tld.pem
+smtpd_tls_key_file = /etc/nginx/ssl/domain.tld.key.pem
 
 # Opportunistic TLS. TLS auth only.
 smtpd_tls_security_level=may
