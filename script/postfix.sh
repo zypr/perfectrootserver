@@ -86,6 +86,8 @@ smtpd_tls_key_file = /etc/nginx/ssl/domain.tld.key.pem
 # Opportunistic TLS. TLS auth only.
 smtpd_tls_security_level=may
 smtpd_tls_auth_only=yes
+smtpd_tls_exclude_ciphers = CAMELLIA SEED IDEA RC2 RC4 aDSS kECDHe kECDHr kDHd kDHr eNULL aNULL MEDIUM LOW EXPORT
+smtpd_tls_mandatory_exclude_ciphers = CAMELLIA SEED IDEA RC2 RC4 aDSS kECDHe kECDHr kDHd kDHr eNULL aNULL MEDIUM LOW EXPORT
 
 # TLS session cache for SMTPd
 smtpd_tls_session_cache_database = btree:${data_directory}/smtpd_scache
@@ -155,7 +157,7 @@ smtp_tls_security_level=may
 smtp_tls_session_cache_database = btree:${data_directory}/smtp_scache
 
 # A custom list with secure ciphers.
-tls_high_cipherlist=EDH+CAMELLIA:EDH+aRSA:EECDH+aRSA+AESGCM:EECDH+aRSA+SHA384:EECDH+aRSA+SHA256:EECDH:+CAMELLIA256:+AES256:+CAMELLIA128:+AES128:+SSLv3:!aNULL:!eNULL:!LOW:!3DES:!MD5:!EXP:!PSK:!DSS:!RC4:!SEED:!ECDSA:CAMELLIA256-SHA:AES256-SHA:CAMELLIA128-SHA:AES128-SHA
+tls_high_cipherlist = EECDH+ECDSA+CHACHA20 EECDH+CHACHA20 EECDH+ECDSA+AESGCM EECDH+AESGCM EECDH+ECDSA+AES256 EECDH+AES256 EECDH+ECDSA+AES128 EECDH+AES128 EECDH+ECDSA+3DES EECDH+3DES EDH+CHACHA20 EDH+AESGCM EDH+AES256 EDH+AES128 EDH+3DES
 
 # Use the FQDN for the local hostname!
 myhostname = mail.domain.tld
