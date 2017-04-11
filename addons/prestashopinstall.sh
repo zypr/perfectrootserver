@@ -25,9 +25,6 @@ declare -i USE_PRESTASHOP
 USE_PRESTASHOP=1
 if [ ${USE_PRESTASHOP} == '1' ]; then
 
-
-
-
 # Important!
 PRESTASHOP_VERSION="1.6.1.12"
 PRESTASHOPDOMAIN="domain.tld"
@@ -49,9 +46,6 @@ PRESTASHOP_CREATE_DB="1"
 PRESTASHOP_SHOW_LICENSE="0"
 PRESTASHOP_NEWSLETTER="1"
 PRESTASHOP_SEND_EMAIL="1"
-
-
-
 
 
 
@@ -147,17 +141,9 @@ PRESTASHOP_DB_ENGINE="InnoDB"
 #PRESTASHOP_STRONG_PASSWORD="123456FDSSA"
 PRESTASHOP_STRONG_PASSWORD=$(openssl rand -base64 30 | tr -d / | cut -c -24 | grep -P '(?=^.{8,255}$)(?=^[^\s]*$)(?=.*\d)(?=.*[A-Z])(?=.*[a-z])')
 
-
-
-
-echo "$PRESTASHOP_CRYPT_PRF"
-
-exit 0
-
 mv $install_path/$dirname/prestashop/* $install_path/$dirname/
 rm -rf prestashop
 cd install
-
 
 echo "${info} Start installation" | awk '{ print strftime("[%H:%M:%S] |"), $0 }'
 php index_cli.php --language=${PRESTASHOP_LANGUAGE} \
