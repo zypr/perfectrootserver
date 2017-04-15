@@ -27,7 +27,7 @@
 
 postfix() {
 echo "${info} Installing Postfix..." | awk '{ print strftime("[%H:%M:%S] |"), $0 }'
-DEBIAN_FRONTEND=noninteractive aptitude -y install postfix-mysql postfix-pcre postfix >>/root/logs/stderror.log 2>&1 >>/root/logs/stdout.log
+DEBIAN_FRONTEND=noninteractive aptitude -y install postfix-mysql postfix-pcre postfix ${log}
 
 mkdir -p /etc/postfix/mysql/
 cat > /etc/postfix/mysql/postfix-mysql-virtual_alias_maps.cf <<END
@@ -112,7 +112,7 @@ smtpd_tls_session_cache_database = btree:${data_directory}/smtpd_scache
 smtpd_tls_mandatory_protocols = !SSLv2, !SSLv3
 smtpd_tls_mandatory_ciphers=high
 
-# Log TLS handling
+# log TLS handling
 smtpd_tls_loglevel = 1
 smtp_tls_loglevel = 1
 
