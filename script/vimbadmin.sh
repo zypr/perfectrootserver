@@ -29,21 +29,21 @@ vimbadmin() {
 echo "${info} Installing Vimbadmin..." | awk '{ print strftime("[%H:%M:%S] |"), $0 }'
 
 #Create Database
-mysql --defaults-file=/etc/mysql/debian.cnf -e "CREATE DATABASE vimbadmin; GRANT ALL ON vimbadmin.* TO 'vimbadmin'@'localhost' IDENTIFIED BY '${VIMB_MYSQL_PASS}'; FLUSH PRIVILEGES;" >>/root/logs/stderror.log 2>&1 >>/root/logs/stdout.log
+mysql --defaults-file=/etc/mysql/debian.cnf -e "CREATE DATABASE vimbadmin; GRANT ALL ON vimbadmin.* TO 'vimbadmin'@'localhost' IDENTIFIED BY '${VIMB_MYSQL_PASS}'; FLUSH PRIVILEGES;" ${log}
 
 #Download Vimbadmin via Composer
-apt-get -q -y --force-yes install git curl >>/root/logs/stderror.log 2>&1 >>/root/logs/stdout.log
+apt-get -q -y --force-yes install git curl ${log}
 cd ~/sources
-php -r "copy('https://getcomposer.org/installer', 'composer-setup.php');" >>/root/logs/stderror.log 2>&1 >>/root/logs/stdout.log
-php -r "if (hash_file('SHA384', 'composer-setup.php') === '669656bab3166a7aff8a7506b8cb2d1c292f042046c5a994c43155c0be6190fa0355160742ab2e1c88d40d5be660b410') { echo 'Installer verified'; } else { echo 'Installer corrupt'; unlink('composer-setup.php'); } echo PHP_EOL;" >>/root/logs/stderror.log 2>&1 >>/root/logs/stdout.log
-php composer-setup.php >>/root/logs/stderror.log 2>&1 >>/root/logs/stdout.log
+php -r "copy('https://getcomposer.org/installer', 'composer-setup.php');" ${log}
+php -r "if (hash_file('SHA384', 'composer-setup.php') === '669656bab3166a7aff8a7506b8cb2d1c292f042046c5a994c43155c0be6190fa0355160742ab2e1c88d40d5be660b410') { echo 'Installer verified'; } else { echo 'Installer corrupt'; unlink('composer-setup.php'); } echo PHP_EOL;" ${log}
+php composer-setup.php ${log}
 php -r "unlink('composer-setup.php');"
 mv composer.phar /usr/local/bin/composer
-composer create-project opensolutions/vimbadmin /srv/vimbadmin -s dev -n --keep-vcs >>/root/logs/stderror.log 2>&1 >>/root/logs/stdout.log
+composer create-project opensolutions/vimbadmin /srv/vimbadmin -s dev -n --keep-vcs ${log}
 
 chown -R www-data: /srv/vimbadmin/public
 chown -R www-data: /srv/vimbadmin/var
-ln -s /srv/vimbadmin/public/ /etc/nginx/html/${MYDOMAIN}/vma >>/root/logs/stderror.log 2>&1 >>/root/logs/stdout.log
+ln -s /srv/vimbadmin/public/ /etc/nginx/html/${MYDOMAIN}/vma ${log}
 
 #Changes in Vimbadmin Conf
 cp /srv/vimbadmin/application/configs/application.ini.dist /srv/vimbadmin/application/configs/application.ini
@@ -70,7 +70,7 @@ mkdir -p /srv/archives
 cp /srv/vimbadmin/public/.htaccess.dist /srv/vimbadmin/public/.htaccess
 
 cd /srv/vimbadmin/
-./bin/doctrine2-cli.php orm:schema-tool:create >>/root/logs/stderror.log 2>&1 >>/root/logs/stdout.log
+./bin/doctrine2-cli.php orm:schema-tool:create ${log}
 
 #Crontabs
 (crontab -l && echo "# Die 10. Minute jeder 2. Stunde") | crontab -
@@ -106,11 +106,11 @@ fi
 
 #Restarting services
 if [ ${USE_PHP7} == '1' ]; then
-		systemctl restart {dovecot,postfix,amavis,spamassassin,clamav-daemon,nginx,php7.0-fpm,mysql} >>/root/logs/stderror.log 2>&1 >>/root/logs/stdout.log
+		systemctl restart {dovecot,postfix,amavis,spamassassin,clamav-daemon,nginx,php7.0-fpm,mysql} ${log}
 fi
 
 if [ ${USE_PHP5} == '1' ]; then
-		systemctl restart {dovecot,postfix,amavis,spamassassin,clamav-daemon,nginx,php5-fpm,mysql} >>/root/logs/stderror.log 2>&1 >>/root/logs/stdout.log
+		systemctl restart {dovecot,postfix,amavis,spamassassin,clamav-daemon,nginx,php5-fpm,mysql} ${log}
 fi
 }
 source ~/configs/userconfig.cfg
