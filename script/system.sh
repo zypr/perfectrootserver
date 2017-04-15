@@ -36,7 +36,7 @@ ff02::2 ip6-allrouters
 END
 
 if [[ -z $(dpkg --get-selections | grep -E "^dbus.*install$") ]]; then
-	apt-get update -y >>/root/logs/stderror.log 2>&1 >>/root/logs/stdout.log && apt-get -y --force-yes install dbus >>/root/logs/stderror.log 2>&1 >>/root/logs/stdout.log
+	apt-get update -y ${log} && apt-get -y --force-yes install dbus ${log}
 fi
 
 	echo -e "${IPADR} ${MYDOMAIN} $(echo ${MYDOMAIN} | cut -f 1 -d '.')" >> /etc/hosts
@@ -48,7 +48,7 @@ fi
 echo "${info} Setting your hostname & timezone..." | awk '{ print strftime("[%H:%M:%S] |"), $0 }'
 if [[ -f /usr/share/zoneinfo/${TIMEZONE} ]] ; then
 	echo ${TIMEZONE} > /etc/timezone
-	dpkg-reconfigure -f noninteractive tzdata >>/root/logs/stderror.log 2>&1 >>/root/logs/stdout.log
+	dpkg-reconfigure -f noninteractive tzdata ${log}
 	if [ "$?" -ne "0" ]; then
 		echo "${error} Timezone configuration failed: dpkg returned exit code != 0" | awk '{ print strftime("[%H:%M:%S] |"), $0 }'
 		exit 1
@@ -130,13 +130,13 @@ Pin: release a=experimental
 Pin-Priority: 1
 END
 
-wget -O ~/sources/dotdeb.gpg http://www.dotdeb.org/dotdeb.gpg >>/root/logs/stderror.log 2>&1 >>/root/logs/stdout.log && apt-key add ~/sources/dotdeb.gpg >>/root/logs/stderror.log 2>&1 >>/root/logs/stdout.log
+wget -O ~/sources/dotdeb.gpg http://www.dotdeb.org/dotdeb.gpg ${log} && apt-key add ~/sources/dotdeb.gpg ${log}
 
-apt-get update -y >>/root/logs/stderror.log 2>&1 >>/root/logs/stdout.log && apt-get -y upgrade >>/root/logs/stderror.log 2>&1 >>/root/logs/stdout.log
+apt-get update -y ${log} && apt-get -y upgrade ${log}
 
-apt-get -y --force-yes install aptitude ssl-cert whiptail apt-utils jq openssl-blacklist glibc-doc libc6-dev/stable >>/root/logs/stderror.log 2>&1 >>/root/logs/stdout.log
+apt-get -y --force-yes install aptitude ssl-cert whiptail apt-utils jq openssl-blacklist glibc-doc libc6-dev/stable ${log}
 
-DEBIAN_FRONTEND=noninteractive aptitude -y install libldap2-dev/stable apache2-threaded-dev apache2-utils apt-listchanges arj autoconf automake bison bsd-mailx build-essential bzip2 ca-certificates cabextract checkinstall curl dnsutils file flex git htop libapr1-dev libaprutil1 libaprutil1-dev libauthen-sasl-perl daemon libawl-php libcunit1-dev libcrypt-ssleay-perl libcurl4-openssl-dev libdbi-perl libgeoip-dev libio-socket-ssl-perl libio-string-perl liblockfile-simple-perl liblogger-syslog-perl libmail-dkim-perl libmail-spf-perl libmime-base64-urlsafe-perl libnet-dns-perl libnet-ident-perl libnet-LDAP-perl libnet1 libnet1-dev libpam-dev libpcre-ocaml-dev libpcre3 libpcre3-dev libreadline6-dev libtest-tempdir-perl libtool libuv-dev libwww-perl libxml2 libxml2-dev/stable libxml2-utils libxslt1-dev libyaml-dev lzop mariadb-server mc memcached mlocate nettle-dev nomarch pkg-config python-setuptools python-dev python-software-properties rkhunter software-properties-common sudo unzip vim-nox zip zlib1g zlib1g-dbg zlib1g-dev zoo >>/root/logs/stderror.log 2>&1 >>/root/logs/stdout.log
+DEBIAN_FRONTEND=noninteractive aptitude -y install libldap2-dev/stable apache2-threaded-dev apache2-utils apt-listchanges arj autoconf automake bison bsd-mailx build-essential bzip2 ca-certificates cabextract checkinstall curl dnsutils file flex git htop libapr1-dev libaprutil1 libaprutil1-dev libauthen-sasl-perl daemon libawl-php libcunit1-dev libcrypt-ssleay-perl libcurl4-openssl-dev libdbi-perl libgeoip-dev libio-socket-ssl-perl libio-string-perl liblockfile-simple-perl liblogger-syslog-perl libmail-dkim-perl libmail-spf-perl libmime-base64-urlsafe-perl libnet-dns-perl libnet-ident-perl libnet-LDAP-perl libnet1 libnet1-dev libpam-dev libpcre-ocaml-dev libpcre3 libpcre3-dev libreadline6-dev libtest-tempdir-perl libtool libuv-dev libwww-perl libxml2 libxml2-dev/stable libxml2-utils libxslt1-dev libyaml-dev lzop mariadb-server mc memcached mlocate nettle-dev nomarch pkg-config python-setuptools python-dev python-software-properties rkhunter software-properties-common sudo unzip vim-nox zip zlib1g zlib1g-dbg zlib1g-dev zoo ${log}
 
 if [ "$?" -ne "0" ]; then
 	echo "${error} Package installation failed!" | awk '{ print strftime("[%H:%M:%S] |"), $0 }'
@@ -177,7 +177,7 @@ net.ipv6.conf.${INTERFACE}.disable_ipv6 = 1
 END
 
 # Enable changes
-sysctl -p >>/root/logs/stderror.log 2>&1 >>/root/logs/stdout.log
+sysctl -p ${log}
 }
 
 source ~/configs/userconfig.cfg
