@@ -29,7 +29,7 @@ publickey() {
 
 # Public Key Authentication
 echo "${info} Generating key for public key authentication..." | awk '{ print strftime("[%H:%M:%S] |"), $0 }'
-ssh-keygen -f ~/ssh.key -b 3072 -t rsa -N ${SSH_PASS} >>/root/logs/stderror.log 2>&1 >>/root/logs/stdout.log
+ssh-keygen -f ~/ssh.key -b 3072 -t rsa -N ${SSH_PASS} ${log}
 mkdir -p ~/.ssh && chmod 700 ~/.ssh
 cat ~/ssh.key.pub > ~/.ssh/authorized_keys2 && rm ~/ssh.key.pub
 chmod 600 ~/.ssh/authorized_keys2
