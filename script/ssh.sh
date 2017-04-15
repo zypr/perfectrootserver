@@ -27,12 +27,12 @@
 ssh() {
 
 echo "${info} Downloading OpenSSH..." | awk '{ print strftime("[%H:%M:%S] |"), $0 }'
-wget http://ftp.hostserver.de/pub/OpenBSD/OpenSSH/portable/openssh-${OPENSSH_VERSION}.tar.gz >>/root/logs/stderror.log 2>&1 >>/root/logs/stdout.log
-tar -xzf openssh-${OPENSSH_VERSION}.tar.gz >>/root/logs/stderror.log 2>&1 >>/root/logs/stdout.log
+wget http://ftp.hostserver.de/pub/OpenBSD/OpenSSH/portable/openssh-${OPENSSH_VERSION}.tar.gz ${log}
+tar -xzf openssh-${OPENSSH_VERSION}.tar.gz ${log}
 cd openssh-${OPENSSH_VERSION}
 echo "${info} Compiling OpenSSH..." | awk '{ print strftime("[%H:%M:%S] |"), $0 }'
-./configure --prefix=/usr --with-pam --with-zlib --with-ssl-engine --with-ssl-dir=/etc/ssl --sysconfdir=/etc/ssh >>/root/logs/stderror.log 2>&1 >>/root/logs/stdout.log
-make >>/root/logs/make.log 2>&1 && mv /etc/ssh{,.bak} && make install >>/root/logs/make.log 2>&1
+./configure --prefix=/usr --with-pam --with-zlib --with-ssl-engine --with-ssl-dir=/etc/ssl --sysconfdir=/etc/ssh ${log}
+make ${makelog} && mv /etc/ssh{,.bak} && make install ${makelog}
 
 sed -i 's/^#Port 22/Port 22/g' /etc/ssh/sshd_config
 sed -i 's/^#AddressFamily any/AddressFamily inet/g' /etc/ssh/sshd_config
