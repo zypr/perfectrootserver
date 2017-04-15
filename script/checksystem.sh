@@ -30,7 +30,7 @@ checksystem() {
 	echo "$(date +"[%T]") | ${info} Checking your system..."
 
 	if [ $(dpkg-query -l | grep gawk | wc -l) -ne 1 ]; then
-	apt-get update -y >>/root/logs/stderror.log 2>&1 >>/root/logs/stdout.log && apt-get -y --force-yes install gawk >>/root/logs/stderror.log 2>&1 >>/root/logs/stdout.log
+	apt-get update -y ${log} && apt-get -y --force-yes install gawk ${log}
 	fi
 
 	if [ $USER != 'root' ]; then
@@ -44,7 +44,7 @@ checksystem() {
 	fi
 
 	if [ $(dpkg-query -l | grep lsb-release | wc -l) -ne 1 ]; then
-	apt-get update -y >>/root/logs/stderror.log 2>&1 >>/root/logs/stdout.log && apt-get -y --force-yes install lsb-release >>/root/logs/stderror.log 2>&1 >>/root/logs/stdout.log
+	apt-get update -y ${log} && apt-get -y --force-yes install lsb-release ${log}
 	fi
 
 	if [ $(lsb_release -cs) != 'jessie' ] || [ $(lsb_release -is) != 'Debian' ]; then
@@ -67,7 +67,7 @@ checksystem() {
 		echo > /dev/null
 	else
 		if [ $(dpkg-query -l | grep facter | wc -l) -ne 1 ]; then
-			apt-get update -y >>/root/logs/stderror.log 2>&1 >>/root/logs/stdout.log && apt-get -y --force-yes install facter >>/root/logs/stderror.log 2>&1 >>/root/logs/stdout.log
+			apt-get update -y ${log} && apt-get -y --force-yes install facter ${log}
 		fi
 
 		if	[ "$(facter virtual)" == 'physical' ] || [ "$(facter virtual)" == 'kvm' ]; then
@@ -87,22 +87,22 @@ checksystem() {
 	#Check CPU System and set RSA Size
 	unset $RSA_KEY_SIZE
 	#default
-	if [ ${SET_UP_RSA_KEY} = '0' ]; then
+	if [ ${HIGH_SECURITY} = '0' ]; then
 		RSA_KEY_SIZE="2048"
 	fi
 	
 	#only if you need it!
-	if [ ${SET_UP_RSA_KEY} = '1' ] && [ $(grep -c ^processor /proc/cpuinfo) -ge 2 ]; then
+	if [ ${HIGH_SECURITY} = '1' ]; then
 		RSA_KEY_SIZE="4096"
 	fi
 	
-	if [ ${SET_UP_RSA_KEY} = '3' ] && [ ${DEBUG_IS_SET} = '0' ]; then
+	if [ ${HIGH_SECURITY} = '3' ] && [ ${DEBUG_IS_SET} = '0' ]; then
 		  echo "${error} To set the RSA value to 256, you have to get into the debug mode! I'm sorry bro" | awk '{ print strftime("[%H:%M:%S] |"), $0 }'
         exit 1
 	fi
 
 	#only debug!
-	if [ ${SET_UP_RSA_KEY} = '3' ]; then
+	if [ ${HIGH_SECURITY} = '3' ]; then
 		RSA_KEY_SIZE="256"
 	fi
 
@@ -148,9 +148,9 @@ echo "$(date +"[%T]") | ${info} Welcome to the Perfect Rootserver installation!"
 echo "$(date +"[%T]") | ${info} Please wait while the installer is preparing for the first use..."
 
 if [ $(dpkg-query -l | grep dnsutils | wc -l) -ne 1 ]; then
-	apt-get update -y >>/root/logs/stderror.log 2>&1 >>/root/logs/stdout.log && apt-get -y --force-yes install dnsutils >>/root/logs/stderror.log 2>&1 >>/root/logs/stdout.log
+	apt-get update -y ${log} && apt-get -y --force-yes install dnsutils ${log}
 fi
 
 if [ $(dpkg-query -l | grep openssl | wc -l) -ne 1 ]; then
-	apt-get update -y >>/root/logs/stderror.log 2>&1 >>/root/logs/stdout.log && apt-get -y --force-yes install openssl >>/root/logs/stderror.log 2>&1 >>/root/logs/stdout.log
+	apt-get update -y ${log} && apt-get -y --force-yes install openssl ${log}
 fi
