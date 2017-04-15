@@ -49,3 +49,6 @@ INTERFACE=$(ip route get 8.8.8.8 | head -1 | cut -d' ' -f5)
 FQDNIP=$(source ~/configs/userconfig.cfg; dig @8.8.8.8 +short ${MYDOMAIN})
 WWWIP=$(source ~/configs/userconfig.cfg; dig @8.8.8.8 +short www.${MYDOMAIN})
 CHECKRDNS=$(dig @8.8.8.8 -x ${IPADR} +short)
+
+log="$(>>/root/logs/stderror.log 2>&1 >>/root/logs/stdout.log)"
+makelog="$(>>/root/logs/make.log 2>&1)"
