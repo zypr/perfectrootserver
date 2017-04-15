@@ -29,13 +29,13 @@ roundcube() {
 echo "${info} Installing Roundcube..." | awk '{ print strftime("[%H:%M:%S] |"), $0 }'
 
 #Create Database
-mysql --defaults-file=/etc/mysql/debian.cnf -e "CREATE DATABASE roundcube; GRANT ALL ON roundcube.* TO 'roundcube'@'localhost' IDENTIFIED BY '$ROUNDCUBE_MYSQL_PASS'; FLUSH PRIVILEGES;" >>/root/logs/stderror.log 2>&1 >>/root/logs/stdout.log
+mysql --defaults-file=/etc/mysql/debian.cnf -e "CREATE DATABASE roundcube; GRANT ALL ON roundcube.* TO 'roundcube'@'localhost' IDENTIFIED BY '$ROUNDCUBE_MYSQL_PASS'; FLUSH PRIVILEGES;" ${log}
 
 #Download from source 
 cd /var/www/html
-wget https://github.com/roundcube/roundcubemail/releases/download/${ROUNDCUBE_VERSION}/roundcubemail-${ROUNDCUBE_VERSION}-complete.tar.gz >>/root/logs/stderror.log 2>&1 >>/root/logs/stdout.log
+wget https://github.com/roundcube/roundcubemail/releases/download/${ROUNDCUBE_VERSION}/roundcubemail-${ROUNDCUBE_VERSION}-complete.tar.gz ${log}
 mkdir -p /var/www/html/webmail
-tar zxvf roundcubemail-${ROUNDCUBE_VERSION}-complete.tar.gz -C /var/www/html/webmail >>/root/logs/stderror.log 2>&1 >>/root/logs/stdout.log
+tar zxvf roundcubemail-${ROUNDCUBE_VERSION}-complete.tar.gz -C /var/www/html/webmail ${log}
 mv /var/www/html/webmail/roundcubemail*/* /var/www/html/webmail
 rm roundcubemail-${ROUNDCUBE_VERSION}-complete.tar.gz
 
@@ -53,7 +53,7 @@ $config['smtp_user'] = '%u';
 $config['smtp_pass'] = '%p';
 $config['support_url'] = '';
 $config['product_name'] = $_SERVER['HTTP_HOST'];
-/* Roundcube erhält die Möglichkeit, ACLs und Sieve Filter durch Plugins zu verwalten. */
+/* Roundcube erh?lt die M?glichkeit, ACLs und Sieve Filter durch Plugins zu verwalten. */
 $config['plugins'] = array(
 	'acl',
 	'managesieve',
@@ -84,7 +84,7 @@ sed -i "s/changeme/${ROUNDCUBE_MYSQL_PASS}/g" /var/www/html/webmail/config/confi
 sed -i "s/domain.tld/${MYDOMAIN}/g" /var/www/html/webmail/config/config.inc.php
 
 #Create Roundcube MYSQl Tables
-mysql --defaults-file=/etc/mysql/debian.cnf roundcube < /var/www/html/webmail/SQL/mysql.initial.sql >>/root/logs/stderror.log 2>&1 >>/root/logs/stdout.log
+mysql --defaults-file=/etc/mysql/debian.cnf roundcube < /var/www/html/webmail/SQL/mysql.initial.sql ${log}
 
 #Nginx custom site config 
 cat > /etc/nginx/sites-custom/roundcube.conf <<END
