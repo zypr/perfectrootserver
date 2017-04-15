@@ -28,18 +28,18 @@
 dovecot() {
 echo "${info} Installing Dovecot..." | awk '{ print strftime("[%H:%M:%S] |"), $0 }'
 
-openssl req -new -newkey rsa:4096 -sha256 -days 1095 -nodes -x509 -subj "/C=DE/ST=STATE/L=CITY/O=MAIL/CN=`hostname -f`" -keyout /etc/ssl/`hostname -f`.key  -out /etc/ssl/`hostname -f`.cer >>/root/logs/stderror.log 2>&1 >>/root/logs/stdout.log
-chmod 600 /etc/ssl/`hostname -f`.key >>/root/logs/stderror.log 2>&1 >>/root/logs/stdout.log
-cp /etc/ssl/`hostname -f`.cer /usr/local/share/ca-certificates/ >>/root/logs/stderror.log 2>&1 >>/root/logs/stdout.log
-update-ca-certificates >>/root/logs/stderror.log 2>&1 >>/root/logs/stdout.log
+openssl req -new -newkey rsa:4096 -sha256 -days 1095 -nodes -x509 -subj "/C=DE/ST=STATE/L=CITY/O=MAIL/CN=`hostname -f`" -keyout /etc/ssl/`hostname -f`.key  -out /etc/ssl/`hostname -f`.cer ${log}
+chmod 600 /etc/ssl/`hostname -f`.key ${log}
+cp /etc/ssl/`hostname -f`.cer /usr/local/share/ca-certificates/ ${log}
+update-ca-certificates ${log}
 
 touch /etc/apt/sources.list.d/jessie-backports.list
 echo "deb http://ftp.debian.org/debian jessie-backports main" >> /etc/apt/sources.list.d/jessie-backports.list
-apt-get update >>/root/logs/stderror.log 2>&1 >>/root/logs/stdout.log
-apt-get -y -t jessie-backports install dovecot-common dovecot-core dovecot-imapd dovecot-lmtpd dovecot-managesieved dovecot-sieve dovecot-mysql >>/root/logs/stderror.log 2>&1 >>/root/logs/stdout.log
+apt-get update ${log}
+apt-get -y -t jessie-backports install dovecot-common dovecot-core dovecot-imapd dovecot-lmtpd dovecot-managesieved dovecot-sieve dovecot-mysql ${log}
 
-groupadd -g 5000 vmail >>/root/logs/stderror.log 2>&1 >>/root/logs/stdout.log
-useradd -g vmail -u 5000 vmail -d /var/vmail >>/root/logs/stderror.log 2>&1 >>/root/logs/stdout.log
+groupadd -g 5000 vmail ${log}
+useradd -g vmail -u 5000 vmail -d /var/vmail ${log}
 mkdir /var/vmail 
 chown -R vmail: /var/vmail/
 
@@ -52,7 +52,6 @@ mail_home = /var/vmail/%d/%n
 mail_location = maildir:~/Maildir:LAYOUT=fs
 mail_uid = vmail
 mail_gid = vmail
-# notify wird von mail_log benötigt. mail_log informiert in diesem Fall über DELETE und EXPUNGE (weiter unten)
 mail_plugins = quota acl mail_log notify
 auth_username_chars = abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ01234567890.-_@
 ssl_protocols = !SSLv3 !SSLv2
@@ -62,7 +61,6 @@ passdb {
   args = /etc/dovecot/dovecot-mysql.conf
   driver = sql
 }
-# Der "namespace separator" sollte "/" lauten, da es zusammen mit der ACL zu Konflikten käme, wenn der Benutzername das Zeichen "." enthält.
 namespace inbox {
   inbox = yes
   location =
@@ -110,8 +108,6 @@ namespace inbox {
   }
   prefix =
 }
-# Dieser Namespace wird für die ACL Erweiterung benötigt.
-# Freigegebene Ordner erscheinen automatisch in der Ordnerliste.
 namespace {
     type = shared
     separator = /
@@ -187,26 +183,18 @@ protocol lda {
 }
 plugin {
   mail_log_events = delete undelete expunge
-# Um quasi-öffentliche Ordner für authentifizierte Benutzer via ACL zu erstellen
   acl_anyone = allow
-# Wird automatisch verwaltet und beinhaltet eine Übersicht der Freigaben
   acl_shared_dict = file:/var/vmail/shared-mailboxes.db
-# In jeder Mailbox wird von Dovecot eine Datei gepflegt, die die Freigaben regelt
   acl = vfile
   quota = maildir:User quota
-# Die Ordner Trash und Sent erhalten +10% auf die Quota
   quota_rule = Trash:storage=+10%%
   quota_rule = Sent:storage=+10%%
-# Eigene Sieve Filter liegen im Heimverzeichnis
   sieve = ~/sieve/dovecot.sieve
   sieve_dir = ~/sieve
-# Der globale Filter außerhalb
   sieve_before = /var/vmail/before.sieve
   sieve_max_script_size = 1M
   sieve_quota_max_scripts = 0
   sieve_quota_max_storage = 0
-# Auch dann weitermachen, wenn die Quota nicht ermittelt werden kann
-# Gilt für den von Dovecot bereitgestellten Postfix policy service
   quota_status_success = DUNNO
   quota_status_nouser = DUNNO
   quota_status_overquota = "552 5.2.2 Mailbox is over quota"
