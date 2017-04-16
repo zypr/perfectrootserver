@@ -26,6 +26,22 @@
 #################################
 
 checksystem() {
+	echo
+	echo
+	echo "$(date +"[%T]") | $(textb +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+)"
+	echo "$(date +"[%T]") |  $(textb P) $(textb e) $(textb r) $(textb f) $(textb e) $(textb c) $(textb t)   $(textb R) $(textb o) $(textb o) $(textb t) $(textb s) $(textb e) $(textb r) $(textb v) $(textb e) $(textb r) "
+	echo "$(date +"[%T]") | $(textb +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+)"
+	echo
+	echo "$(date +"[%T]") | ${info} Welcome to the Perfect Rootserver installation!"
+	echo "$(date +"[%T]") | ${info} Please wait while the installer is preparing for the first use..."
+
+	if [ $(dpkg-query -l | grep dnsutils | wc -l) -ne 1 ]; then
+		apt-get update -y >>"$main_log" 2>>"$err_log" && apt-get -y --force-yes install dnsutils >>"$main_log" 2>>"$err_log"
+	fi
+
+	if [ $(dpkg-query -l | grep openssl | wc -l) -ne 1 ]; then
+		apt-get update -y >>"$main_log" 2>>"$err_log" && apt-get -y --force-yes install openssl >>"$main_log" 2>>"$err_log"
+	fi
 
 	echo "$(date +"[%T]") | ${info} Checking your system..."
 
@@ -135,22 +151,4 @@ checksystem() {
 	echo "${ok} The system meets the minimum requirements." | awk '{ print strftime("[%H:%M:%S] |"), $0 }'
 
 }
-
 source ~/configs/userconfig.cfg
-
-echo
-echo
-echo "$(date +"[%T]") | $(textb +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+)"
-echo "$(date +"[%T]") |  $(textb P) $(textb e) $(textb r) $(textb f) $(textb e) $(textb c) $(textb t)   $(textb R) $(textb o) $(textb o) $(textb t) $(textb s) $(textb e) $(textb r) $(textb v) $(textb e) $(textb r) "
-echo "$(date +"[%T]") | $(textb +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+)"
-echo
-echo "$(date +"[%T]") | ${info} Welcome to the Perfect Rootserver installation!"
-echo "$(date +"[%T]") | ${info} Please wait while the installer is preparing for the first use..."
-
-if [ $(dpkg-query -l | grep dnsutils | wc -l) -ne 1 ]; then
-	apt-get update -y >>"$main_log" 2>>"$err_log" && apt-get -y --force-yes install dnsutils >>"$main_log" 2>>"$err_log"
-fi
-
-if [ $(dpkg-query -l | grep openssl | wc -l) -ne 1 ]; then
-	apt-get update -y >>"$main_log" 2>>"$err_log" && apt-get -y --force-yes install openssl >>"$main_log" 2>>"$err_log"
-fi
