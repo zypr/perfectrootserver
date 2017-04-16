@@ -52,4 +52,4 @@ CHECKRDNS=$(dig @8.8.8.8 -x ${IPADR} +short)
 
 main_log="/root/logs/main.log"
 err_log="/root/logs/error.log"
-make_log="(/root/logs/make.log)"
+make_log="/root/logs/make.log)"
