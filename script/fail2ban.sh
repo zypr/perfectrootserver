@@ -26,16 +26,16 @@
 #################################
 
 fail2ban() {
-mkdir -p ~/sources/${FAIL2BAN_VERSION}/ ${log}
-cd ~/sources/${FAIL2BAN_VERSION}/ ${log}
-wget https://github.com/fail2ban/fail2ban/archive/${FAIL2BAN_VERSION}.tar.gz ${log}
+mkdir -p ~/sources/${FAIL2BAN_VERSION}/ >>"$main_log" 2>>"$err_log"
+cd ~/sources/${FAIL2BAN_VERSION}/ >>"$main_log" 2>>"$err_log"
+wget https://github.com/fail2ban/fail2ban/archive/${FAIL2BAN_VERSION}.tar.gz >>"$main_log" 2>>"$err_log"
 
-tar -xzf ${FAIL2BAN_VERSION}.tar.gz ${log}
+tar -xzf ${FAIL2BAN_VERSION}.tar.gz >>"$main_log" 2>>"$err_log"
 cd fail2ban-${FAIL2BAN_VERSION}
-python setup.py -q install ${log}
+python setup.py -q install >>"$main_log" 2>>"$err_log"
 
-mkdir -p /var/run/fail2ban ${log}
-cp ~/files/fail2ban/conf/fail2ban.service /etc/systemd/system/fail2ban.service ${log}
+mkdir -p /var/run/fail2ban >>"$main_log" 2>>"$err_log"
+cp ~/files/fail2ban/conf/fail2ban.service /etc/systemd/system/fail2ban.service >>"$main_log" 2>>"$err_log"
 [[ -f /lib/systemd/system/fail2ban.service ]] && rm /lib/systemd/system/fail2ban.service
 if [[ ! -f /var/log/mail.warn ]]; then
 	touch /var/log/mail.warn
@@ -47,9 +47,9 @@ cp ~/files/fail2ban/conf/jail.d/*.conf /etc/fail2ban/jail.d/
 #rm -rf ~/sources/files/fail2ban/inst/${FAIL2BAN_VERSION}
 [[ -z $(grep fail2ban /etc/rc.local) ]] && sed -i '/^exit 0/i\test -d /var/run/fail2ban || install -m 755 -d /var/run/fail2ban/' /etc/rc.local
 mkdir -p /var/run/fail2ban/
-service fail2ban start ${log}
-systemctl -q daemon-reload ${log}
-systemctl -q enable fail2ban ${log}
+service fail2ban start >>"$main_log" 2>>"$err_log"
+systemctl -q daemon-reload >>"$main_log" 2>>"$err_log"
+systemctl -q enable fail2ban >>"$main_log" 2>>"$err_log"
 }
 source ~/configs/versions.cfg
 

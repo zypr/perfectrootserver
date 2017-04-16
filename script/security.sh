@@ -27,7 +27,7 @@
 
 createpw() {
 
-	apt-get -qq update && apt-get -q -y --force-yes install openssl ${log}
+	apt-get -qq update && apt-get -q -y --force-yes install openssl >>"$main_log" 2>>"$err_log"
 	
        while [[ $pw == "" ]]; do
                pw=$(openssl rand -base64 30 | tr -d / | cut -c -24 | grep -P '(?=^.{8,255}$)(?=^[^\s]*$)(?=.*\d)(?=.*[A-Z])(?=.*[a-z])')

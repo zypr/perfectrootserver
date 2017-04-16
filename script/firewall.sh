@@ -44,8 +44,8 @@ cp bin/arno-iptables-firewall /usr/local/sbin/
 cp bin/arno-fwfilter /usr/local/bin/
 cp -R share/arno-iptables-firewall/* /usr/local/share/arno-iptables-firewall/
 ln -s /usr/local/share/arno-iptables-firewall/plugins/traffic-accounting-show /usr/local/sbin/traffic-accounting-show
-gzip -c share/man/man1/arno-fwfilter.1 >/usr/local/share/man/man1/arno-fwfilter.1.gz ${log}
-gzip -c share/man/man8/arno-iptables-firewall.8 >/usr/local/share/man/man8/arno-iptables-firewall.8.gz ${log}
+gzip -c share/man/man1/arno-fwfilter.1 >/usr/local/share/man/man1/arno-fwfilter.1.gz >>"$main_log" 2>>"$err_log"
+gzip -c share/man/man8/arno-iptables-firewall.8 >/usr/local/share/man/man8/arno-iptables-firewall.8.gz >>"$main_log" 2>>"$err_log"
 cp README /usr/local/share/doc/arno-iptables-firewall/
 cp etc/init.d/arno-iptables-firewall /etc/init.d/
 if [ -d "/usr/lib/systemd/system/" ]; then
@@ -62,10 +62,10 @@ chown 0:0 /etc/arno-iptables-firewall/custom-rules
 chmod +x /usr/local/share/environment
 
 # Start Arno-Iptables-Firewall at boot
-update-rc.d -f arno-iptables-firewall start 11 S . stop 10 0 6 ${log}
+update-rc.d -f arno-iptables-firewall start 11 S . stop 10 0 6 >>"$main_log" 2>>"$err_log"
 
 # Configure firewall.conf
-bash /usr/local/share/environment ${log}
+bash /usr/local/share/environment >>"$main_log" 2>>"$err_log"
 sed -i "s/^Port 22/Port ${SSH_PORT}/g" /etc/ssh/sshd_config
 sed -i "s/^EXT_IF=.*/EXT_IF="${INTERFACE}"/g" /etc/arno-iptables-firewall/firewall.conf
 sed -i 's/^EXT_IF_DHCP_IP=.*/EXT_IF_DHCP_IP="0"/g' /etc/arno-iptables-firewall/firewall.conf

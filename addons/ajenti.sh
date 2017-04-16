@@ -20,9 +20,24 @@
     # with this program; if not, write to the Free Software Foundation, Inc.,
     # 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
 #-------------------------------------------------------------------------------------------------------------
+################################################################
+################## ATTENTION ! NOT UP TO DATE ##################
+################## ATTENTION ! NOT UP TO DATE ##################
+############################ 04.2017 ###########################
+################################################################
+# >>> -.. ---     -. --- -     ..- ... .     .. -     -·-·--<<< #
+#----------------------------------------------------------------------#
+#-------------------DO NOT EDIT SOMETHING BELOW THIS-------------------#
+#----------------------------------------------------------------------#
+
+
 
 ajenti() {
-
+# Check if Perfectrootserver Script is installed
+if [ ! -f /root/credentials.txt ]; then
+    echo "${error} Can not find file /root/credentials.txt!" | awk '{ print strftime("[%H:%M:%S] |"), $0 }'
+	exit 0
+fi
 
 # Ajenti
 if [ ${USE_AJENTI} == '1' ] && [ ${USE_VALID_SSL} == '1' ]; then
@@ -30,10 +45,10 @@ if [ ${USE_AJENTI} == '1' ] && [ ${USE_VALID_SSL} == '1' ]; then
 	wget -q http://repo.ajenti.org/debian/key -O- | apt-key add - >>/root/stderror.log 2>&1  >> /root/stdout.log
 	echo "deb http://repo.ajenti.org/debian main main debian" >> /etc/apt/sources.list
 	apt-get -qq update && apt-get -q -y --force-yes install ajenti >>/root/stderror.log 2>&1  >> /root/stdout.log
-	
+
 #gevent workaround -> https://github.com/ajenti/ajenti/issues/702 https://github.com/ajenti/ajenti/issues/870
 	sudo easy_install -U gevent==1.1b4 >>/root/stderror.log 2>&1  >> /root/stdout.log
-	
+
 #Use Lets Encrypt Cert for Ajenti
 	cat /etc/letsencrypt/live/${MYDOMAIN}/fullchain.pem /etc/letsencrypt/live/${MYDOMAIN}/privkey.pem > /etc/letsencrypt/live/${MYDOMAIN}/${MYDOMAIN}-combined.pem
 	ln -s /etc/letsencrypt/live/${MYDOMAIN}/${MYDOMAIN}-combined.pem /etc/nginx/ssl/${MYDOMAIN}-combined.pem
@@ -41,13 +56,13 @@ if [ ${USE_AJENTI} == '1' ] && [ ${USE_VALID_SSL} == '1' ]; then
 	ajentihash=$(python -c "from passlib.hash import sha512_crypt; print sha512_crypt.encrypt('${AJENTI_PASS}')")
 	sed -i.bak 's/^[[:space:]]*"password.*$/"password" : "sha512|'"${ajentihash//\//\\/}"'",/' /etc/ajenti/config.json
 	service ajenti restart
-	
+
 AJENTI_PORTS="8000"
-	sed -i "/\<$AJENTI_PORTS\>/ "\!"s/^OPEN_TCP=\"/&$AJENTI_PORTS, /" /etc/arno-iptables-firewall/firewall.conf	
+	sed -i "/\<$AJENTI_PORTS\>/ "\!"s/^OPEN_TCP=\"/&$AJENTI_PORTS, /" /etc/arno-iptables-firewall/firewall.conf
 sleep 1
 	#If the Addon runs in Standalone we need that
 	systemctl force-reload arno-iptables-firewall.service >>/root/stderror.log 2>&1  >> /root/stdout.log
-	
+
 	echo "--------------------------------------------" >> ~/addoninformation.txt
 	echo "Ajenti" >> ~/addoninformation.txt
 	echo "--------------------------------------------" >> ~/addoninformation.txt
@@ -56,11 +71,11 @@ sleep 1
 	echo "password = ${AJENTI_PASS}" >> ~/addoninformation.txt
 	echo "" >> ~/addoninformation.txt
 	echo "" >> ~/addoninformation.txt
-	
-else 
+
+else
 	if [ ${USE_AJENTI} == '1' ] && [ ${USE_VALID_SSL} == '0' ]; then
-		echo "${warn} USE_VALID_SSL is disabled, skipping Ajenti installation!" | awk '{ print strftime("[%H:%M:%S] |"), $0 }'	
-	fi	
+		echo "${warn} USE_VALID_SSL is disabled, skipping Ajenti installation!" | awk '{ print strftime("[%H:%M:%S] |"), $0 }'
+	fi
 fi
 }
 

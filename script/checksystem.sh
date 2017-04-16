@@ -30,7 +30,7 @@ checksystem() {
 	echo "$(date +"[%T]") | ${info} Checking your system..."
 
 	if [ $(dpkg-query -l | grep gawk | wc -l) -ne 1 ]; then
-	apt-get update -y ${log} && apt-get -y --force-yes install gawk ${log}
+	apt-get update -y >>"$main_log" 2>>"$err_log" && apt-get -y --force-yes install gawk >>"$main_log" 2>>"$err_log"
 	fi
 
 	if [ $USER != 'root' ]; then
@@ -44,7 +44,7 @@ checksystem() {
 	fi
 
 	if [ $(dpkg-query -l | grep lsb-release | wc -l) -ne 1 ]; then
-	apt-get update -y ${log} && apt-get -y --force-yes install lsb-release ${log}
+	apt-get update -y >>"$main_log" 2>>"$err_log" && apt-get -y --force-yes install lsb-release >>"$main_log" 2>>"$err_log"
 	fi
 
 	if [ $(lsb_release -cs) != 'jessie' ] || [ $(lsb_release -is) != 'Debian' ]; then
@@ -67,7 +67,7 @@ checksystem() {
 		echo > /dev/null
 	else
 		if [ $(dpkg-query -l | grep facter | wc -l) -ne 1 ]; then
-			apt-get update -y ${log} && apt-get -y --force-yes install facter ${log}
+			apt-get update -y >>"$main_log" 2>>"$err_log" && apt-get -y --force-yes install facter >>"$main_log" 2>>"$err_log"
 		fi
 
 		if	[ "$(facter virtual)" == 'physical' ] || [ "$(facter virtual)" == 'kvm' ]; then
@@ -148,9 +148,9 @@ echo "$(date +"[%T]") | ${info} Welcome to the Perfect Rootserver installation!"
 echo "$(date +"[%T]") | ${info} Please wait while the installer is preparing for the first use..."
 
 if [ $(dpkg-query -l | grep dnsutils | wc -l) -ne 1 ]; then
-	apt-get update -y ${log} && apt-get -y --force-yes install dnsutils ${log}
+	apt-get update -y >>"$main_log" 2>>"$err_log" && apt-get -y --force-yes install dnsutils >>"$main_log" 2>>"$err_log"
 fi
 
 if [ $(dpkg-query -l | grep openssl | wc -l) -ne 1 ]; then
-	apt-get update -y ${log} && apt-get -y --force-yes install openssl ${log}
+	apt-get update -y >>"$main_log" 2>>"$err_log" && apt-get -y --force-yes install openssl >>"$main_log" 2>>"$err_log"
 fi

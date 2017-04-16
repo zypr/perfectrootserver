@@ -47,14 +47,14 @@ checkconfig() {
 		fi
 
 	if [ $(dpkg-query -l | grep libcrack2 | wc -l) -ne 1 ]; then
-		apt-get update -y ${log} && apt-get -y --force-yes install libcrack2 ${log}
+		apt-get update -y >>"$main_log" 2>>"$err_log" && apt-get -y --force-yes install libcrack2 >>"$main_log" 2>>"$err_log"
 	fi
 
 	for var in ${SSH_PASS} ${POSTFIX_ADMIN_PASS} ${VIMB_MYSQL_PASS} ${ROUNDCUBE_MYSQL_PASS} ${PMA_HTTPAUTH_PASS} ${PMA_BFSECURE_PASS} ${MYSQL_ROOT_PASS} ${MYSQL_PMADB_PASS}
 	do
-		if echo "${var}" | grep -P '(?=^.{8,255}$)(?=^[^\s]*$)(?=.*\d)(?=.*[A-Z])(?=.*[a-z])' ${log}; then
+		if echo "${var}" | grep -P '(?=^.{8,255}$)(?=^[^\s]*$)(?=.*\d)(?=.*[A-Z])(?=.*[a-z])' >>"$main_log" 2>>"$err_log"; then
 			if [[ "$(awk -F': ' '{ print $2}' <<<"$(cracklib-check <<<"${var}")")" == "OK" ]]; then
-				echo ${log}
+				echo >>"$main_log" 2>>"$err_log"
 			else
 				echo "${error} One of your passwords was rejected!" | awk '{ print strftime("[%H:%M:%S] |"), $0 }'
 				echo "${info} Your password must be a minimum of 8 characters and must include at least 1 number, 1 uppercase and 1 lowercase letter." | awk '{ print strftime("[%H:%M:%S] |"), $0 }'

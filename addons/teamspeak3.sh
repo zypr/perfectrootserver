@@ -20,9 +20,21 @@
     # with this program; if not, write to the Free Software Foundation, Inc.,
     # 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
 #-------------------------------------------------------------------------------------------------------------
-
+################################################################
+################## ATTENTION ! NOT UP TO DATE ##################
+################## ATTENTION ! NOT UP TO DATE ##################
+############################ 04.2017 ###########################
+################################################################
+# >>> -.. ---     -. --- -     ..- ... .     .. -     -·-·--<<< #
+#----------------------------------------------------------------------#
+#-------------------DO NOT EDIT SOMETHING BELOW THIS-------------------#
+#----------------------------------------------------------------------#
 teamspeak3() {
-
+# Check if Perfectrootserver Script is installed
+if [ ! -f /root/credentials.txt ]; then
+    echo "${error} Can not find file /root/credentials.txt!" | awk '{ print strftime("[%H:%M:%S] |"), $0 }'
+	exit 0
+fi
 
 # Teamspeak 3
 if [ ${USE_TEAMSPEAK} == '1' ]; then
@@ -60,11 +72,11 @@ echo "'"Sie können folgende Befehle nutzen: TS3 starten: /etc/init.d/ts3server 
 exit 1
 ;;
 esac
-exit 0" >> /etc/init.d/ts3server 
+exit 0" >> /etc/init.d/ts3server
 	chmod 755 /etc/init.d/ts3server
 	update-rc.d ts3server defaults
 	/etc/init.d/ts3server start >>/root/stderror.log 2>&1  >> /root/stdout.log
-	
+
 TS3_PORTS_TCP="2008, 10011, 30033, 41144"
 TS3_PORTS_UDP="2010, 9987"
 
@@ -74,7 +86,7 @@ TS3_PORTS_UDP="2010, 9987"
 sleep 1
 	#If the Addon runs in Standalone we need that
 	systemctl force-reload arno-iptables-firewall.service >>/root/stderror.log 2>&1  >> /root/stdout.log
-	
+
 	echo "--------------------------------------------" >> ~/addoninformation.txt
 	echo "Teamspeak 3" >> ~/addoninformation.txt
 	echo "--------------------------------------------" >> ~/addoninformation.txt

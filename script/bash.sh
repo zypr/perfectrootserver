@@ -30,21 +30,21 @@ bashinstall() {
 echo "${info} Downloading GNU bash & latest security patches..." | awk '{ print strftime("[%H:%M:%S] |"), $0 }'
 cd ~/sources
 mkdir bash && cd $_
-wget https://ftp.gnu.org/gnu/bash/bash-${BASH_VERSION}.tar.gz ${log}
+wget https://ftp.gnu.org/gnu/bash/bash-${BASH_VERSION}.tar.gz >>"$main_log" 2>>"$err_log"
 
-wget -r -np -nd --reject="index.html*,.sig" https://ftp.gnu.org/gnu/bash/bash-${BASH_VERSION}-patches/ ${log}
+wget -r -np -nd --reject="index.html*,.sig" https://ftp.gnu.org/gnu/bash/bash-${BASH_VERSION}-patches/ >>"$main_log" 2>>"$err_log"
 nfiles=$(ls | wc -l)
 
-tar zxf bash-${BASH_VERSION}.tar.gz && cd bash-${BASH_VERSION} ${log}
+tar zxf bash-${BASH_VERSION}.tar.gz && cd bash-${BASH_VERSION} >>"$main_log" 2>>"$err_log"
 
 ##################### Fix me!!! #######
 echo "${info} Patching sourcefiles..." | awk '{ print strftime("[%H:%M:%S] |"), $0 }'
 for i in ../bash${BASH}-[0-9][0-9][0-9]; do patch -p0 -s < $i; done
 
 echo "${info} Compiling GNU bash..." | awk '{ print strftime("[%H:%M:%S] |"), $0 }'
-./configure --prefix=/usr/local ${makelog}
-make ${makelog}
-make install ${makelog}
+./configure --prefix=/usr/local >>"$make_log"
+make >>"$make_log"
+make install >>"$make_log"
 cp -f /usr/local/bin/bash /bin/bash
 sleep 2
 

@@ -29,13 +29,13 @@ roundcube() {
 echo "${info} Installing Roundcube..." | awk '{ print strftime("[%H:%M:%S] |"), $0 }'
 
 #Create Database
-mysql --defaults-file=/etc/mysql/debian.cnf -e "CREATE DATABASE roundcube; GRANT ALL ON roundcube.* TO 'roundcube'@'localhost' IDENTIFIED BY '$ROUNDCUBE_MYSQL_PASS'; FLUSH PRIVILEGES;" ${log}
+mysql --defaults-file=/etc/mysql/debian.cnf -e "CREATE DATABASE roundcube; GRANT ALL ON roundcube.* TO 'roundcube'@'localhost' IDENTIFIED BY '$ROUNDCUBE_MYSQL_PASS'; FLUSH PRIVILEGES;" >>"$main_log" 2>>"$err_log"
 
 #Download from source 
 cd /var/www/html
-wget https://github.com/roundcube/roundcubemail/releases/download/${ROUNDCUBE_VERSION}/roundcubemail-${ROUNDCUBE_VERSION}-complete.tar.gz ${log}
+wget https://github.com/roundcube/roundcubemail/releases/download/${ROUNDCUBE_VERSION}/roundcubemail-${ROUNDCUBE_VERSION}-complete.tar.gz >>"$main_log" 2>>"$err_log"
 mkdir -p /var/www/html/webmail
-tar zxvf roundcubemail-${ROUNDCUBE_VERSION}-complete.tar.gz -C /var/www/html/webmail ${log}
+tar zxvf roundcubemail-${ROUNDCUBE_VERSION}-complete.tar.gz -C /var/www/html/webmail >>"$main_log" 2>>"$err_log"
 mv /var/www/html/webmail/roundcubemail*/* /var/www/html/webmail
 rm roundcubemail-${ROUNDCUBE_VERSION}-complete.tar.gz
 
@@ -84,7 +84,7 @@ sed -i "s/changeme/${ROUNDCUBE_MYSQL_PASS}/g" /var/www/html/webmail/config/confi
 sed -i "s/domain.tld/${MYDOMAIN}/g" /var/www/html/webmail/config/config.inc.php
 
 #Create Roundcube MYSQl Tables
-mysql --defaults-file=/etc/mysql/debian.cnf roundcube < /var/www/html/webmail/SQL/mysql.initial.sql ${log}
+mysql --defaults-file=/etc/mysql/debian.cnf roundcube < /var/www/html/webmail/SQL/mysql.initial.sql >>"$main_log" 2>>"$err_log"
 
 #Nginx custom site config 
 cat > /etc/nginx/sites-custom/roundcube.conf <<END

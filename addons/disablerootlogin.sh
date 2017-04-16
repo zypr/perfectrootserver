@@ -21,10 +21,22 @@
     # 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
 #-------------------------------------------------------------------------------------------------------------
 
-
+################################################################
+################## ATTENTION ! NOT UP TO DATE ##################
+################## ATTENTION ! NOT UP TO DATE ##################
+############################ 04.2017 ###########################
+################################################################
+# >>> -.. ---     -. --- -     ..- ... .     .. -     -·-·--<<< #
+#----------------------------------------------------------------------#
+#-------------------DO NOT EDIT SOMETHING BELOW THIS-------------------#
+#----------------------------------------------------------------------#
 #DisableRootLogin
 disablerootlogin() {
-	
+# Check if Perfectrootserver Script is installed
+if [ ! -f /root/credentials.txt ]; then
+    echo "${error} Can not find file /root/credentials.txt!" | awk '{ print strftime("[%H:%M:%S] |"), $0 }'
+	exit 0
+fi
 if [ ${DISABLE_ROOT_LOGIN} == '1' ]; then
 
 echo
@@ -38,7 +50,7 @@ echo "$(date +"[%T]") | ${info} Please wait while the installer is preparing for
 
 #creating a strong password!
 USERPASS=$(openssl rand -base64 30  |  sed 's|/|_|')
-	
+
 sed 's/#PermitRootLogin prohibit-password/PermitRootLogin no/g' /etc/ssh/sshd_config >>/root/stderror.log 2>&1  >> /root/stdout.log
 sed -i "/LoginGraceTime 30/ s//\n AllowGroups $SSHUSER \n/" /etc/ssh/sshd_config >>/root/stderror.log 2>&1  >> /root/stdout.log
 
@@ -47,7 +59,7 @@ groupadd --system sshusers >>/root/stderror.log 2>&1  >> /root/stdout.log
 #  --disabled-password yes or no for ssh login
 adduser $SSHUSER --gecos "" --no-create-home --home /root/ --ingroup sshusers >>/root/stderror.log 2>&1  >> /root/stdout.log
 echo $SSHUSER:$USERPASS | chpasswd >>/root/stderror.log 2>&1  >> /root/stdout.log
-	
+
 #restart
 service ssh restart
 

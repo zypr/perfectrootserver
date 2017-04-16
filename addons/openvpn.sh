@@ -20,9 +20,21 @@
     # with this program; if not, write to the Free Software Foundation, Inc.,
     # 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
 #-------------------------------------------------------------------------------------------------------------
-
+################################################################
+################## ATTENTION ! NOT UP TO DATE ##################
+################## ATTENTION ! NOT UP TO DATE ##################
+############################ 04.2017 ###########################
+################################################################
+# >>> -.. ---     -. --- -     ..- ... .     .. -     -·-·--<<< #
+#----------------------------------------------------------------------#
+#-------------------DO NOT EDIT SOMETHING BELOW THIS-------------------#
+#----------------------------------------------------------------------#
 openvpn() {
-
+# Check if Perfectrootserver Script is installed
+if [ ! -f /root/credentials.txt ]; then
+    echo "${error} Can not find file /root/credentials.txt!" | awk '{ print strftime("[%H:%M:%S] |"), $0 }'
+	exit 0
+fi
 
 #OpenVPN
 if [ ${USE_OPENVPN} == '1' ]; then
@@ -61,7 +73,7 @@ cd /etc/openvpn/easy-rsa
 ./build-ca
 ./build-key-server server
 cp /etc/openvpn/easy-rsa/keys/{server.crt,server.key,ca.crt} /etc/openvpn
-service openvpn start	
+service openvpn start
 
 #Cert + key for Client
 ./build-key client1

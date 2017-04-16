@@ -21,8 +21,24 @@
     # 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
 #-------------------------------------------------------------------------------------------------------------
 
-#Ungetestet!
-#Todo: Testen & einfügen
+################################################################
+################## ATTENTION ! NOT UP TO DATE ##################
+################## ATTENTION ! NOT UP TO DATE ##################
+############################ 04.2017 ###########################
+################################################################
+# >>> -.. ---     -. --- -     ..- ... .     .. -     -·-·--<<< #
+#----------------------------------------------------------------------#
+#-------------------DO NOT EDIT SOMETHING BELOW THIS-------------------#
+#----------------------------------------------------------------------#
+# Check if Perfectrootserver Script is installed
+if [ ! -f /root/credentials.txt ]; then
+    echo "${error} Can not find file /root/credentials.txt!" | awk '{ print strftime("[%H:%M:%S] |"), $0 }'
+	exit 0
+fi
+
+PATH_TO_PASSWORDS="/root/credentials.txt"
+MYSQL_PASSWORD=$(grep -Pom 1 "(?<=^password = ).*$" $PATH_TO_PASSWORDS)
+
 
 # create random password
 PASSWDDB=$(openssl rand -base64 30  |  sed 's|/|_|')
@@ -38,7 +54,7 @@ if [ -f /root/.my.cnf ]; then
     mysql -e "GRANT ALL PRIVILEGES ON ${MAINDB}.* TO '${MAINDB}'@'localhost';"
     mysql -e "FLUSH PRIVILEGES;"
 
-# If /root/.my.cnf doesn't exist then it'll ask for root password   
+# If /root/.my.cnf doesn't exist then it'll ask for root password
 else
     echo "Please enter root user MySQL password!"
     read rootpasswd

@@ -27,13 +27,13 @@
 
 mailfilter() {
 echo "${info} Installing Mailfilter..." | awk '{ print strftime("[%H:%M:%S] |"), $0 }'
-apt-get -q -y --force-yes install zip rar unrar unzip p7zip-full amavisd-new clamav-daemon spamassassin ${log}
+apt-get -q -y --force-yes install zip rar unrar unzip p7zip-full amavisd-new clamav-daemon spamassassin >>"$main_log" 2>>"$err_log"
 
 cat >> /etc/amavis/conf.d/50-user << 'EOF1'
 use strict;
 
-# Maximale Anzahl an Prozessen, die Amavis vorhÃ¤lt.
-# Siehe auch Anmerkung in master.cf im Listener fÃ¼r Reinjection
+# Maximale Anzahl an Prozessen, die Amavis vorhält.
+# Siehe auch Anmerkung in master.cf im Listener für Reinjection
 $max_servers = 5;
 
 # Amavis wird mitgeteilt, wie auf die MySQL-Datenbank zugegriffen werden kann.
@@ -42,13 +42,13 @@ $max_servers = 5;
      'vimbadmin',
      'changeme']);
 
-# Hierdurch ermittelt Amavis die lokalen DomÃ¤nen
+# Hierdurch ermittelt Amavis die lokalen Domänen
 $sql_select_policy = 'SELECT domain FROM domain WHERE CONCAT("@",domain) IN (%k)';
 
-# Ein Listener fÃ¼r die Herkunft "external" sowie "submission"
+# Ein Listener für die Herkunft "external" sowie "submission"
 $inet_socket_port = [10024,10025];
 
-# Mails werden auf Port 10035 zurÃ¼ckgefÃ¼hrt
+# Mails werden auf Port 10035 zurückgeführt
 $forward_method = 'smtp:[127.0.0.1]:10035';
 $notify_method  = 'smtp:[127.0.0.1]:10035';
 
@@ -58,7 +58,7 @@ $interface_policy{'10025'} = 'SUBMISSION';
 $policy_bank{'SUBMISSION'} = {
         # Diese Mails kommen von einem vertrauten System
         originating => 1,
-        # 7-bit Kodierung erzwingen, damit ein spÃ¤teres Kodieren die DKIM-Signatur nicht zerstÃ¶rt
+        # 7-bit Kodierung erzwingen, damit ein späteres Kodieren die DKIM-Signatur nicht zerstört
         smtpd_discard_ehlo_keywords => ['8BITMIME'],
         # Viren auch von auth. Sendern ablehnen
         final_virus_destiny => D_REJECT,
@@ -71,8 +71,8 @@ $policy_bank{'SUBMISSION'} = {
 # "mail.domain.tld" bitte anpassen
 $myhostname = "mail.domain.tld";
 
-# Wer wird Ã¼ber Viren, Spam und "bad header mails" informiert?
-# Den Benutzer "postmaster" bitte nachtrÃ¤glich in ViMbAdmin erstellen (Alias mÃ¶glich)
+# Wer wird über Viren, Spam und "bad header mails" informiert?
+# Den Benutzer "postmaster" bitte nachträglich in ViMbAdmin erstellen (Alias möglich)
 $virus_admin = "postmaster\@$mydomain";
 $spam_admin = "postmaster\@$mydomain";
 $banned_quarantine_to = "postmaster\@$mydomain";
@@ -85,12 +85,12 @@ $enable_dkim_verification = 1;
 $allowed_added_header_fields{lc('Authentication-Results')} = 1;
 
 # DKIM-Signatur
-# Gilt nur, wenn "originating = 1", ergo fÃ¼r die SUBMISSION policy bank
+# Gilt nur, wenn "originating = 1", ergo für die SUBMISSION policy bank
 # "default" ist hierbei der Selector
-# "domain.tld" als DomÃ¤ne bitte anpassen
+# "domain.tld" als Domäne bitte anpassen
 # "enable_dkim_signing" nur "1" setzen, wenn Mails wirklich signiert werden sollen.
-# "/var/lib/amavis/db/dkim_domain.tld.key" sollte ebenso dem Namen der DomÃ¤ne angepasst werden.
-# Die TTL betrÃ¤gt im Beispiel 7 Tage
+# "/var/lib/amavis/db/dkim_domain.tld.key" sollte ebenso dem Namen der Domäne angepasst werden.
+# Die TTL beträgt im Beispiel 7 Tage
 # relaxed/relaxed beschreibt die Header/Body canonicalization, relaxed ist weniger restriktiv
 
 $enable_dkim_signing = 1;
@@ -118,11 +118,11 @@ sed -i "s/mail.domain.tld/mail.${MYDOMAIN}/g" /etc/amavis/conf.d/50-user
 sed -i "s/changeme/${VIMB_MYSQL_PASS}/g" /etc/amavis/conf.d/50-user
 sed -i "s/domain.tld/${MYDOMAIN}/g" /etc/amavis/conf.d/50-user
 
-amavisd-new genrsa /var/lib/amavis/db/dkim_${MYDOMAIN}.key 2048 ${log}
-amavisd-new showkey ${MYDOMAIN} ${log}
+amavisd-new genrsa /var/lib/amavis/db/dkim_${MYDOMAIN}.key 2048 >>"$main_log" 2>>"$err_log"
+amavisd-new showkey ${MYDOMAIN} >>"$main_log" 2>>"$err_log"
 
-adduser clamav amavis ${log}
-# ACHTUNG, Ab 0.99.2 startet ClamAV mit diesem Parameter nicht mehr, da er entfernt wurde. Vielen Dank fÃ¼r den Hinweis!
+adduser clamav amavis >>"$main_log" 2>>"$err_log"
+# ACHTUNG, Ab 0.99.2 startet ClamAV mit diesem Parameter nicht mehr, da er entfernt wurde. Vielen Dank für den Hinweis!
 #sed -i 's/AllowSupplementaryGroups false/AllowSupplementaryGroups true/g' /etc/clamav/clamd.conf
 }
 source ~/configs/userconfig.cfg

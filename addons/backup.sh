@@ -20,11 +20,15 @@
     # with this program; if not, write to the Free Software Foundation, Inc.,
     # 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
 #-------------------------------------------------------------------------------------------------------------
-
-##########################################################################
-###################### DO NOT EDIT ANYTHING BELOW! #######################
-##########################################################################
-
+################################################################
+################## ATTENTION ! NOT UP TO DATE ##################
+################## ATTENTION ! NOT UP TO DATE ##################
+############################ 04.2017 ###########################
+################################################################
+# >>> -.. ---     -. --- -     ..- ... .     .. -     -·-·--<<< #
+#----------------------------------------------------------------------#
+#-------------------DO NOT EDIT SOMETHING BELOW THIS-------------------#
+#----------------------------------------------------------------------#
 # Some nice colors
 red() { echo "$(tput setaf 1)$*$(tput setaf 9)"; }
 green() { echo "$(tput setaf 2)$*$(tput setaf 9)"; }
@@ -43,6 +47,14 @@ warn="$(yellowb [WARN] -)"
 error="$(redb [ERROR] -)"
 fyi="$(pinkb [INFO] -)"
 ok="$(greenb [OKAY] -)"
+
+# Check if Perfectrootserver Script is installed
+if [ ! -f /root/credentials.txt ]; then
+    echo "${error} Can not find file /root/credentials.txt!" | awk '{ print strftime("[%H:%M:%S] |"), $0 }'
+	exit 0
+fi
+
+
 
 echo
 echo
@@ -85,11 +97,6 @@ MYSQLDUMP=/usr/bin/mysqldump
 
 # --------------------------------------------------------------------------------------------------------------------------------------------------
 
-# Check if Perfectrootserver Script is installed
-if [ ! -f /root/credentials.txt ]; then
-    echo "${error} Can not find file /root/credentials.txt!" | awk '{ print strftime("[%H:%M:%S] |"), $0 }'
-	exit 0
-fi
 
 
 echo "$(date +"[%T]") | ${info} Free Diskspace is: $FREE_SPACE GB"
@@ -146,7 +153,7 @@ cd /root
 #find $BACKUP_PATH/* -mtime +30 -exec rm {} \;
 
 
-#Backup, in die install einfÃ¼gen
+#Backup, in die install einfügen
 # http://www.sysadminslife.com/linux/cronjob-unter-debian-und-ubuntu-erstellen/
 #crontab -e
 #00 20 * * * /path/to/backup.sh

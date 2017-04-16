@@ -27,7 +27,7 @@
 
 postfix() {
 echo "${info} Installing Postfix..." | awk '{ print strftime("[%H:%M:%S] |"), $0 }'
-DEBIAN_FRONTEND=noninteractive aptitude -y install postfix-mysql postfix-pcre postfix ${log}
+DEBIAN_FRONTEND=noninteractive aptitude -y install postfix-mysql postfix-pcre postfix >>"$main_log" 2>>"$err_log"
 
 mkdir -p /etc/postfix/mysql/
 cat > /etc/postfix/mysql/postfix-mysql-virtual_alias_maps.cf <<END

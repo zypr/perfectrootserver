@@ -20,7 +20,15 @@
     # with this program; if not, write to the Free Software Foundation, Inc.,
     # 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
 #-------------------------------------------------------------------------------------------------------------
-
+################################################################
+################## ATTENTION ! NOT UP TO DATE ##################
+################## ATTENTION ! NOT UP TO DATE ##################
+############################ 04.2017 ###########################
+################################################################
+# >>> -.. ---     -. --- -     ..- ... .     .. -     -·-·--<<< #
+#----------------------------------------------------------------------#
+#-------------------DO NOT EDIT SOMETHING BELOW THIS-------------------#
+#----------------------------------------------------------------------#
 
 if [ ${USE_VSFTPD} == '1' ]; then
 SSL_PATH_VSFTPD="/etc/ssl/private"
@@ -78,10 +86,10 @@ userpass=$(openssl rand -base64 30  |  sed 's|/|_|')
 	FTP_PORT="21"
 	# pasv_min_port / pasv_max_port
 	PASV_PORT="12000:12500"
-	
+
 	FTP_PORT_PASS="26246"
-	
-	
+
+
 apt-get install -y vsftpd >>/root/logs/stderror.log 2>&1 >>/root/logs/stdout.log
 
 mkdir -p $SSL_PATH_VSFTPD >>/root/logs/stderror.log 2>&1 >>/root/logs/stdout.log
@@ -258,9 +266,9 @@ force_local_data_ssl=YES
 # All non-anonymous logins are forced to use a secure SSL connection in order to send the password.
 force_local_logins_ssl=YES
 
-# Wenn Sie force_local_logins_ssl=YES und force_local_data_ssl=YES verwenden werden nur TLS Verbindungen erlaubt 
-# (dies sperrt alle Benutzer alter FTP Clients aus, die keine TLS Unterstützung haben); 
-# bei Benutzung von force_local_logins_ssl=NO und force_local_data_ssl=NO werden sowohl TLS als auch nicht-TLS Verbindungen erlaubt, 
+# Wenn Sie force_local_logins_ssl=YES und force_local_data_ssl=YES verwenden werden nur TLS Verbindungen erlaubt
+# (dies sperrt alle Benutzer alter FTP Clients aus, die keine TLS Unterstützung haben);
+# bei Benutzung von force_local_logins_ssl=NO und force_local_data_ssl=NO werden sowohl TLS als auch nicht-TLS Verbindungen erlaubt,
 # je nach dem was der FTP Client unterstützt.
 
 # Permit TLS v1 protocol connections. TLS v1 connections are preferred
@@ -347,5 +355,5 @@ END
 	sed -i "/\<$PASV_PORT\>/ "\!"s/^OPEN_TCP=\"/&$PASV_PORT, /" /etc/arno-iptables-firewall/firewall.conf
 	sleep 1
 	systemctl force-reload arno-iptables-firewall.service
-	
+
 fi

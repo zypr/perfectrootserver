@@ -20,10 +20,24 @@
     # with this program; if not, write to the Free Software Foundation, Inc.,
     # 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
 #-------------------------------------------------------------------------------------------------------------
-
+################################################################
+################## ATTENTION ! NOT UP TO DATE ##################
+################## ATTENTION ! NOT UP TO DATE ##################
+############################ 04.2017 ###########################
+################################################################
+# >>> -.. ---     -. --- -     ..- ... .     .. -     -·-·--<<< #
 #----------------------------------------------------------------------#
 #-------------------DO NOT EDIT SOMETHING BELOW THIS-------------------#
 #----------------------------------------------------------------------#
+# Check if Perfectrootserver Script is installed
+if [ ! -f /root/credentials.txt ]; then
+    echo "${error} Can not find file /root/credentials.txt!" | awk '{ print strftime("[%H:%M:%S] |"), $0 }'
+	exit 0
+fi
+addnewsite
+
+# Todo:
+# Update to new HTTP / HTTPS conf
 
 
 addnewsite() {
@@ -33,7 +47,7 @@ if [ ${ADD_NEW_SITE} == '1' ]; then
 echo "${info} Installing AddNewSite..." | awk '{ print strftime("[%H:%M:%S] |"), $0 }'
 
 #Make some folders
-mkdir -p /etc/nginx/html/${MYOTHERDOMAIN} 
+mkdir -p /etc/nginx/html/${MYOTHERDOMAIN}
 mkdir -p /etc/nginx/html/${MYOTHERDOMAIN}/logs/
 mkdir -p /etc/nginx/html/${MYOTHERDOMAIN}/htdocs/
 chown -R www-data:www-data /etc/nginx/html/${MYOTHERDOMAIN}/htdocs
@@ -47,7 +61,7 @@ if [ ${CLOUDFLARE} == '0' ] && [ ${USE_VALID_SSL} == '1' ]; then
 	echo "${info} Creating valid SSL certificates..." | awk '{ print strftime("[%H:%M:%S] |"), $0 }'
 	#git clone https://github.com/letsencrypt/letsencrypt ~/sources/letsencrypt -q
 	cd ~/sources/letsencrypt
-	
+
 	./letsencrypt-auto --agree-tos --renew-by-default --non-interactive --standalone --email ${SSLMAIL} --rsa-key-size 2048 -d ${MYOTHERDOMAIN} -d www.${MYOTHERDOMAIN} certonly >>/root/stderror.log 2>&1  >> /root/stdout.log
 	ln -s /etc/letsencrypt/live/${MYOTHERDOMAIN}/fullchain.pem /etc/nginx/ssl/${MYOTHERDOMAIN}.pem
 	ln -s /etc/letsencrypt/live/${MYOTHERDOMAIN}/privkey.pem /etc/nginx/ssl/${MYOTHERDOMAIN}.key.pem
@@ -221,7 +235,7 @@ server {
 				access_log off;
 				log_not_found off;
 			}
-				
+
 			location = /robots.txt {
 				allow all;
 				access_log off;

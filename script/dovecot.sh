@@ -28,18 +28,18 @@
 dovecot() {
 echo "${info} Installing Dovecot..." | awk '{ print strftime("[%H:%M:%S] |"), $0 }'
 
-openssl req -new -newkey rsa:4096 -sha256 -days 1095 -nodes -x509 -subj "/C=DE/ST=STATE/L=CITY/O=MAIL/CN=`hostname -f`" -keyout /etc/ssl/`hostname -f`.key  -out /etc/ssl/`hostname -f`.cer ${log}
-chmod 600 /etc/ssl/`hostname -f`.key ${log}
-cp /etc/ssl/`hostname -f`.cer /usr/local/share/ca-certificates/ ${log}
-update-ca-certificates ${log}
+openssl req -new -newkey rsa:4096 -sha256 -days 1095 -nodes -x509 -subj "/C=DE/ST=STATE/L=CITY/O=MAIL/CN=`hostname -f`" -keyout /etc/ssl/`hostname -f`.key  -out /etc/ssl/`hostname -f`.cer >>"$main_log" 2>>"$err_log"
+chmod 600 /etc/ssl/`hostname -f`.key >>"$main_log" 2>>"$err_log"
+cp /etc/ssl/`hostname -f`.cer /usr/local/share/ca-certificates/ >>"$main_log" 2>>"$err_log"
+update-ca-certificates >>"$main_log" 2>>"$err_log"
 
 touch /etc/apt/sources.list.d/jessie-backports.list
 echo "deb http://ftp.debian.org/debian jessie-backports main" >> /etc/apt/sources.list.d/jessie-backports.list
-apt-get update ${log}
-apt-get -y -t jessie-backports install dovecot-common dovecot-core dovecot-imapd dovecot-lmtpd dovecot-managesieved dovecot-sieve dovecot-mysql ${log}
+apt-get update >>"$main_log" 2>>"$err_log"
+apt-get -y -t jessie-backports install dovecot-common dovecot-core dovecot-imapd dovecot-lmtpd dovecot-managesieved dovecot-sieve dovecot-mysql >>"$main_log" 2>>"$err_log"
 
-groupadd -g 5000 vmail ${log}
-useradd -g vmail -u 5000 vmail -d /var/vmail ${log}
+groupadd -g 5000 vmail >>"$main_log" 2>>"$err_log"
+useradd -g vmail -u 5000 vmail -d /var/vmail >>"$main_log" 2>>"$err_log"
 mkdir /var/vmail 
 chown -R vmail: /var/vmail/
 

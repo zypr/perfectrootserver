@@ -82,6 +82,7 @@ location /piwik {
         deny all;
     }
 }
+END
 
 if [ ${USE_PHP7} == '1' ] && [ ${USE_PHP5} == '0' ]; then
 

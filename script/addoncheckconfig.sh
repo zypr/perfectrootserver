@@ -43,9 +43,9 @@ echo "${info} Checking your configuration..." | awk '{ print strftime("[%H:%M:%S
 
 for var in ${AJENTI_PASS}
 	do
-		if echo "${var}" | grep -P '(?=^.{8,255}$)(?=^[^\s]*$)(?=.*\d)(?=.*[A-Z])(?=.*[a-z])' ${log}; then
+		if echo "${var}" | grep -P '(?=^.{8,255}$)(?=^[^\s]*$)(?=.*\d)(?=.*[A-Z])(?=.*[a-z])' >>"$main_log" 2>>"$err_log"; then
 			if [[ "$(awk -F': ' '{ print $2}' <<<"$(cracklib-check <<<"${var}")")" == "OK" ]]; then
-				echo ${log}
+				echo >>"$main_log" 2>>"$err_log"
 			else
 				echo "${error} One of your passwords was rejected!" | awk '{ print strftime("[%H:%M:%S] |"), $0 }'
 				echo "${info} Your password must be a minimum of 8 characters and must include at least 1 number, 1 uppercase and 1 lowercase letter." | awk '{ print strftime("[%H:%M:%S] |"), $0 }'

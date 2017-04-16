@@ -27,12 +27,12 @@
 ssh() {
 
 echo "${info} Downloading OpenSSH..." | awk '{ print strftime("[%H:%M:%S] |"), $0 }'
-wget http://ftp.hostserver.de/pub/OpenBSD/OpenSSH/portable/openssh-${OPENSSH_VERSION}.tar.gz ${log}
-tar -xzf openssh-${OPENSSH_VERSION}.tar.gz ${log}
+wget http://ftp.hostserver.de/pub/OpenBSD/OpenSSH/portable/openssh-${OPENSSH_VERSION}.tar.gz >>"$main_log" 2>>"$err_log"
+tar -xzf openssh-${OPENSSH_VERSION}.tar.gz >>"$main_log" 2>>"$err_log"
 cd openssh-${OPENSSH_VERSION}
 echo "${info} Compiling OpenSSH..." | awk '{ print strftime("[%H:%M:%S] |"), $0 }'
-./configure --prefix=/usr --with-pam --with-zlib --with-ssl-engine --with-ssl-dir=/etc/ssl --sysconfdir=/etc/ssh ${log}
-make ${makelog} && mv /etc/ssh{,.bak} && make install ${makelog}
+./configure --prefix=/usr --with-pam --with-zlib --with-ssl-engine --with-ssl-dir=/etc/ssl --sysconfdir=/etc/ssh >>"$main_log" 2>>"$err_log"
+make >>"$make_log" && mv /etc/ssh{,.bak} && make install >>"$make_log"
 
 sed -i 's/^#Port 22/Port 22/g' /etc/ssh/sshd_config
 sed -i 's/^#AddressFamily any/AddressFamily inet/g' /etc/ssh/sshd_config

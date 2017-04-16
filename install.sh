@@ -26,7 +26,9 @@
 #################################
 
 #Enable debug:
-set -x
+#if [ ${DEBUG_IS_SET} == '1' ]; then
+#	set -x
+#fi
 
 source script/security.sh
 source script/functions.sh
@@ -67,10 +69,13 @@ source script/firewall.sh
 
 #source script/finischer.sh
 
+# Addons
  source addons/ajenti.sh
  source addons/teamspeak3.sh
  source addons/minecraft.sh
  source addons/vsftpdinstall.sh
+ source addons/prestashopinstall.sh
+ source addons/piwik.sh
 
 
 #source addons/openvpn.sh
@@ -115,15 +120,22 @@ if [ ${USE_PMA} == '1' ]; then
 phpmyadmin
 fi
 publickey
-logininformation
 
+
+# Addon functions
 ajenti
 teamspeak3
 minecraft
 vsftpd
+
+# untestet
+#prestashopinstall
+#piwikinstall
 #openvpn
 #disablelogin
 #addnewsite
 #finischer
 
+
+logininformation
 instructions
