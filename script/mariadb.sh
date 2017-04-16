@@ -28,7 +28,7 @@
 mariadb() {
 
 echo "${info} Installing MariaDB..." | awk '{ print strftime("[%H:%M:%S] |"), $0 }'
-apt-get -qq update && apt-get -q -y --force-yes install mariadb-server >>"$main_log" 2>>"$err_log"
+apt-get -q -y --force-yes install mariadb-server >>"$main_log" 2>>"$err_log"
 
 mysqladmin -u root password ${MYSQL_ROOT_PASS}
 

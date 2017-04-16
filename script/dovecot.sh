@@ -35,7 +35,7 @@ update-ca-certificates >>"$main_log" 2>>"$err_log"
 
 touch /etc/apt/sources.list.d/jessie-backports.list
 echo "deb http://ftp.debian.org/debian jessie-backports main" >> /etc/apt/sources.list.d/jessie-backports.list
-apt-get update >>"$main_log" 2>>"$err_log"
+apt-get update -qq >>"$main_log" 2>>"$err_log"
 apt-get -y -t jessie-backports install dovecot-common dovecot-core dovecot-imapd dovecot-lmtpd dovecot-managesieved dovecot-sieve dovecot-mysql >>"$main_log" 2>>"$err_log"
 
 groupadd -g 5000 vmail >>"$main_log" 2>>"$err_log"

@@ -25,9 +25,6 @@
 #################################
 
 firewall() {
-# Arno-Iptables-Firewall
-
-# Get the latest version
 echo "${info} Installing Arno-Iptables-Firewall..." | awk '{ print strftime("[%H:%M:%S] |"), $0 }'
 git clone https://github.com/arno-iptables-firewall/aif.git ~/sources/aif -q
 
@@ -100,17 +97,17 @@ BLACKLIST_DIR="/root/sources/blacklist"
 BLACKLIST="/etc/arno-iptables-firewall/blocked-hosts"
 BLACKLIST_TEMP="\$BLACKLIST_DIR/blacklist"
 LIST=(
-"http://www.projecthoneypot.org/list_of_ips.php?t=d&rss=1"
-"http://check.torproject.org/cgi-bin/TorBulkExitList.py?ip=1.1.1.1"
-"http://www.maxmind.com/en/anonymous_proxies"
+"https://www.projecthoneypot.org/list_of_ips.php?t=d&rss=1"
+"https://check.torproject.org/cgi-bin/TorBulkExitList.py?ip=1.1.1.1"
+"https://www.maxmind.com/en/high-risk-ip-sample-list"
 "http://danger.rulez.sk/projects/bruteforceblocker/blist.php"
-"http://rules.emergingthreats.net/blockrules/compromised-ips.txt"
-"http://www.spamhaus.org/drop/drop.lasso"
+"https://rules.emergingthreats.net/blockrules/compromised-ips.txt"
+"https://www.spamhaus.org/drop/drop.lasso"
 "http://cinsscore.com/list/ci-badguys.txt"
-"http://www.openbl.org/lists/base.txt"
-"http://www.autoshun.org/files/shunlist.csv"
-"http://lists.blocklist.de/lists/all.txt"
-"http://blocklist.greensnow.co/greensnow.txt"
+"https://www.openbl.org/lists/base.txt"
+"https://www.autoshun.org/files/shunlist.csv"
+"https://lists.blocklist.de/lists/all.txt"
+"https://blocklist.greensnow.co/greensnow.txt"
 "https://www.stopforumspam.com/downloads/toxic_ip_cidr.txt"
 )
 for i in "\${LIST[@]}"
@@ -123,18 +120,12 @@ systemctl force-reload arno-iptables-firewall.service
 END
 chmod +x /etc/cron.daily/blocked-hosts
 
-# Restart all services
-# ToDo
-# Fix choice
-
-	if [ ${USE_PHP7} == '1' ]; then
-		systemctl -q restart {nginx,php7.0-fpm}
-	fi
+if [ ${USE_PHP7} == '1' ]; then
+	systemctl -q restart {nginx,php7.0-fpm}
+fi
 	
-	if [ ${USE_PHP5} == '1' ]; then
-		systemctl -q restart {nginx,php5-fpm}
-	fi
-
-
+if [ ${USE_PHP5} == '1' ]; then
+	systemctl -q restart {nginx,php5-fpm}
+fi
 }
 source ~/configs/userconfig.cfg

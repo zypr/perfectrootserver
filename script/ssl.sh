@@ -30,7 +30,7 @@ ssl() {
 # OpenSSL
 
 echo "${info} Installing OpenSSL libs & headers..." | awk '{ print strftime("[%H:%M:%S] |"), $0 }'
-apt-get -qq update && apt-get -q -y --force-yes install libssl-dev >>"$main_log" 2>>"$err_log"
+apt-get -q -y --force-yes install libssl-dev >>"$main_log" 2>>"$err_log"
 cd ~/sources
 wget http://www.openssl.org/source/openssl-${OPENSSL_VERSION}.tar.gz >>"$main_log" 2>>"$err_log"
 tar -xzf openssl-${OPENSSL_VERSION}.tar.gz >>"$main_log" 2>>"$err_log"

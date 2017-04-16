@@ -35,17 +35,8 @@ unzip v${NPS_VERSION}-beta.zip >>"$main_log" 2>>"$err_log"
 
 echo "${info} Downloading Nginx Pagespeed psol..." | awk '{ print strftime("[%H:%M:%S] |"), $0 }'
 cd ngx_pagespeed-${NPS_VERSION}-beta/ >>"$main_log" 2>>"$err_log"
-
-#Todo: fix choice
-
-	#x64
-	wget https://dl.google.com/dl/page-speed/psol/${NPS_VERSION}-x64.tar.gz >>"$main_log" 2>>"$err_log"
-	tar -xzf ${NPS_VERSION}-x64.tar.gz >>"$main_log" 2>>"$err_log"
-
-	#x32
-	#wget https://dl.google.com/dl/page-speed/psol/${NPS_VERSION}-ia32.tar.gz >>"$main_log" 2>>"$err_log"
-	#tar -xzf ${NPS_VERSION}-ia32.tar.gz >>"$main_log" 2>>"$err_log"
-
+wget https://dl.google.com/dl/page-speed/psol/${NPS_VERSION}-x64.tar.gz >>"$main_log" 2>>"$err_log"
+tar -xzf ${NPS_VERSION}-x64.tar.gz >>"$main_log" 2>>"$err_log"
 
 cd ~/sources
 echo "${info} Downloading Nginx..." | awk '{ print strftime("[%H:%M:%S] |"), $0 }'
@@ -206,7 +197,6 @@ http {
 		include			/etc/nginx/sites-enabled/*.conf;
 }
 END
-
 
 # SSL certificate
 service nginx stop
@@ -393,7 +383,7 @@ if [ ${ALLOWHTTPCONNECTIONS} == '1' ]; then
 	# Delete first N lines we dont need
 	sed -i "1,15d" /etc/nginx/sites-available/${MYDOMAIN}.conf
 
-	# Add new lines at the
+	# Add new lines
 	sed -i "1s/^/server {\n/" /etc/nginx/sites-available/${MYDOMAIN}.conf
 	sed -i "2s/^/\t\t\t listen\t\t\t\t 80 default_server;\n/" /etc/nginx/sites-available/${MYDOMAIN}.conf
 	sed -i "3s/^/\t\t\t listen\t\t\t\t 443 ssl http2 default deferred;\n/" /etc/nginx/sites-available/${MYDOMAIN}.conf
@@ -409,7 +399,6 @@ if [ ${HIGH_SECURITY} == '1' ]; then
 	sed -i "33i ssl_ciphers AES256+EECDH:AES256+EDH:!aNULL;" /etc/nginx/sites-available/${MYDOMAIN}.conf
 fi
 
-
 if [ ${USE_PHP7} == '1' ] && [ ${USE_PHP5} == '0' ]; then
 	sed -i 's/fastcgi_pass unix:\/var\/run\/php5-fpm.sock\;/fastcgi_pass unix:\/var\/run\/php\/php7.0-fpm.sock\;/g' /etc/nginx/sites-available/${MYDOMAIN}.conf
 fi
@@ -423,16 +412,7 @@ if [ ${CLOUDFLARE} == '0' ] && [ ${USE_VALID_SSL} == '1' ]; then
 fi
 
 fuser -k 80/tcp >>"$main_log" 2>>"$err_log"
-service nginx start
-# Restart Nginx
-systemctl -q start nginx.service
-
-cat > /etc/nginx/html/${MYDOMAIN}/phpinfo.php <<END
-<?php
-phpinfo();
-?>
-END
-
+systemctl -q restart nginx.service
 
 cat > /etc/nginx/html/${MYDOMAIN}/index.html <<END
 <!DOCTYPE html>
@@ -456,7 +436,6 @@ END
 
 #Make folder writeable
 chown -R www-data:www-data /etc/nginx/html/${MYDOMAIN}
-
 }
 source ~/configs/userconfig.cfg
 source ~/configs/versions.cfg
