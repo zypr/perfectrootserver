@@ -42,9 +42,9 @@ echo "${info} Patching sourcefiles..." | awk '{ print strftime("[%H:%M:%S] |"), 
 for i in ../bash${BASH}-[0-9][0-9][0-9]; do patch -p0 -s < $i; done
 
 echo "${info} Compiling GNU bash..." | awk '{ print strftime("[%H:%M:%S] |"), $0 }'
-./configure --prefix=/usr/local >>"$make_log"
-make >>"$make_log"
-make install >>"$make_log"
+./configure --prefix=/usr/local >>"$make_log" 2>>"$make_err_log"
+make >>"$make_log" 2>>"$make_err_log"
+make install >>"$make_log" 2>>"$make_err_log"
 cp -f /usr/local/bin/bash /bin/bash
 sleep 2
 

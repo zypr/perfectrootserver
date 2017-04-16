@@ -95,7 +95,7 @@ echo "${info} Compiling Nginx..." | awk '{ print strftime("[%H:%M:%S] |"), $0 }'
 --with-pcre \
 --with-cc-opt='-O2 -g -pipe -Wall -Wformat -Werror=format-security -Wp,-D_FORTIFY_SOURCE=2 -fexceptions -fstack-protector --param=ssp-buffer-size=4 -m64 -mtune=generic' \
 --with-openssl=$HOME/sources/openssl-${OPENSSL_VERSION} \
---add-module=$HOME/sources/ngx_pagespeed-${NPS_VERSION}-beta >>"$make_log"
+--add-module=$HOME/sources/ngx_pagespeed-${NPS_VERSION}-beta >>"$make_log" 2>>"$make_err_log"
 
 #habe "--with-debug \" erstmal raus genommen. Gibt Probleme
 #
@@ -108,7 +108,7 @@ echo "${info} Compiling Nginx..." | awk '{ print strftime("[%H:%M:%S] |"), $0 }'
 #
 # ToDo: Autimatic installer maybe....
 # make the package
-make >>"$make_log"
+make >>"$make_log" 2>>"$make_err_log"
 # Create a .deb package
 checkinstall --install=no -y >>"$main_log" 2>>"$err_log"
 # Install the package
