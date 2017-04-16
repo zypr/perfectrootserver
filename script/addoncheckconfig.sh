@@ -78,6 +78,11 @@ for var in ${AJENTI_PASS}
 	if [ "$stopit" == "stop" ]; then
 		exit 1
 	fi
+	
+	if [ ${USE_AJENTI} == '1' ] && [ ${USE_VALID_SSL} == '0' ]; then
+	echo "${error} Use Ajenti only with a Let's Encrypt certificate" | awk '{ print strftime("[%H:%M:%S] |"), $0 }'
+	exit 1
+	fi	
 		
 
 if [ ${USE_VSFTPD} == '1' ]; then
@@ -94,11 +99,6 @@ if [ ${USE_VSFTPD} == '1' ]; then
 		sed -i '/^FTP_USERNAME=/d' /root/configs/addonconfig.cfg
 		sleep 1
 		sed -i "/^USE_VSFTPD=*/a FTP_USERNAME=\"$FTP_USERNAME\" " /root/configs/addonconfig.cfg
-fi
-
-if [ ${USE_AJENTI} == '1' ] && [ ${USE_VALID_SSL} == '0' ]; then
-	echo "${error} Use Ajenti only with a Let's Encrypt certificate" | awk '{ print strftime("[%H:%M:%S] |"), $0 }'
-	exit 1
 fi
 
 echo "${ok} Addonconfig is correct." | awk '{ print strftime("[%H:%M:%S] |"), $0 }'

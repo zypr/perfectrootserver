@@ -25,31 +25,25 @@
 ##  DO NOT MODIFY, JUST DON'T! ##
 #################################
 
-# Some nice colors
-red() { echo "$(tput setaf 1)$*$(tput setaf 9)"; }
-green() { echo "$(tput setaf 2)$*$(tput setaf 9)"; }
-yellow() { echo "$(tput setaf 3)$*$(tput setaf 9)"; }
-magenta() { echo "$(tput setaf 5)$*$(tput setaf 9)"; }
-cyan() { echo "$(tput setaf 6)$*$(tput setaf 9)"; }
-textb() { echo $(tput bold)${1}$(tput sgr0); }
-greenb() { echo $(tput bold)$(tput setaf 2)${1}$(tput sgr0); }
-redb() { echo $(tput bold)$(tput setaf 1)${1}$(tput sgr0); }
-yellowb() { echo $(tput bold)$(tput setaf 3)${1}$(tput sgr0); }
-pinkb() { echo $(tput bold)$(tput setaf 5)${1}$(tput sgr0); }
+finischer() {
+PATH_TO_VMA_SALTS="/root/vma.txt"
+wget "http://${MYDOMAIN}/vma/auth/setup" -O vma.txt 
 
-# Some nice variables
-info="$(textb [INFO] -)"
-warn="$(yellowb [WARN] -)"
-error="$(redb [ERROR] -)"
-fyi="$(pinkb [INFO] -)"
-ok="$(greenb [OKAY] -)"
+VMA_SECURITY_SALT=$(grep -Pom 1 "(?<=^securitysalt                       = ).*$" $PATH_TO_VMA_SALTS)
+VMA_REMEMBERME_SALT=$(grep -Pom 1 "(?<=^resources.auth.oss.rememberme.salt = ).*$" $PATH_TO_VMA_SALTS)
+MAILBOX_PASSWORD_SALT=$(grep -Pom 1 "(?<=^defaults.mailbox.password_salt     = ).*$" $PATH_TO_VMA_SALTS)
 
-IPADR=$(ip route get 8.8.8.8 | head -1 | cut -d' ' -f8)
-INTERFACE=$(ip route get 8.8.8.8 | head -1 | cut -d' ' -f5)
-FQDNIP=$(source ~/configs/userconfig.cfg; dig @8.8.8.8 +short ${MYDOMAIN})
-WWWIP=$(source ~/configs/userconfig.cfg; dig @8.8.8.8 +short www.${MYDOMAIN})
-CHECKRDNS=$(dig @8.8.8.8 -x ${IPADR} +short)
+echo "VMA_SECURITY_SALT"
+echo $VMA_SECURITY_SALT
+echo "-----------------------"
 
-main_log="/root/logs/main.log"
-err_log="/root/logs/error.log"
-make_log="/root/logs/make.log"
+echo "VMA_REMEMBERME_SALT"
+echo $VMA_REMEMBERME_SALT
+echo "-----------------------"
+
+echo "MAILBOX_PASSWORD_SALT"
+echo $MAILBOX_PASSWORD_SALT
+echo "-----------------------"
+}
+source ~/configs/userconfig.cfg
+source ~/configs/addonconfig.cfg

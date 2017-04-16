@@ -36,7 +36,6 @@ use strict;
 # Siehe auch Anmerkung in master.cf im Listener für Reinjection
 $max_servers = 5;
 
-# Amavis wird mitgeteilt, wie auf die MySQL-Datenbank zugegriffen werden kann.
 @lookup_sql_dsn = (
     ['DBI:mysql:database=vimbadmin;host=127.0.0.1;port=3306',
      'vimbadmin',
@@ -68,7 +67,6 @@ $policy_bank{'SUBMISSION'} = {
         warnbadhsender => 1,
 };
 
-# "mail.domain.tld" bitte anpassen
 $myhostname = "mail.domain.tld";
 
 # Wer wird über Viren, Spam und "bad header mails" informiert?
@@ -122,7 +120,5 @@ amavisd-new genrsa /var/lib/amavis/db/dkim_${MYDOMAIN}.key 2048 >>"$main_log" 2>
 amavisd-new showkey ${MYDOMAIN} >>"$main_log" 2>>"$err_log"
 
 adduser clamav amavis >>"$main_log" 2>>"$err_log"
-# ACHTUNG, Ab 0.99.2 startet ClamAV mit diesem Parameter nicht mehr, da er entfernt wurde. Vielen Dank für den Hinweis!
-#sed -i 's/AllowSupplementaryGroups false/AllowSupplementaryGroups true/g' /etc/clamav/clamd.conf
 }
 source ~/configs/userconfig.cfg

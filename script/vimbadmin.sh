@@ -65,7 +65,6 @@ sed -i "s/server.imap.port  = \"993\"/server.imap.port  = \"143\"/g" /srv/vimbad
 sed -i "s/server.imap.crypt = \"SSL\"/server.imap.crypt = \"TLS\"/g" /srv/vimbadmin/application/configs/application.ini
 sed -i "s/server.webmail.host  = \"https:\/\/webmail.%d\"/server.webmail.host  = \"https:\/\/mail.%d\/webmail\"/g" /srv/vimbadmin/application/configs/application.ini
 sed -i "s/example.com/${MYDOMAIN}/g" /srv/vimbadmin/application/configs/application.ini
-#sed -i "s/SEARCH/REPLACE/g" /srv/vimbadmin/application/configs/application.ini
 mkdir -p /srv/archives
 cp /srv/vimbadmin/public/.htaccess.dist /srv/vimbadmin/public/.htaccess
 

@@ -28,18 +28,20 @@ phpmyadmin() {
 
 # phpMyAdmin
 if [ $USE_PMA == '1' ]; then
-	echo "${info} Installing phpMyAdmin..." | awk '{ print strftime("[%H:%M:%S] |"), $0 }'
-	htpasswd -b /etc/nginx/htpasswd/.htpasswd ${PMA_HTTPAUTH_USER} ${PMA_HTTPAUTH_PASS} >>"$main_log" 2>>"$err_log"
-	cd /usr/local
-	git clone -b STABLE https://github.com/phpmyadmin/phpmyadmin.git -q
-	mkdir phpmyadmin/save
-	mkdir phpmyadmin/upload
-	chmod 0700 phpmyadmin/save
-	chmod g-s phpmyadmin/save
-	chmod 0700 phpmyadmin/upload
-	chmod g-s phpmyadmin/upload
-	mysql -u root -p${MYSQL_ROOT_PASS} mysql < phpmyadmin/sql/create_tables.sql >>"$main_log" 2>>"$err_log"
-	mysql -u root -p${MYSQL_ROOT_PASS} -e "GRANT USAGE ON mysql.* TO '${MYSQL_PMADB_USER}'@'${MYSQL_HOSTNAME}' IDENTIFIED BY '${MYSQL_PMADB_PASS}'; GRANT SELECT ( Host, User, Select_priv, Insert_priv, Update_priv, Delete_priv, Create_priv, Drop_priv, Reload_priv, Shutdown_priv, Process_priv, File_priv, Grant_priv, References_priv, Index_priv, Alter_priv, Show_db_priv, Super_priv, Create_tmp_table_priv, Lock_tables_priv, Execute_priv, Repl_slave_priv, Repl_client_priv ) ON mysql.user TO '${MYSQL_PMADB_USER}'@'${MYSQL_HOSTNAME}'; GRANT SELECT ON mysql.db TO '${MYSQL_PMADB_USER}'@'${MYSQL_HOSTNAME}'; GRANT SELECT (Host, Db, User, Table_name, Table_priv, Column_priv) ON mysql.tables_priv TO '${MYSQL_PMADB_USER}'@'${MYSQL_HOSTNAME}'; GRANT SELECT, INSERT, DELETE, UPDATE, ALTER ON ${MYSQL_PMADB_NAME}.* TO '${MYSQL_PMADB_USER}'@'${MYSQL_HOSTNAME}'; FLUSH PRIVILEGES;" >>"$main_log" 2>>"$err_log"
+
+echo "${info} Installing phpMyAdmin..." | awk '{ print strftime("[%H:%M:%S] |"), $0 }'
+htpasswd -b /etc/nginx/htpasswd/.htpasswd ${PMA_HTTPAUTH_USER} ${PMA_HTTPAUTH_PASS} >>"$main_log" 2>>"$err_log"
+cd /usr/local
+git clone -b STABLE https://github.com/phpmyadmin/phpmyadmin.git -q
+mkdir phpmyadmin/save
+mkdir phpmyadmin/upload
+chmod 0700 phpmyadmin/save
+chmod g-s phpmyadmin/save
+chmod 0700 phpmyadmin/upload
+chmod g-s phpmyadmin/upload
+mysql -u root -p${MYSQL_ROOT_PASS} mysql < phpmyadmin/sql/create_tables.sql >>"$main_log" 2>>"$err_log"
+mysql -u root -p${MYSQL_ROOT_PASS} -e "GRANT USAGE ON mysql.* TO '${MYSQL_PMADB_USER}'@'${MYSQL_HOSTNAME}' IDENTIFIED BY '${MYSQL_PMADB_PASS}'; GRANT SELECT ( Host, User, Select_priv, Insert_priv, Update_priv, Delete_priv, Create_priv, Drop_priv, Reload_priv, Shutdown_priv, Process_priv, File_priv, Grant_priv, References_priv, Index_priv, Alter_priv, Show_db_priv, Super_priv, Create_tmp_table_priv, Lock_tables_priv, Execute_priv, Repl_slave_priv, Repl_client_priv ) ON mysql.user TO '${MYSQL_PMADB_USER}'@'${MYSQL_HOSTNAME}'; GRANT SELECT ON mysql.db TO '${MYSQL_PMADB_USER}'@'${MYSQL_HOSTNAME}'; GRANT SELECT (Host, Db, User, Table_name, Table_priv, Column_priv) ON mysql.tables_priv TO '${MYSQL_PMADB_USER}'@'${MYSQL_HOSTNAME}'; GRANT SELECT, INSERT, DELETE, UPDATE, ALTER ON ${MYSQL_PMADB_NAME}.* TO '${MYSQL_PMADB_USER}'@'${MYSQL_HOSTNAME}'; FLUSH PRIVILEGES;" >>"$main_log" 2>>"$err_log"
+
 	cat > phpmyadmin/config.inc.php <<END
 <?php
 \$cfg['blowfish_secret'] = '$PMA_BFSECURE_PASS';
@@ -106,20 +108,21 @@ if [ $USE_PMA == '1' ]; then
 \$cfg['Servers'][\$i]['hide_db'] = 'information_schema';
 ?>
 END
-	if [ ${PMA_RESTRICT} == '1' ]; then
-		sed -i "64s/.*/\$cfg['Servers'][\$i]['AllowDeny']['order'] = 'deny,allow';\n&/" /usr/local/phpmyadmin/config.inc.php
-		sed -i "65s/.*/\$cfg['Servers'][\$i]['AllowDeny']['rules'] = array(\n&/" /usr/local/phpmyadmin/config.inc.php
-		sed -i "66s/.*/		'deny % from all',\n&/" /usr/local/phpmyadmin/config.inc.php
-		sed -i "67s/.*/		'allow % from localhost',\n&/" /usr/local/phpmyadmin/config.inc.php
-		sed -i "68s/.*/		'allow % from 127.0.0.1',\n&/" /usr/local/phpmyadmin/config.inc.php
-		sed -i "69s/.*/		'allow % from ::1',\n&/" /usr/local/phpmyadmin/config.inc.php
-		sed -i "70s/.*/		'allow root from localhost',\n&/" /usr/local/phpmyadmin/config.inc.php
-		sed -i "71s/.*/		'allow root from 127.0.0.1',\n&/" /usr/local/phpmyadmin/config.inc.php
-		sed -i "72s/.*/		'allow root from ::1',\n&/" /usr/local/phpmyadmin/config.inc.php
-		sed -i "73s/.*/);\n&/" /usr/local/phpmyadmin/config.inc.php
-		sed -i "74s/.*/?>/" /usr/local/phpmyadmin/config.inc.php
 
-		cat > /etc/nginx/sites-custom/phpmyadmin.conf <<END
+if [ ${PMA_RESTRICT} == '1' ]; then
+	sed -i "64s/.*/\$cfg['Servers'][\$i]['AllowDeny']['order'] = 'deny,allow';\n&/" /usr/local/phpmyadmin/config.inc.php
+	sed -i "65s/.*/\$cfg['Servers'][\$i]['AllowDeny']['rules'] = array(\n&/" /usr/local/phpmyadmin/config.inc.php
+	sed -i "66s/.*/		'deny % from all',\n&/" /usr/local/phpmyadmin/config.inc.php
+	sed -i "67s/.*/		'allow % from localhost',\n&/" /usr/local/phpmyadmin/config.inc.php
+	sed -i "68s/.*/		'allow % from 127.0.0.1',\n&/" /usr/local/phpmyadmin/config.inc.php
+	sed -i "69s/.*/		'allow % from ::1',\n&/" /usr/local/phpmyadmin/config.inc.php
+	sed -i "70s/.*/		'allow root from localhost',\n&/" /usr/local/phpmyadmin/config.inc.php
+	sed -i "71s/.*/		'allow root from 127.0.0.1',\n&/" /usr/local/phpmyadmin/config.inc.php
+	sed -i "72s/.*/		'allow root from ::1',\n&/" /usr/local/phpmyadmin/config.inc.php
+	sed -i "73s/.*/);\n&/" /usr/local/phpmyadmin/config.inc.php
+	sed -i "74s/.*/?>/" /usr/local/phpmyadmin/config.inc.php
+
+cat > /etc/nginx/sites-custom/phpmyadmin.conf <<END
 location /pma {
 	allow 127.0.0.1;
 	deny all;
@@ -147,7 +150,7 @@ location /pma {
 END
 
 	else
-		cat > /etc/nginx/sites-custom/phpmyadmin.conf <<END
+cat > /etc/nginx/sites-custom/phpmyadmin.conf <<END
 location /pma {
     auth_basic "Restricted";
     alias /usr/local/phpmyadmin;
@@ -171,20 +174,14 @@ location /pma {
     }
 }
 END
-	fi
+fi
 	
-	if [ ${USE_PHP7} == '1' ] && [ ${USE_PHP5} == '0' ]; then
-
+if [ ${USE_PHP7} == '1' ] && [ ${USE_PHP5} == '0' ]; then
 	sed -i 's/fastcgi_pass unix:\/var\/run\/php5-fpm.sock\;/fastcgi_pass unix:\/var\/run\/php\/php7.0-fpm.sock\;/g' /etc/nginx/sites-custom/phpmyadmin.conf
-	
-	#fastcgi_pass unix:\/var\/run\/php5-fpm.sock;
-	
-	#fastcgi_pass unix:\/var\/run\/php\/php7.0-fpm.sock;
-	fi
+fi
 
-	chown -R www-data:www-data phpmyadmin/
-	systemctl -q reload nginx.service
-
+chown -R www-data:www-data phpmyadmin/
+systemctl -q reload nginx.service
 fi
 }
 source ~/configs/userconfig.cfg

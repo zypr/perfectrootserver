@@ -390,25 +390,16 @@ server {
 END
 
 if [ ${ALLOWHTTPCONNECTIONS} == '1' ]; then
-# Delte first N lines we dont need
-sed -i "1,15d" /etc/nginx/sites-available/${MYDOMAIN}.conf
+	# Delete first N lines we dont need
+	sed -i "1,15d" /etc/nginx/sites-available/${MYDOMAIN}.conf
 
-# Add new lines at the
-sed -i "1s/^/server {\n/" /etc/nginx/sites-available/${MYDOMAIN}.conf
-sed -i "2s/^/\t\t\t listen\t\t\t\t 80 default_server;\n/" /etc/nginx/sites-available/${MYDOMAIN}.conf
-sed -i "3s/^/\t\t\t listen\t\t\t\t 443 ssl http2 default deferred;\n/" /etc/nginx/sites-available/${MYDOMAIN}.conf
-sed -i "4s/^/\t\t\t server_name\t\t\t\t $IPADR $MYDOMAIN www.$MYDOMAIN mail.$MYDOMAIN;\n/" /etc/nginx/sites-available/${MYDOMAIN}.conf
-sed -i "5s/^/\t\t\t root\t\t\t\t \/etc\/nginx\/html\/$MYDOMAIN;\n/" /etc/nginx/sites-available/${MYDOMAIN}.conf
-sed -i "6s/^/\t\t\t index\t\t\t\t index.php index.html index.htm;/n" /etc/nginx/sites-available/${MYDOMAIN}.conf
-
-
-#server {
-#			listen 				80 default_server;
-#			listen 				443 ssl http2 default deferred;
-#			server_name 		${IPADR} ${MYDOMAIN} www.${MYDOMAIN} mail.${MYDOMAIN};
-#			root 				/etc/nginx/html/${MYDOMAIN};
-#			index 				index.php index.html index.htm;
-
+	# Add new lines at the
+	sed -i "1s/^/server {\n/" /etc/nginx/sites-available/${MYDOMAIN}.conf
+	sed -i "2s/^/\t\t\t listen\t\t\t\t 80 default_server;\n/" /etc/nginx/sites-available/${MYDOMAIN}.conf
+	sed -i "3s/^/\t\t\t listen\t\t\t\t 443 ssl http2 default deferred;\n/" /etc/nginx/sites-available/${MYDOMAIN}.conf
+	sed -i "4s/^/\t\t\t server_name\t\t\t\t $IPADR $MYDOMAIN www.$MYDOMAIN mail.$MYDOMAIN;\n/" /etc/nginx/sites-available/${MYDOMAIN}.conf
+	sed -i "5s/^/\t\t\t root\t\t\t\t \/etc\/nginx\/html\/$MYDOMAIN;\n/" /etc/nginx/sites-available/${MYDOMAIN}.conf
+	sed -i "6s/^/\t\t\t index\t\t\t\t index.php index.html index.htm;/n" /etc/nginx/sites-available/${MYDOMAIN}.conf
 fi
 
 if [ ${HIGH_SECURITY} == '1' ]; then
@@ -420,12 +411,7 @@ fi
 
 
 if [ ${USE_PHP7} == '1' ] && [ ${USE_PHP5} == '0' ]; then
-
 	sed -i 's/fastcgi_pass unix:\/var\/run\/php5-fpm.sock\;/fastcgi_pass unix:\/var\/run\/php\/php7.0-fpm.sock\;/g' /etc/nginx/sites-available/${MYDOMAIN}.conf
-
-	#fastcgi_pass unix:\/var\/run\/php5-fpm.sock;
-
-	#fastcgi_pass unix:\/var\/run\/php\/php7.0-fpm.sock;
 fi
 
 ln -s /etc/nginx/sites-available/${MYDOMAIN}.conf /etc/nginx/sites-enabled/${MYDOMAIN}.conf
@@ -449,9 +435,10 @@ END
 
 
 cat > /etc/nginx/html/${MYDOMAIN}/index.html <<END
+<!DOCTYPE html>
 <html>
 	<head>
-		<title></title>
+		<title>${MYDOMAIN}</title>
 	</head>
 	<body>
 		<p style="text-align: center;">

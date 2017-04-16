@@ -25,31 +25,31 @@
 ##  DO NOT MODIFY, JUST DON'T! ##
 #################################
 
-# Some nice colors
-red() { echo "$(tput setaf 1)$*$(tput setaf 9)"; }
-green() { echo "$(tput setaf 2)$*$(tput setaf 9)"; }
-yellow() { echo "$(tput setaf 3)$*$(tput setaf 9)"; }
-magenta() { echo "$(tput setaf 5)$*$(tput setaf 9)"; }
-cyan() { echo "$(tput setaf 6)$*$(tput setaf 9)"; }
-textb() { echo $(tput bold)${1}$(tput sgr0); }
-greenb() { echo $(tput bold)$(tput setaf 2)${1}$(tput sgr0); }
-redb() { echo $(tput bold)$(tput setaf 1)${1}$(tput sgr0); }
-yellowb() { echo $(tput bold)$(tput setaf 3)${1}$(tput sgr0); }
-pinkb() { echo $(tput bold)$(tput setaf 5)${1}$(tput sgr0); }
+policydweight() {
 
-# Some nice variables
-info="$(textb [INFO] -)"
-warn="$(yellowb [WARN] -)"
-error="$(redb [ERROR] -)"
-fyi="$(pinkb [INFO] -)"
-ok="$(greenb [OKAY] -)"
+# http://kefk.org/free_software/postfix#policyd-weight
+# http://www.holl.co.at/home/howto-email/#a2.3
 
-IPADR=$(ip route get 8.8.8.8 | head -1 | cut -d' ' -f8)
-INTERFACE=$(ip route get 8.8.8.8 | head -1 | cut -d' ' -f5)
-FQDNIP=$(source ~/configs/userconfig.cfg; dig @8.8.8.8 +short ${MYDOMAIN})
-WWWIP=$(source ~/configs/userconfig.cfg; dig @8.8.8.8 +short www.${MYDOMAIN})
-CHECKRDNS=$(dig @8.8.8.8 -x ${IPADR} +short)
+mkdir -p /usr/local/bin/policyd-weight/
+mkdir -p ~/sources/policydweight/ >>"$main_log" 2>>"$err_log"
+cd ~/sources/policydweight/
+wget http://www.policyd-weight.org/policyd-weight
 
-main_log="/root/logs/main.log"
-err_log="/root/logs/error.log"
-make_log="/root/logs/make.log"
+mv ~/sources/policydweight/* /usr/local/bin/policyd-weight
+mv policyd-weight /usr/local/bin/policyd-weight
+chmod 0555 /usr/local/bin/policyd-weight
+
+
+# If these settings seem appropriate you don't need a configuration file at all.
+# In case you like to change some settings, create a file (i.e. /usr/local/etc/policyd-weight.conf)
+# and add only the variables that differ from the defaults.
+# For example if you want only DNSBL checks and a different port use:
+cat > /usr/local/etc/policyd-weight.conf <<END
+$MAXDNSBLHITS = 3;
+$MAXDNSBLSCORE = 16;
+
+END
+
+# Activate policydweight in postfix
+echo -e "check_policy_service inet:127.0.0.1:12525" >> /etc/postfix/main.cf
+}

@@ -44,7 +44,6 @@ fi
 	hostnamectl set-hostname mail.${MYDOMAIN}
 	echo "${MYDOMAIN}" > /etc/mailname
 
-
 echo "${info} Setting your hostname & timezone..." | awk '{ print strftime("[%H:%M:%S] |"), $0 }'
 if [[ -f /usr/share/zoneinfo/${TIMEZONE} ]] ; then
 	echo ${TIMEZONE} > /etc/timezone
