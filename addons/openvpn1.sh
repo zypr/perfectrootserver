@@ -38,7 +38,7 @@ fi
 #OpenVPN
 if [ ${USE_OPENVPN} == '1' ]; then
 echo "${info} Installing OPENVPN..." | awk '{ print strftime("[%H:%M:%S] |"), $0 }'
-apt-get -qq update && apt-get -q -y --force-yes install openvpn easy-rsa >>/root/stderror.log 2>&1  >> /root/stdout.log
+apt-get -qq update && apt-get -q -y --force-yes install openvpn easy-rsa >>"$main_log" 2>>"$err_log"
 gunzip -c /usr/share/doc/openvpn/examples/sample-config-files/server.conf.gz > /etc/openvpn/server.conf
 
 sed -i 's|dh dh1024.pem|dh dh2048.pem|' /etc/openvpn/server.conf
@@ -65,10 +65,10 @@ sed -i 's|export KEY_EMAIL="me@myhost.mydomain"|export KEY_EMAIL="'${KEY_EMAIL}'
 sed -i 's|export KEY_OU="MyOrganizationalUnit"|export KEY_OU="Private"|' /etc/openvpn/easy-rsa/vars
 sed -i 's|export KEY_NAME="EasyRSA"|export KEY_NAME="server"|' /etc/openvpn/easy-rsa/vars
 
-openssl dhparam -out /etc/openvpn/dh2048.pem 2048 >>/root/stderror.log 2>&1  >> /root/stdout.log
+openssl dhparam -out /etc/openvpn/dh2048.pem 2048 >>"$main_log" 2>>"$err_log"
 cd /etc/openvpn/easy-rsa
 . ./vars
-./clean-all >>/root/stderror.log 2>&1  >> /root/stdout.log
+./clean-all >>"$main_log" 2>>"$err_log"
 ./build-ca
 ./build-key-server server
 cp /etc/openvpn/easy-rsa/keys/{server.crt,server.key,ca.crt} /etc/openvpn

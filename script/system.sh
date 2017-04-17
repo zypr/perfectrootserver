@@ -60,14 +60,6 @@ fi
 echo "${info} Installing prerequisites..." | awk '{ print strftime("[%H:%M:%S] |"), $0 }'
 echo "${warn} Some of the tasks could take a long time, please be patient!" | awk '{ print strftime("[%H:%M:%S] |"), $0 }'
 
-rm /etc/apt/sources.list
-cat > /etc/apt/sources.list <<END
-# Dotdeb
-deb http://packages.dotdeb.org jessie all
-deb-src http://packages.dotdeb.org jessie all
-
-END
-
 cat > /etc/apt/sources.list.d/security.list <<END
 deb http://security.debian.org/ stable/updates main contrib non-free
 deb http://security.debian.org/ testing/updates main contrib non-free
@@ -96,12 +88,6 @@ END
 cat > /etc/apt/sources.list.d/experimental.list <<END
 deb	http://ftp.debian.org/debian/ experimental main contrib non-free
 deb-src http://ftp.debian.org/debian/ experimental main contrib non-free
-END
-
-cat > /etc/apt/preferences.d/dotdeb <<END
-Package: *
-Pin: origin packages.dotdeb.org
-Pin-Priority: 1001
 END
 
 cat > /etc/apt/preferences.d/security.pref <<END

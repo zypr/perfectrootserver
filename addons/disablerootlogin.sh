@@ -51,14 +51,14 @@ echo "$(date +"[%T]") | ${info} Please wait while the installer is preparing for
 #creating a strong password!
 USERPASS=$(openssl rand -base64 30  |  sed 's|/|_|')
 
-sed 's/#PermitRootLogin prohibit-password/PermitRootLogin no/g' /etc/ssh/sshd_config >>/root/stderror.log 2>&1  >> /root/stdout.log
-sed -i "/LoginGraceTime 30/ s//\n AllowGroups $SSHUSER \n/" /etc/ssh/sshd_config >>/root/stderror.log 2>&1  >> /root/stdout.log
+sed 's/#PermitRootLogin prohibit-password/PermitRootLogin no/g' /etc/ssh/sshd_config >>"$main_log" 2>>"$err_log"
+sed -i "/LoginGraceTime 30/ s//\n AllowGroups $SSHUSER \n/" /etc/ssh/sshd_config >>"$main_log" 2>>"$err_log"
 
-groupadd --system sshusers >>/root/stderror.log 2>&1  >> /root/stdout.log
+groupadd --system sshusers >>"$main_log" 2>>"$err_log"
 
 #  --disabled-password yes or no for ssh login
-adduser $SSHUSER --gecos "" --no-create-home --home /root/ --ingroup sshusers >>/root/stderror.log 2>&1  >> /root/stdout.log
-echo $SSHUSER:$USERPASS | chpasswd >>/root/stderror.log 2>&1  >> /root/stdout.log
+adduser $SSHUSER --gecos "" --no-create-home --home /root/ --ingroup sshusers >>"$main_log" 2>>"$err_log"
+echo $SSHUSER:$USERPASS | chpasswd >>"$main_log" 2>>"$err_log"
 
 #restart
 service ssh restart

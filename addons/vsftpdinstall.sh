@@ -90,17 +90,17 @@ userpass=$(openssl rand -base64 30  |  sed 's|/|_|')
 	FTP_PORT_PASS="26246"
 
 
-apt-get install -y vsftpd >>/root/logs/stderror.log 2>&1 >>/root/logs/stdout.log
+apt-get install -y vsftpd >>"$main_log" 2>>"$err_log"
 
-mkdir -p $SSL_PATH_VSFTPD >>/root/logs/stderror.log 2>&1 >>/root/logs/stdout.log
-openssl req -x509 -nodes -days 365 -newkey rsa:$RSA_KEY_VSFTPD -keyout $SSL_PATH_VSFTPD/vsftpd.pem -out $SSL_PATH_VSFTPD/vsftpd.pem -subj "/C=/ST=/L=/O=/OU=/CN=*.$MYDOMAIN" >>/root/logs/stderror.log 2>&1 >>/root/logs/stdout.log
-
-
-chmod 600 $SSL_PATH_VSFTPD/vsftpd.pem >>/root/logs/stderror.log 2>&1 >>/root/logs/stdout.log
-chmod 700 $SSL_PATH_VSFTPD >>/root/logs/stderror.log 2>&1 >>/root/logs/stdout.log
+mkdir -p $SSL_PATH_VSFTPD >>"$main_log" 2>>"$err_log"
+openssl req -x509 -nodes -days 365 -newkey rsa:$RSA_KEY_VSFTPD -keyout $SSL_PATH_VSFTPD/vsftpd.pem -out $SSL_PATH_VSFTPD/vsftpd.pem -subj "/C=/ST=/L=/O=/OU=/CN=*.$MYDOMAIN" >>"$main_log" 2>>"$err_log"
 
 
-rm -rf /etc/vsftpd.conf >>/root/logs/stderror.log 2>&1 >>/root/logs/stdout.log
+chmod 600 $SSL_PATH_VSFTPD/vsftpd.pem >>"$main_log" 2>>"$err_log"
+chmod 700 $SSL_PATH_VSFTPD >>"$main_log" 2>>"$err_log"
+
+
+rm -rf /etc/vsftpd.conf >>"$main_log" 2>>"$err_log"
 cat > /etc/vsftpd.conf <<END
 # Example config file /etc/vsftpd.conf
 #
@@ -291,25 +291,25 @@ END
 ####################################
 ##   Generate Group and Username   #
 ####################################
-groupadd $FTP_USER_GROUP >>/root/logs/stderror.log 2>&1 >>/root/logs/stdout.log
-adduser $FTP_USERNAME --gecos "" --no-create-home --disabled-password --home $PATH_TO_WEBFOLDER --ingroup $FTP_USER_GROUP >>/root/logs/stderror.log 2>&1 >>/root/logs/stdout.log
-echo $FTP_USERNAME:$userpass | chpasswd >>/root/logs/stderror.log 2>&1 >>/root/logs/stdout.log
+groupadd $FTP_USER_GROUP >>"$main_log" 2>>"$err_log"
+adduser $FTP_USERNAME --gecos "" --no-create-home --disabled-password --home $PATH_TO_WEBFOLDER --ingroup $FTP_USER_GROUP >>"$main_log" 2>>"$err_log"
+echo $FTP_USERNAME:$userpass | chpasswd >>"$main_log" 2>>"$err_log"
 
 
 
 #Change the directory owner and group:
-chown www-data:www-data $PATH_TO_WEBFOLDER >>/root/logs/stderror.log 2>&1 >>/root/logs/stdout.log
+chown www-data:www-data $PATH_TO_WEBFOLDER >>"$main_log" 2>>"$err_log"
 #allow the group to write to the directory with appropriate permissions:
-chmod -R 777 $PATH_TO_WEBFOLDER >>/root/logs/stderror.log 2>&1 >>/root/logs/stdout.log
+chmod -R 777 $PATH_TO_WEBFOLDER >>"$main_log" 2>>"$err_log"
 #Add myself to the www-data group:
-usermod -a -G www-data $FTP_USERNAME >>/root/logs/stderror.log 2>&1 >>/root/logs/stdout.log
+usermod -a -G www-data $FTP_USERNAME >>"$main_log" 2>>"$err_log"
 
 
-#usermod -d $PATH_TO_WEBFOLDER/ $FTP_USERNAME >>/root/logs/stderror.log 2>&1 >>/root/logs/stdout.log
+#usermod -d $PATH_TO_WEBFOLDER/ $FTP_USERNAME >>"$main_log" 2>>"$err_log"
 
 
-#chown -R www-data:$FTP_USER_GROUP $PATH_TO_WEBFOLDER >>/root/logs/stderror.log 2>&1 >>/root/logs/stdout.log
-#chmod -R 775 $PATH_TO_WEBFOLDER >>/root/logs/stderror.log 2>&1 >>/root/logs/stdout.log
+#chown -R www-data:$FTP_USER_GROUP $PATH_TO_WEBFOLDER >>"$main_log" 2>>"$err_log"
+#chmod -R 775 $PATH_TO_WEBFOLDER >>"$main_log" 2>>"$err_log"
 
 
 
@@ -318,10 +318,10 @@ usermod -a -G www-data $FTP_USERNAME >>/root/logs/stderror.log 2>&1 >>/root/logs
 #PATH_TO_WEBFOLDER_ESCAPE="\/etc\/nginx\/html"
 #ToDo:
 #Fix Escape webfolder
-sed -i 's/$FTP_USERNAME:x:1001:5001:,,,:\/etc\/nginx\/html:\/bin\/bash/$FTP_USERNAME:x:1001:5001:,,,:\/etc\/nginx\/html:\/bin\/false/' /etc/passwd >>/root/logs/stderror.log 2>&1 >>/root/logs/stdout.log
+sed -i 's/$FTP_USERNAME:x:1001:5001:,,,:\/etc\/nginx\/html:\/bin\/bash/$FTP_USERNAME:x:1001:5001:,,,:\/etc\/nginx\/html:\/bin\/false/' /etc/passwd >>"$main_log" 2>>"$err_log"
 
 #disable pam_shell
-	rm -rf /etc/pam.d/vsftpd  >>/root/logs/stderror.log 2>&1 >>/root/logs/stdout.log
+	rm -rf /etc/pam.d/vsftpd  >>"$main_log" 2>>"$err_log"
 	cat > /etc/pam.d/vsftpd <<END
 # Standard behaviour for ftpd(8).
 auth	required	pam_listfile.so item=user sense=deny file=/etc/ftpusers onerr=succeed
@@ -336,9 +336,9 @@ END
 
 
 	#restart some services
-	service vsftpd start >>/root/logs/stderror.log 2>&1 >>/root/logs/stdout.log
-	systemctl -q restart vsftpd >>/root/logs/stderror.log 2>&1 >>/root/logs/stdout.log
-	systemctl -q restart sshd >>/root/logs/stderror.log 2>&1 >>/root/logs/stdout.log
+	service vsftpd start >>"$main_log" 2>>"$err_log"
+	systemctl -q restart vsftpd >>"$main_log" 2>>"$err_log"
+	systemctl -q restart sshd >>"$main_log" 2>>"$err_log"
 	# Save the Login to a nice file
 cat > /root/VSFTP_LOGINDATA.txt <<END
 -------------------------------------------------------

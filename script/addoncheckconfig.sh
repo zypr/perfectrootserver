@@ -32,7 +32,7 @@ if [ "$ADDONCONFIG_COMPLETED" != '1' ]; then
       exit 1
 fi
 
-echo "${info} Checking your configuration..." | awk '{ print strftime("[%H:%M:%S] |"), $0 }'
+echo "${info} Checking your add on configuration..." | awk '{ print strftime("[%H:%M:%S] |"), $0 }'
 	for var in MYOTHERDOMAIN ADD_NEW_SITE DISABLE_ROOT_LOGIN SSHUSER USE_TEAMSPEAK USE_MINECRAFT USE_AJENTI AJENTI_PASS USE_VSFTPD FTP_USERNAME 
 	do
 		if [[ -z ${!var} ]]; then

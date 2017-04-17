@@ -53,7 +53,7 @@ declare -A BLOCKED_PORTS='(
     [41144]="1")'
 
 
-if [ ${SSH_PORT} == 'generateport' ]; then
+if [ ${SSH_PORT} == "generateport" ]; then
     #Generate SSH Port
     randomNumber="$(($RANDOM % 1023))"
 

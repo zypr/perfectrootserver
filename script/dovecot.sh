@@ -34,8 +34,6 @@ chmod 600 /etc/ssl/`hostname -f`.key >>"$main_log" 2>>"$err_log"
 cp /etc/ssl/`hostname -f`.cer /usr/local/share/ca-certificates/ >>"$main_log" 2>>"$err_log"
 update-ca-certificates >>"$main_log" 2>>"$err_log"
 
-#touch /etc/apt/sources.list.d/jessie-backports.list
-#echo "deb http://ftp.debian.org/debian jessie-backports main" >> /etc/apt/sources.list.d/jessie-backports.list
 apt-get update -y >>"$main_log" 2>>"$err_log"
 apt-get -f -y -t jessie-backports install dovecot-common dovecot-core dovecot-imapd dovecot-lmtpd dovecot-managesieved dovecot-sieve dovecot-mysql >>"$main_log" 2>>"$err_log"
 

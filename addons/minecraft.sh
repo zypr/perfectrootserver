@@ -40,11 +40,11 @@ fi
 if [ ${USE_MINECRAFT} == '1' ]; then
 echo "${info} Installing Minecraft..." | awk '{ print strftime("[%H:%M:%S] |"), $0 }'
 
-apt-get update -y >>/root/stderror.log 2>&1  >> /root/stdout.log && apt-get -y upgrade >>/root/stderror.log 2>&1  >> /root/stdout.log
-apt-get -y install screen >>/root/stderror.log 2>&1  >> /root/stdout.log
-apt-get -y install openjdk-7-jre-headless >>/root/stderror.log 2>&1  >> /root/stdout.log
+apt-get update -y >>"$main_log" 2>>"$err_log" && apt-get -y upgrade >>"$main_log" 2>>"$err_log"
+apt-get -y install screen >>"$main_log" 2>>"$err_log"
+apt-get -y install openjdk-7-jre-headless >>"$main_log" 2>>"$err_log"
 
-adduser minecraft --gecos "" --no-create-home --disabled-password >>/root/stderror.log 2>&1  >> /root/stdout.log
+adduser minecraft --gecos "" --no-create-home --disabled-password >>"$main_log" 2>>"$err_log"
 
 MINECRAFT_PORTS="25565"
        sed -i "/\<$MINECRAFT_PORTS\>/ "\!"s/^OPEN_TCP=\"/&$MINECRAFT_PORTS, /" /etc/arno-iptables-firewall/firewall.conf
@@ -52,7 +52,7 @@ MINECRAFT_PORTS="25565"
 sleep 1
 
 #If the Addon runs in Standalone we need that
-systemctl force-reload arno-iptables-firewall.service >>/root/stderror.log 2>&1  >> /root/stdout.log
+systemctl force-reload arno-iptables-firewall.service >>"$main_log" 2>>"$err_log"
 
 mkdir /usr/local/minecraft/
 chown minecraft /usr/local/minecraft/
@@ -65,7 +65,7 @@ java -Xmx1024M -Xms1024M -jar minecraft_server.*.*.*.jar nogui
 " >> /usr/local/minecraft/run-minecraft-server.sh
 
 chmod +x run-minecraft-server.sh
-sudo -u  minecraft /usr/local/minecraft/run-minecraft-server.sh >>/root/stderror.log 2>&1  >> /root/stdout.log
+sudo -u  minecraft /usr/local/minecraft/run-minecraft-server.sh >>"$main_log" 2>>"$err_log"
 
 sed -i 's|eula=false|eula=true|' /usr/local/minecraft/eula.txt
 

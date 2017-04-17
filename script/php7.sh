@@ -27,6 +27,21 @@
 
 php7() {
 
+rm /etc/apt/sources.list
+cat > /etc/apt/sources.list <<END
+# Dotdeb
+deb http://packages.dotdeb.org jessie all
+deb-src http://packages.dotdeb.org jessie all
+END
+
+cat > /etc/apt/preferences.d/dotdeb <<END
+Package: *
+Pin: origin packages.dotdeb.org
+Pin-Priority: 1001
+END
+
+apt-get update -y >>"$main_log" 2>>"$err_log"
+
 PHPVERSION7="7.0"
 echo "${info} Installing PHP7..." | awk '{ print strftime("[%H:%M:%S] |"), $0 }'
 #Note CHECK PHP_FPM SOCK PATH
