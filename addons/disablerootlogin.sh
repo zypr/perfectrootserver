@@ -32,11 +32,7 @@
 #----------------------------------------------------------------------#
 #DisableRootLogin
 disablerootlogin() {
-# Check if Perfectrootserver Script is installed
-if [ ! -f /root/credentials.txt ]; then
-    echo "${error} Can not find file /root/credentials.txt!" | awk '{ print strftime("[%H:%M:%S] |"), $0 }'
-	exit 0
-fi
+
 if [ ${DISABLE_ROOT_LOGIN} == '1' ]; then
 
 echo

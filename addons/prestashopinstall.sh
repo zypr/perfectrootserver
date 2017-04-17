@@ -173,6 +173,15 @@ echo "Your Username to Login ist:$PRESTASHOP_OWNER_EMAIL"
 echo "Your Password to Login ist:$PRESTASHOP_STRONG_PASSWORD"
 echo "Your Domain to Login ist:www.$PRESTASHOPDOMAIN/"
 
+	echo "--------------------------------------------" >> ~/addoninformation.txt
+	echo "Prestashop E-Commerce System" >> ~/addoninformation.txt
+	echo "--------------------------------------------" >> ~/addoninformation.txt
+	echo "Your Domain to Login ist:www.$PRESTASHOPDOMAIN/" >> ~/addoninformation.txt
+	echo "Your Username to Login ist:$PRESTASHOP_OWNER_EMAIL" >> ~/credentials.txt
+	echo "Your Password to Login ist:$PRESTASHOP_STRONG_PASSWORD" >> ~/addoninformation.txt
+	echo "" >> ~/addoninformation.txt
+	echo "" >> ~/addoninformation.txt
+
 
 
 fi # End var USE_PRESTASHOP
