@@ -67,8 +67,8 @@ source script/firewall.sh
 #source script/finischer.sh
 
 # Addons
- source addons/ajenti.sh
- source addons/teamspeak3.sh
+# source addons/ajenti.sh
+# source addons/teamspeak3.sh
 # source addons/minecraft.sh
 # source addons/vsftpdinstall.sh
 # source addons/prestashopinstall.sh
@@ -116,10 +116,10 @@ publickey
 
 
 # Addon functions
-ajenti
-teamspeak3
-minecraft
-vsftpd
+#ajenti
+#teamspeak3
+#minecraft
+#vsftpd
 
 # untestet
 #prestashopinstall
