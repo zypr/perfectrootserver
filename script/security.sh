@@ -100,27 +100,25 @@ if [ ${ROUNDCUBE_MYSQL_PASS} == "generatepw" ]; then
 fi
 sleep 2
 
-if [ ${USE_PMA="1"} == '1' ]; then
-  if [ ${PMA_HTTPAUTH_PASS} == 'generatepw' ]; then
+if [ ${PMA_HTTPAUTH_PASS} == "generatepw" ]; then
 	PMA_HTTPAUTH_PASS=$(openssl rand -base64 30 | tr -d / | cut -c -24 | grep -P '(?=^.{8,255}$)(?=^[^\s]*$)(?=.*\d)(?=.*[A-Z])(?=.*[a-z])')
   	sed -i "s/PMA_HTTPAUTH_PASS=\"generatepw\"/PMA_HTTPAUTH_PASS=\"$PMA_HTTPAUTH_PASS\"/g" ~/configs/userconfig.cfg
-  fi
-  sleep 2
-
-  if [ ${PMA_BFSECURE_PASS} == 'generatepw' ]; then
-	PMA_BFSECURE_PASS=$(openssl rand -base64 30 | tr -d / | cut -c -24 | grep -P '(?=^.{8,255}$)(?=^[^\s]*$)(?=.*\d)(?=.*[A-Z])(?=.*[a-z])')
-  	sed -i "s/PMA_BFSECURE_PASS=\"generatepw\"/PMA_BFSECURE_PASS=\"$PMA_BFSECURE_PASS\"/g" ~/configs/userconfig.cfg
-  fi
 fi
 sleep 2
 
-if [ ${MYSQL_ROOT_PASS} == 'generatepw' ]; then
+if [ ${PMA_BFSECURE_PASS} == "generatepw" ]; then
+	PMA_BFSECURE_PASS=$(openssl rand -base64 30 | tr -d / | cut -c -24 | grep -P '(?=^.{8,255}$)(?=^[^\s]*$)(?=.*\d)(?=.*[A-Z])(?=.*[a-z])')
+  	sed -i "s/PMA_BFSECURE_PASS=\"generatepw\"/PMA_BFSECURE_PASS=\"$PMA_BFSECURE_PASS\"/g" ~/configs/userconfig.cfg
+fi
+sleep 2
+
+if [ ${MYSQL_ROOT_PASS} == "generatepw" ]; then
 	MYSQL_ROOT_PASS=$(openssl rand -base64 30 | tr -d / | cut -c -24 | grep -P '(?=^.{8,255}$)(?=^[^\s]*$)(?=.*\d)(?=.*[A-Z])(?=.*[a-z])')
   	sed -i "s/MYSQL_ROOT_PASS=\"generatepw\"/MYSQL_ROOT_PASS=\"$MYSQL_ROOT_PASS\"/g" ~/configs/userconfig.cfg
 fi
 sleep 2
 
-if [ ${MYSQL_PMADB_PASS} == 'generatepw' ]; then
+if [ ${MYSQL_PMADB_PASS} == "generatepw" ]; then
 	MYSQL_PMADB_PASS=$(openssl rand -base64 30 | tr -d / | cut -c -24 | grep -P '(?=^.{8,255}$)(?=^[^\s]*$)(?=.*\d)(?=.*[A-Z])(?=.*[a-z])')
   	sed -i "s/MYSQL_PMADB_PASS=\"generatepw\"/MYSQL_PMADB_PASS=\"$MYSQL_PMADB_PASS\"/g" ~/configs/userconfig.cfg
 fi

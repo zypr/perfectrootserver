@@ -26,6 +26,7 @@
 #################################
 
 postfix() {
+if [ ${USE_MAILSERVER} == '1' ]; then
 echo "${info} Installing Postfix..." | awk '{ print strftime("[%H:%M:%S] |"), $0 }'
 DEBIAN_FRONTEND=noninteractive aptitude -y install postfix-mysql postfix-pcre postfix >>"$main_log" 2>>"$err_log"
 
@@ -396,5 +397,6 @@ lmtps     unix  -       -       -       -       -       lmtp
   -o mynetworks=127.0.0.0/8
   -o receive_override_options=no_unknown_recipient_checks
 EOF1
+fi
 }
 source ~/configs/userconfig.cfg

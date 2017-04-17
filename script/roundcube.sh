@@ -26,6 +26,7 @@
 #################################
 
 roundcube() {
+if [ ${USE_WEBMAIL} == '1' ]; then
 echo "${info} Installing Roundcube..." | awk '{ print strftime("[%H:%M:%S] |"), $0 }'
 
 #Create Database
@@ -116,7 +117,8 @@ if [ ${USE_PHP7} == '1' ]; then
 fi
 
 chown -R www-data: /var/www/html
-chown -R vmail:vmail /var/vmail/ #fix???
+chown -R vmail:vmail /var/vmail/
+fi
 }
 source ~/configs/userconfig.cfg
 source ~/configs/versions.cfg

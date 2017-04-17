@@ -78,6 +78,11 @@ deb	http://ftp.debian.org/debian/ stable main contrib non-free
 deb-src http://ftp.debian.org/debian/ stable main contrib non-free
 END
 
+cat > /etc/apt/sources.list.d/jessie-backports.list <<END
+deb http://ftp.debian.org/debian jessie-backports main
+deb-src http://ftp.debian.org/debian jessie-backports main
+END
+
 cat > /etc/apt/sources.list.d/testing.list <<END
 deb	http://ftp.debian.org/debian/ testing main contrib non-free
 deb-src http://ftp.debian.org/debian/ testing main contrib non-free
@@ -102,19 +107,25 @@ END
 cat > /etc/apt/preferences.d/security.pref <<END
 Package: *
 Pin: release l=Debian-Security
-Pin-Priority: 1000
+Pin-Priority: 960
 END
 
 cat > /etc/apt/preferences.d/stable.pref <<END
 Package: *
 Pin: release a=stable
+Pin-Priority: 950
+END
+
+cat > /etc/apt/preferences.d/jessie-backports.pref <<END
+Package: *
+Pin: release a=jessie-backports
 Pin-Priority: 900
 END
 
 cat > /etc/apt/preferences.d/testing.pref <<END
 Package: *
 Pin: release a=testing
-Pin-Priority: 750
+Pin-Priority: 800
 END
 
 cat > /etc/apt/preferences.d/unstable.pref <<END

@@ -18,11 +18,11 @@ tar -xzf ~/perfectrootserver.tar.gz -C ~/ --strip-components=1
 
 Edit settings to your needs:
 ```
-nano ~/config/userconfig.cfg
+nano ~/configs/userconfig.cfg
 ```
 
 ```
-nano ~/config/addonconfig.cfg
+nano ~/configs/addonconfig.cfg
 ```
 
 

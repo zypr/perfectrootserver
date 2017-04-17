@@ -25,9 +25,8 @@
 #################################
 
 phpmyadmin() {
-
 # phpMyAdmin
-if [ $USE_PMA == '1' ]; then
+if [ ${USE_PMA} == '1' ]; then
 
 echo "${info} Installing phpMyAdmin..." | awk '{ print strftime("[%H:%M:%S] |"), $0 }'
 htpasswd -b /etc/nginx/htpasswd/.htpasswd ${PMA_HTTPAUTH_USER} ${PMA_HTTPAUTH_PASS} >>"$main_log" 2>>"$err_log"

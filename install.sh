@@ -58,12 +58,9 @@ source script/phpmyadmin.sh
 
 source script/dovecot.sh
 source script/postfix.sh
-if [ ${USE_WEBMAIL} == '1' ]; then
-		source script/roundcube.sh
-fi
-source script/vimbadmin.sh
 source script/mailfilter.sh
-#source script/policydweight.sh
+source script/roundcube.sh
+source script/vimbadmin.sh
 
 source script/firewall.sh
 
@@ -72,10 +69,10 @@ source script/firewall.sh
 # Addons
  source addons/ajenti.sh
  source addons/teamspeak3.sh
- source addons/minecraft.sh
- source addons/vsftpdinstall.sh
- source addons/prestashopinstall.sh
- source addons/piwik.sh
+# source addons/minecraft.sh
+# source addons/vsftpdinstall.sh
+# source addons/prestashopinstall.sh
+# source addons/piwik.sh
 
 
 #source addons/openvpn.sh
@@ -106,9 +103,7 @@ fi
 dovecot
 postfix
 mailfilter
-if [ ${USE_WEBMAIL} == '1' ]; then
-		roundcube
-fi
+roundcube
 vimbadmin
 
 # Special harding
@@ -116,9 +111,7 @@ vimbadmin
 
 firewall
 fail2ban
-if [ ${USE_PMA} == '1' ]; then
 phpmyadmin
-fi
 publickey
 
 

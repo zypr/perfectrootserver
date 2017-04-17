@@ -103,6 +103,11 @@ checkconfig() {
 		echo "${error} You can not use ALLOWHTTPCONNECTIONS and HIGH_SECURITY together, please set one option to 0" | awk '{ print strftime("[%H:%M:%S] |"), $0 }'
 		exit 1
 		fi
+		
+		if [ ${USE_MAILSERVER} == '0' ] && [ ${USE_WEBMAIL} == '1' ]; then
+		echo "${error} You can't install Roundcube without the mailserver!" | awk '{ print strftime("[%H:%M:%S] |"), $0 }'
+		exit 1
+		fi
 
 }
 source ~/configs/userconfig.cfg

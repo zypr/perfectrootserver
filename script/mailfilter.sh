@@ -26,6 +26,7 @@
 #################################
 
 mailfilter() {
+if [ ${USE_MAILSERVER} == '1' ]; then
 echo "${info} Installing Mailfilter..." | awk '{ print strftime("[%H:%M:%S] |"), $0 }'
 apt-get -q -y --force-yes install zip rar unrar unzip p7zip-full amavisd-new clamav-daemon spamassassin >>"$main_log" 2>>"$err_log"
 
@@ -120,5 +121,6 @@ amavisd-new genrsa /var/lib/amavis/db/dkim_${MYDOMAIN}.key 2048 >>"$main_log" 2>
 amavisd-new showkey ${MYDOMAIN} >>"$main_log" 2>>"$err_log"
 
 adduser clamav amavis >>"$main_log" 2>>"$err_log"
+fi
 }
 source ~/configs/userconfig.cfg

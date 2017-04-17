@@ -42,12 +42,12 @@ fi
 # Ajenti
 if [ ${USE_AJENTI} == '1' ] && [ ${USE_VALID_SSL} == '1' ]; then
 	echo "${info} Installing Ajenti..." | awk '{ print strftime("[%H:%M:%S] |"), $0 }'
-	wget -q http://repo.ajenti.org/debian/key -O- | apt-key add - >>/root/stderror.log 2>&1  >> /root/stdout.log
+	wget -q http://repo.ajenti.org/debian/key -O- | apt-key add - >>"$main_log" 2>>"$err_log"
 	echo "deb http://repo.ajenti.org/debian main main debian" >> /etc/apt/sources.list
-	apt-get -qq update && apt-get -q -y --force-yes install ajenti >>/root/stderror.log 2>&1  >> /root/stdout.log
+	apt-get -qq update && apt-get -q -y --force-yes install ajenti >>"$main_log" 2>>"$err_log"
 
 #gevent workaround -> https://github.com/ajenti/ajenti/issues/702 https://github.com/ajenti/ajenti/issues/870
-	sudo easy_install -U gevent==1.1b4 >>/root/stderror.log 2>&1  >> /root/stdout.log
+	sudo easy_install -U gevent==1.1b4 >>"$main_log" 2>>"$err_log"
 
 #Use Lets Encrypt Cert for Ajenti
 	cat /etc/letsencrypt/live/${MYDOMAIN}/fullchain.pem /etc/letsencrypt/live/${MYDOMAIN}/privkey.pem > /etc/letsencrypt/live/${MYDOMAIN}/${MYDOMAIN}-combined.pem
@@ -61,7 +61,7 @@ AJENTI_PORTS="8000"
 	sed -i "/\<$AJENTI_PORTS\>/ "\!"s/^OPEN_TCP=\"/&$AJENTI_PORTS, /" /etc/arno-iptables-firewall/firewall.conf
 sleep 1
 	#If the Addon runs in Standalone we need that
-	systemctl force-reload arno-iptables-firewall.service >>/root/stderror.log 2>&1  >> /root/stdout.log
+	systemctl force-reload arno-iptables-firewall.service >>"$main_log" 2>>"$err_log"
 
 	echo "--------------------------------------------" >> ~/addoninformation.txt
 	echo "Ajenti" >> ~/addoninformation.txt

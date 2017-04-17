@@ -26,6 +26,7 @@
 #################################
 
 vimbadmin() {
+if [ ${USE_MAILSERVER} == '1' ]; then
 echo "${info} Installing Vimbadmin..." | awk '{ print strftime("[%H:%M:%S] |"), $0 }'
 
 #Create Database
@@ -110,6 +111,8 @@ fi
 
 if [ ${USE_PHP5} == '1' ]; then
 		systemctl restart {dovecot,postfix,amavis,spamassassin,clamav-daemon,nginx,php5-fpm,mysql} >>"$main_log" 2>>"$err_log"
+fi
+
 fi
 }
 source ~/configs/userconfig.cfg
