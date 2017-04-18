@@ -149,6 +149,7 @@ checksystem() {
 		fi
 	fi
 	echo "${ok} The system meets the minimum requirements." | awk '{ print strftime("[%H:%M:%S] |"), $0 }'
-
+	mkdir ~/sources
+	
 }
 source ~/configs/userconfig.cfg
