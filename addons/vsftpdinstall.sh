@@ -31,47 +31,54 @@
 #----------------------------------------------------------------------#
 
 if [ ${USE_VSFTPD} == '1' ]; then
-SSL_PATH_VSFTPD="/etc/ssl/private"
-RSA_KEY_VSFTPD="2048"
-MYDOMAIN="meinedomain.tld"
-FTP_USERNAME="meinftpuser"
-FTP_USER_GROUP="wwwftp"
+STANDALONE_VSFTPD="0"
 
+vsftpd() {
+	SSL_PATH_VSFTPD="/etc/ssl/private"
+	RSA_KEY_VSFTPD="2048"
+	FTP_USER_GROUP="wwwftp"
+if [ ${STANDALONE_VSFTPD} == '1' ]; then
+	MYDOMAIN="meinedomain.tld"
+	FTP_USERNAME="meinftpuser"
+fi
 
 ##########################################################################
 ###################### DO NOT EDIT ANYTHING BELOW! #######################
 ##########################################################################
 #If you change it, the script will broken
 PATH_TO_WEBFOLDER="/etc/nginx/html"
-# Some nice colors
-red() { echo "$(tput setaf 1)$*$(tput setaf 9)"; }
-green() { echo "$(tput setaf 2)$*$(tput setaf 9)"; }
-yellow() { echo "$(tput setaf 3)$*$(tput setaf 9)"; }
-magenta() { echo "$(tput setaf 5)$*$(tput setaf 9)"; }
-cyan() { echo "$(tput setaf 6)$*$(tput setaf 9)"; }
-textb() { echo $(tput bold)${1}$(tput sgr0); }
-greenb() { echo $(tput bold)$(tput setaf 2)${1}$(tput sgr0); }
-redb() { echo $(tput bold)$(tput setaf 1)${1}$(tput sgr0); }
-yellowb() { echo $(tput bold)$(tput setaf 3)${1}$(tput sgr0); }
-pinkb() { echo $(tput bold)$(tput setaf 5)${1}$(tput sgr0); }
 
-# Some nice variables
-info="$(textb [INFO] -)"
-warn="$(yellowb [WARN] -)"
-error="$(redb [ERROR] -)"
-fyi="$(pinkb [INFO] -)"
-ok="$(greenb [OKAY] -)"
 
-echo
-echo
-echo "$(date +"[%T]") | $(textb +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+)"
-echo "$(date +"[%T]") |  $(textb Very) $(textb Secure) $(textb FTP) $(textb deamon) $(textb vsFTPd)"
-echo "$(date +"[%T]") | $(textb +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+)"
-echo
-echo "$(date +"[%T]") | ${info} Welcome to the Perfect Rootserver installation!"
-echo "$(date +"[%T]") | ${info} This script install and FTP Service"
-echo "$(date +"[%T]") | ${info} Please wait while the installer is preparing for the first use..."
+if [ ${STANDALONE_VSFTPD} == '1' ]; then
+	# Some nice colors
+	red() { echo "$(tput setaf 1)$*$(tput setaf 9)"; }
+	green() { echo "$(tput setaf 2)$*$(tput setaf 9)"; }
+	yellow() { echo "$(tput setaf 3)$*$(tput setaf 9)"; }
+	magenta() { echo "$(tput setaf 5)$*$(tput setaf 9)"; }
+	cyan() { echo "$(tput setaf 6)$*$(tput setaf 9)"; }
+	textb() { echo $(tput bold)${1}$(tput sgr0); }
+	greenb() { echo $(tput bold)$(tput setaf 2)${1}$(tput sgr0); }
+	redb() { echo $(tput bold)$(tput setaf 1)${1}$(tput sgr0); }
+	yellowb() { echo $(tput bold)$(tput setaf 3)${1}$(tput sgr0); }
+	pinkb() { echo $(tput bold)$(tput setaf 5)${1}$(tput sgr0); }
 
+	# Some nice variables
+	info="$(textb [INFO] -)"
+	warn="$(yellowb [WARN] -)"
+	error="$(redb [ERROR] -)"
+	fyi="$(pinkb [INFO] -)"
+	ok="$(greenb [OKAY] -)"
+
+	echo
+	echo
+	echo "$(date +"[%T]") | $(textb +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+)"
+	echo "$(date +"[%T]") |  $(textb Very) $(textb Secure) $(textb FTP) $(textb deamon) $(textb vsFTPd)"
+	echo "$(date +"[%T]") | $(textb +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+)"
+	echo
+	echo "$(date +"[%T]") | ${info} Welcome to the Perfect Rootserver installation!"
+	echo "$(date +"[%T]") | ${info} This script install and FTP Service"
+	echo "$(date +"[%T]") | ${info} Please wait while the installer is preparing for the first use..."
+fi
 # --------------------------------------------------------------------------------------------------------------------------------------------------
 
 echo "${info} VSFTPD..." | awk '{ print strftime("[%H:%M:%S] |"), $0 }'
@@ -356,4 +363,7 @@ END
 	sleep 1
 	systemctl force-reload arno-iptables-firewall.service
 
+	}
 fi
+source ~/configs/userconfig.cfg
+source ~/configs/addonconfig.cfg

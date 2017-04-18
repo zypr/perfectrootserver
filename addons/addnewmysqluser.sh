@@ -31,6 +31,7 @@
 #-------------------DO NOT EDIT SOMETHING BELOW THIS-------------------#
 #----------------------------------------------------------------------#
 
+addnewmysqluser() {
 
 PATH_TO_PASSWORDS="/root/credentials.txt"
 MYSQL_PASSWORD=$(grep -Pom 1 "(?<=^password = ).*$" $PATH_TO_PASSWORDS)
@@ -59,6 +60,9 @@ else
     mysql -uroot -p${rootpasswd} -e "GRANT ALL PRIVILEGES ON ${MAINDB}.* TO '${MAINDB}'@'localhost';"
     mysql -uroot -p${rootpasswd} -e "FLUSH PRIVILEGES;"
 fi
+
+
+}
 
 source ~/configs/userconfig.cfg
 source ~/configs/addonconfig.cfg

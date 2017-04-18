@@ -30,7 +30,7 @@
 #-------------------DO NOT EDIT SOMETHING BELOW THIS-------------------#
 #----------------------------------------------------------------------#
 
-
+munin() {
 
 apt-get install -y munin munin-node
 
@@ -318,3 +318,6 @@ location /munin {
 }
 END
 https://www.scalescale.com/tips/nginx/monitor-nginx-munin/
+
+
+}

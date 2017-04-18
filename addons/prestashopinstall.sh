@@ -35,9 +35,11 @@ prestashopinstall() {
 if [ ${USE_PRESTASHOP} == '1' ]; then
 
 # Check if Perfectrootserver Script is installed
-if [ ! -f /root/credentials.txt ]; then
-    echo "${error} Can not find file /root/credentials.txt!" | awk '{ print strftime("[%H:%M:%S] |"), $0 }'
-	exit 0
+if [ ${STANDALONE_PRESTASHOP} == '1' ]; then
+	if [ ! -f /root/credentials.txt ]; then
+		echo "${error} Can not find file /root/credentials.txt!" | awk '{ print strftime("[%H:%M:%S] |"), $0 }'
+		exit 0
+	fi
 fi
 
 touch  /root/logs/stderrorPRESTASHOP.log 
