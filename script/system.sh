@@ -60,73 +60,33 @@ fi
 echo "${info} Installing prerequisites..." | awk '{ print strftime("[%H:%M:%S] |"), $0 }'
 echo "${warn} Some of the tasks could take a long time, please be patient!" | awk '{ print strftime("[%H:%M:%S] |"), $0 }'
 
-cat > /etc/apt/sources.list.d/security.list <<END
-deb http://security.debian.org/ stable/updates main contrib non-free
-deb http://security.debian.org/ testing/updates main contrib non-free
+cat > /etc/apt/apt.conf.d/default-release <<END
+APT::Default-Release "jessie";
 END
 
-cat > /etc/apt/sources.list.d/stable.list <<END
-deb	http://ftp.debian.org/debian/ stable main contrib non-free
-deb-src http://ftp.debian.org/debian/ stable main contrib non-free
-END
+cat > /etc/apt/sources.list <<END
+# Dotdeb
+deb http://packages.dotdeb.org jessie all
+deb-src http://packages.dotdeb.org jessie all
 
-cat > /etc/apt/sources.list.d/jessie-backports.list <<END
-deb http://ftp.debian.org/debian jessie-backports main
-deb-src http://ftp.debian.org/debian jessie-backports main
-END
+# MariaDB
+deb [arch=amd64,i386] http://mirror.netcologne.de/mariadb/repo/10.1/debian jessie main
 
-cat > /etc/apt/sources.list.d/testing.list <<END
-deb	http://ftp.debian.org/debian/ testing main contrib non-free
+# Debian
+deb 	http://security.debian.org/ jessie/updates main contrib non-free
+deb 	http://security.debian.org/ testing/updates main contrib non-free
+deb 	http://ftp.debian.org/debian/ jessie main contrib non-free
+deb-src http://ftp.debian.org/debian/ jessie main contrib non-free
+deb 	http://ftp.debian.org/debian/ testing main contrib non-free
 deb-src http://ftp.debian.org/debian/ testing main contrib non-free
-END
-
-cat > /etc/apt/sources.list.d/unstable.list <<END
-deb	http://ftp.debian.org/debian/ unstable main contrib non-free
+deb     http://ftp.debian.org/debian/ unstable main contrib non-free
 deb-src http://ftp.debian.org/debian/ unstable main contrib non-free
-END
-
-cat > /etc/apt/sources.list.d/experimental.list <<END
-deb	http://ftp.debian.org/debian/ experimental main contrib non-free
+deb     http://ftp.debian.org/debian/ experimental main contrib non-free
 deb-src http://ftp.debian.org/debian/ experimental main contrib non-free
 END
 
-cat > /etc/apt/preferences.d/security.pref <<END
-Package: *
-Pin: release l=Debian-Security
-Pin-Priority: 960
-END
-
-cat > /etc/apt/preferences.d/stable.pref <<END
-Package: *
-Pin: release a=stable
-Pin-Priority: 950
-END
-
-cat > /etc/apt/preferences.d/jessie-backports.pref <<END
-Package: *
-Pin: release a=jessie-backports
-Pin-Priority: 900
-END
-
-cat > /etc/apt/preferences.d/testing.pref <<END
-Package: *
-Pin: release a=testing
-Pin-Priority: 800
-END
-
-cat > /etc/apt/preferences.d/unstable.pref <<END
-Package: *
-Pin: release a=unstable
-Pin-Priority: 50
-END
-
-cat > /etc/apt/preferences.d/experimental.pref <<END
-Package: *
-Pin: release a=experimental
-Pin-Priority: 1
-END
-
 wget -O ~/sources/dotdeb.gpg http://www.dotdeb.org/dotdeb.gpg >>"$main_log" 2>>"$err_log" && apt-key add ~/sources/dotdeb.gpg >>"$main_log" 2>>"$err_log"
+apt-key adv --recv-keys --keyserver keyserver.ubuntu.com 0xcbcb082a1bb943db >>"$main_log" 2>>"$err_log"
 
 apt-get update -y >>"$main_log" 2>>"$err_log" && apt-get -y upgrade >>"$main_log" 2>>"$err_log"
 
@@ -142,28 +102,107 @@ fi
 # System Tuning
 echo "${info} Kernel hardening & system tuning..." | awk '{ print strftime("[%H:%M:%S] |"), $0 }'
 cat > /etc/sysctl.conf <<END
-kernel.randomize_va_space=1
-net.ipv4.conf.all.rp_filter=1
-net.ipv4.conf.all.accept_source_route=0
-net.ipv4.icmp_echo_ignore_broadcasts=1
+fs.file-max = 209708
+fs.inotify.max_user_instances = 2048
+fs.suid_dumpable = 0
+kernel.core_uses_pid = 1
+kernel.kptr_restrict = 1
+kernel.msgmax = 65535
+kernel.msgmnb = 65535
+kernel.pid_max = 65535
+kernel.randomize_va_space = 2
+kernel.shmall = 268435456
+kernel.shmmax = 268435456
+kernel.sysrq = 0
+net.core.default_qdisc = fq_codel
+net.core.dev_weight = 64
+net.core.netdev_max_backlog = 16384
+net.core.optmem_max = 65535
+net.core.rmem_default = 262144
+net.core.rmem_max = 16777216
+net.core.somaxconn = 32768
+net.core.wmem_default = 262144
+net.core.wmem_max = 16777216
+net.ipv4.conf.all.accept_redirects = 0
+net.ipv4.conf.all.accept_source_route = 0
+net.ipv4.conf.all.bootp_relay = 0
+net.ipv4.conf.all.forwarding = 0
 net.ipv4.conf.all.log_martians = 1
-net.ipv4.tcp_fin_timeout = 1
-net.ipv4.tcp_tw_recycle = 1
-kernel.shmmax = 1073741824
-net.ipv4.tcp_rmem = 4096 25165824 25165824
-net.core.rmem_max = 25165824
-net.core.rmem_default = 25165824
-net.ipv4.tcp_wmem = 4096 65536 25165824
-net.core.wmem_max = 25165824
-net.core.wmem_default = 65536
-net.core.optmem_max = 25165824
-net.ipv4.tcp_syncookies = 1
-net.ipv4.tcp_max_orphans = 262144
-net.ipv4.tcp_max_syn_backlog = 262144
-net.ipv4.tcp_synack_retries = 2
+net.ipv4.conf.all.proxy_arp = 0
+net.ipv4.conf.all.rp_filter = 1
+net.ipv4.conf.all.secure_redirects = 0
+net.ipv4.conf.all.send_redirects = 0
+net.ipv4.conf.default.accept_redirects = 0
+net.ipv4.conf.default.accept_source_route = 0
+net.ipv4.conf.default.forwarding = 0
+net.ipv4.conf.default.log_martians = 1
+net.ipv4.conf.default.rp_filter = 1
+net.ipv4.conf.default.secure_redirects = 0
+net.ipv4.conf.default.send_redirects = 0
+net.ipv4.icmp_echo_ignore_all = 0
+net.ipv4.icmp_echo_ignore_broadcasts = 1
+net.ipv4.icmp_ignore_bogus_error_responses = 1
+net.ipv4.ip_forward = 0
+net.ipv4.ip_local_port_range = 16384 65535
+net.ipv4.ipfrag_high_thresh = 512000
+net.ipv4.ipfrag_low_thresh = 446464
+net.ipv4.neigh.default.gc_interval = 30
+net.ipv4.neigh.default.gc_thresh1 = 32
+net.ipv4.neigh.default.gc_thresh2 = 1024
+net.ipv4.neigh.default.gc_thresh3 = 2048
+net.ipv4.neigh.default.proxy_qlen = 96
+net.ipv4.neigh.default.unres_qlen = 6
+net.ipv4.route.flush = 1
+net.ipv4.tcp_congestion_control = htcp
+net.ipv4.tcp_ecn = 1
+net.ipv4.tcp_fastopen = 3
+net.ipv4.tcp_fin_timeout = 7
+net.ipv4.tcp_keepalive_intvl = 15
+net.ipv4.tcp_keepalive_probes = 5
+net.ipv4.tcp_keepalive_time = 300
+net.ipv4.tcp_max_orphans = 16384
+net.ipv4.tcp_max_syn_backlog = 4096
+net.ipv4.tcp_max_tw_buckets = 1440000
+net.ipv4.tcp_moderate_rcvbuf = 1
+net.ipv4.tcp_no_metrics_save = 1
+net.ipv4.tcp_orphan_retries = 0
+net.ipv4.tcp_reordering = 3
+net.ipv4.tcp_retries1 = 3
+net.ipv4.tcp_retries2 = 15
+net.ipv4.tcp_rfc1337 = 1
+net.ipv4.tcp_rmem = 8192 87380 16777216
+net.ipv4.tcp_slow_start_after_idle = 0
 net.ipv4.tcp_syn_retries = 2
-net.core.default_qdisc=fq_codel
-fs.inotify.max_user_instances=2048
+net.ipv4.tcp_synack_retries = 2
+net.ipv4.tcp_syncookies = 1
+net.ipv4.tcp_timestamps = 1
+net.ipv4.tcp_tw_recycle = 0
+net.ipv4.tcp_tw_reuse = 1
+net.ipv4.tcp_window_scaling = 1
+net.ipv4.tcp_wmem = 8192 65536 16777216
+net.ipv4.udp_rmem_min = 16384
+net.ipv4.udp_wmem_min = 16384
+net.ipv6.conf.all.accept_ra = 0
+net.ipv6.conf.all.accept_redirects = 0
+net.ipv6.conf.all.accept_source_route = 0
+net.ipv6.conf.all.autoconf = 0
+net.ipv6.conf.all.forwarding = 0
+net.ipv6.conf.default.accept_ra = 0
+net.ipv6.conf.default.accept_redirects = 0
+net.ipv6.conf.default.accept_source_route = 0
+net.ipv6.conf.default.autoconf=0
+net.ipv6.conf.default.forwarding = 0
+net.ipv6.conf.eth0.accept_ra=0
+net.ipv6.conf.eth0.autoconf=0
+net.ipv6.route.flush = 1
+net.unix.max_dgram_qlen = 50
+vm.dirty_background_ratio = 5
+vm.dirty_ratio = 30
+vm.min_free_kbytes = 65535
+vm.mmap_min_addr = 4096
+vm.overcommit_memory = 0
+vm.overcommit_ratio = 50
+vm.swappiness = 30
 
 # Disable IPV6
 net.ipv6.conf.all.disable_ipv6 = 1
