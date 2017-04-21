@@ -6,7 +6,7 @@
 # Compatible with Debian 8.x (jessie)
 # Special thanks to Zypr!
 #
-	# This program is free software; you can redistribute it and/or modify
+    # This program is free software; you can redistribute it and/or modify
     # it under the terms of the GNU General Public License as published by
     # the Free Software Foundation; either version 2 of the License, or
     # (at your option) any later version.
@@ -26,6 +26,12 @@
 
 firewall() {
 echo "${info} Installing Arno-Iptables-Firewall..." | awk '{ print strftime("[%H:%M:%S] |"), $0 }'
+
+# ipset
+if [ $(dpkg-query -l | grep ipset | wc -l) -ne 1 ]; then
+	apt-get update -y >>"$main_log" 2>>"$err_log" && apt-get -y --force-yes install ipset >>"$main_log" 2>>"$err_log"
+fi
+
 git clone https://github.com/arno-iptables-firewall/aif.git ~/sources/aif -q
 
 # Create folders and copy files
@@ -90,17 +96,22 @@ touch /etc/rc.local
 
 # Blacklist some bad guys
 mkdir ~/sources/blacklist
-sed -i 's/.*BLOCK_HOSTS_FILE=.*/BLOCK_HOSTS_FILE="\/etc\/arno-iptables-firewall\/blocked-hosts"/' /etc/arno-iptables-firewall/firewall.conf
+mkdir /etc/arno-iptables-firewall/blocklists
+sed -i 's/.*IPTABLES_IPSET=.*/IPTABLES_IPSET=1/' /etc/arno-iptables-firewall/firewall.conf
+sed -i 's/.*IPTABLES_IPSET_HASHSIZE=.*/IPTABLES_IPSET_HASHSIZE=16384/' /etc/arno-iptables-firewall/firewall.conf
+sed -i 's/.*IPTABLES_IPSET_MAXELEM=.*/IPTABLES_IPSET_MAXELEM=120000/' /etc/arno-iptables-firewall/firewall.conf
+sed -i 's/.*BLOCK_NETSET_DIR=.*/BLOCK_NETSET_DIR="\/etc\/arno-iptables-firewall\/blocklists"/' /etc/arno-iptables-firewall/firewall.conf
+
 cat > /etc/cron.daily/blocked-hosts <<END
 #!/bin/bash
 BLACKLIST_DIR="/root/sources/blacklist"
-BLACKLIST="/etc/arno-iptables-firewall/blocked-hosts"
+BLACKLIST="/etc/arno-iptables-firewall/blocklists/blocklist.netset"
 BLACKLIST_TEMP="\$BLACKLIST_DIR/blacklist"
 LIST=(
 "https://www.projecthoneypot.org/list_of_ips.php?t=d&rss=1"
 "https://check.torproject.org/cgi-bin/TorBulkExitList.py?ip=1.1.1.1"
 "https://www.maxmind.com/en/high-risk-ip-sample-list"
-"http://danger.rulez.sk/projects/bruteforceblocker/blist.php"
+"https://danger.rulez.sk/projects/bruteforceblocker/blist.php"
 "https://rules.emergingthreats.net/blockrules/compromised-ips.txt"
 "https://www.spamhaus.org/drop/drop.lasso"
 "http://cinsscore.com/list/ci-badguys.txt"
@@ -109,14 +120,17 @@ LIST=(
 "https://lists.blocklist.de/lists/all.txt"
 "https://blocklist.greensnow.co/greensnow.txt"
 "https://www.stopforumspam.com/downloads/toxic_ip_cidr.txt"
+"https://myip.ms/files/blacklist/csf/latest_blacklist.txt"
+"https://www.team-cymru.org/Services/Bogons/fullbogons-ipv4.txt"
+"https://raw.githubusercontent.com/17mon/china_ip_list/master/china_ip_list.txt"
 )
 for i in "\${LIST[@]}"
 do
-    wget -T 10 -t 2 -O - \$i | grep -Po '(?:\d{1,3}\.){3}\d{1,3}(?:/\d{1,2})?' >> \$BLACKLIST_TEMP
+    wget -T 10 -t 2 --no-check-certificate -O - \$i | grep -Po '(?:\d{1,3}\.){3}\d{1,3}(?:/\d{1,2})?' >> \$BLACKLIST_TEMP
 done
 sort \$BLACKLIST_TEMP -n | uniq > \$BLACKLIST
 cp \$BLACKLIST_TEMP \${BLACKLIST_DIR}/blacklist\_\$(date '+%d.%m.%Y_%T' | tr -d :) && rm \$BLACKLIST_TEMP
-systemctl force-reload arno-iptables-firewall.service
+/etc/init.d/arno-iptables-firewall force-reload
 END
 chmod +x /etc/cron.daily/blocked-hosts
 
